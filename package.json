@@ -1,52 +1,52 @@
 {
-  "name": "@eliware/knit",
-  "type": "module",
-  "version": "1.1.0",
-  "description": "GitHub webhook handler and deployment automation tool. Listens for GitHub webhook events, validates signatures, updates repositories, runs deployment commands, and sends notifications.",
-  "main": "knit.mjs",
-  "scripts": {
-    "start": "node knit.mjs",
-    "test": "npx --node-options=\"--experimental-vm-modules --no-warnings\" jest --detectOpenHandles --silent --coverage",
-    "lint": "npx oxlint ."
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/eliware/knit.git"
-  },
-  "keywords": [
-    "knit",
-    "nodejs",
-    "webhook",
-    "github",
-    "deployment",
-    "automation",
-    "discord",
-    "ci",
-    "cd"
-  ],
-  "author": "Eli Sterling, eliware.org <eli@eliware.org>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/eliware/knit/issues"
-  },
-  "homepage": "https://github.com/eliware/knit#readme",
-  "devDependencies": {
-    "jest": "^30.0.4",
-    "oxlint": "^1.76.0"
-  },
-  "jest": {
-    "testEnvironment": "node",
-    "testMatch": [
-      "**/?(*.)+(spec|test).[jt]s?(x)",
-      "**/?(*.)+(spec|test).mjs",
-      "**/?(*.)+(spec|test).cjs"
-    ]
-  },
-  "dependencies": {
-    "@eliware/common": "^1.0.17",
-    "@eliware/discord-webhook": "^1.0.4",
-    "dotenv": "^17.2.0",
-    "express": "^5.1.0",
-    "inquirer": "^12.7.0"
-  }
+    "name": "@eliware/knit",
+    "type": "module",
+    "version": "1.1.1",
+    "description": "GitHub webhook handler and deployment automation tool. Listens for GitHub webhook events, validates signatures, updates repositories, runs deployment commands, and sends notifications.",
+    "main": "knit.mjs",
+    "scripts": {
+        "start": "node knit.mjs",
+        "test": "npx --node-options=\"--experimental-vm-modules --no-warnings\" jest --detectOpenHandles --silent --coverage",
+        "lint": "npx oxlint ."
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/eliware/knit.git"
+    },
+    "keywords": [
+        "knit",
+        "nodejs",
+        "webhook",
+        "github",
+        "deployment",
+        "automation",
+        "discord",
+        "ci",
+        "cd"
+    ],
+    "author": "Eli Sterling, eliware.org <eli@eliware.org>",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/eliware/knit/issues"
+    },
+    "homepage": "https://github.com/eliware/knit#readme",
+    "devDependencies": {
+        "jest": "^30.0.4",
+        "oxlint": "^1.76.0"
+    },
+    "jest": {
+        "testEnvironment": "node",
+        "testMatch": [
+            "**/?(*.)+(spec|test).[jt]s?(x)",
+            "**/?(*.)+(spec|test).mjs",
+            "**/?(*.)+(spec|test).cjs"
+        ]
+    },
+    "dependencies": {
+        "@eliware/common": "^1.0.17",
+        "@eliware/discord-webhook": "^1.0.4",
+        "dotenv": "^17.2.0",
+        "express": "^5.1.0",
+        "inquirer": "^12.7.0"
+    }
 }
