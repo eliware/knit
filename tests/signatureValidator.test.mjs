@@ -1,4 +1,3 @@
-import { jest } from '@jest/globals'; // Add this line for Jest ESM support
 // Tests for src/signatureValidator.mjs
 import { validate } from '../src/signatureValidator.mjs';
 import crypto from 'crypto';

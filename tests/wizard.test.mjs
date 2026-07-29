@@ -28,7 +28,7 @@ describe('wizard.mjs', () => {
     const log = { info: jest.fn(), error: jest.fn() };
     await expect(wizard.runWizard({ log, getCommands, fs: mockFs, path: mockPath })).resolves.toBeUndefined();
     expect(log.info).toHaveBeenCalledWith('Starting interactive setup wizard');
-    expect(mockFs.writeFileSync).not.toThrow;
+    expect(() => mockFs.writeFileSync).not.toThrow();
   });
 
   it('should handle errors in the wizard', async () => {
@@ -38,4 +38,20 @@ describe('wizard.mjs', () => {
     await wizard.runWizard({ log, getCommands, fs: mockFs, path: mockPath });
     expect(log.error).toHaveBeenCalledWith('Wizard error:', expect.any(Error));
   });
+
+  it('should collect commands until user stops', async () => {
+    jest.spyOn(inquirer, 'prompt')
+      .mockResolvedValueOnce({ hasCommand: true })
+      .mockResolvedValueOnce({ cmd: 'npm run build' })
+      .mockResolvedValueOnce({ more: true })
+      .mockResolvedValueOnce({ cmd: 'npm run lint' })
+      .mockResolvedValueOnce({ more: false });
+    await expect(wizard.getCommands('pre-deployment')).resolves.toEqual(['npm run build', 'npm run lint']);
+  });
+
+  it('should return no commands when none configured', async () => {
+    jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ hasCommand: false });
+    await expect(wizard.getCommands('post-deployment')).resolves.toEqual([]);
+  });
+
 });

@@ -10,7 +10,7 @@ import * as Notifier from './notifier.mjs';
  * @param {Function} [params.sendNotification] - Optional sendNotification for testing/mocking.
  * @returns {Object} The repository handler with an update method.
  */
-export function createRepo({ config, log = logger, execCommandFn = execCommand, sendNotification } = {}) {
+export function createRepo({ config, execCommandFn = execCommand, sendNotification } = {}) {
   // Default sendNotification implementation if not injected
   const notifyFn = sendNotification
     ? sendNotification
@@ -186,7 +186,7 @@ export async function get({ name, log = logger }) {
   let config;
   try {
     config = ConfigValidator.validateJsonFile({ path: configFile });
-  } catch (err) {
+  } catch {
     return null;
   }
   if (!ConfigValidator.validate({ config })) {

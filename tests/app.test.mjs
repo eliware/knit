@@ -1,7 +1,6 @@
 // Tests for src/app.mjs
 import { jest } from '@jest/globals';
 import { createApp, startApp } from '../src/app.mjs';
-import express from 'express';
 
 describe('app.mjs', () => {
   it('should create an express app with middleware and routes', async () => {

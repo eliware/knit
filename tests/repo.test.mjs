@@ -39,4 +39,32 @@ describe('repo.mjs', () => {
     expect(sendNotification).toHaveBeenCalled();
     process.chdir.mockRestore();
   });
+
+  it('should reject invalid webhook bodies', async () => {
+    const repo = createRepo({ config, log, execCommandFn, sendNotification });
+    expect(await repo.update({ body: {}, log })).toBe(false);
+    expect(log.error).toHaveBeenCalledWith('[Repo] body validation failed');
+  });
+
+  it('should handle pre, git pull, chown, and post failures', async () => {
+    const repo = createRepo({ config, log, execCommandFn, sendNotification });
+    jest.spyOn(process, 'chdir').mockImplementation(() => {});
+    execCommandFn
+      .mockRejectedValueOnce(Object.assign(new Error('pre'), { stdout: 'out', stderr: 'err' }));
+    expect(await repo.update({ body, log })).toBe(false);
+    expect(log.error).toHaveBeenCalledWith('[Repo] Pre command failed: echo pre', expect.any(Error));
+    process.chdir.mockRestore();
+  });
+
+  it('should handle git pull and post command failures', async () => {
+    const repo = createRepo({ config, log, execCommandFn, sendNotification });
+    jest.spyOn(process, 'chdir').mockImplementation(() => {});
+    execCommandFn
+      .mockResolvedValueOnce({ stdout: '', stderr: '' })
+      .mockRejectedValueOnce(new Error('pull'));
+    expect(await repo.update({ body, log })).toBe(false);
+    expect(log.error).toHaveBeenCalledWith('[Repo] git pull failed:', expect.any(Error));
+    process.chdir.mockRestore();
+  });
+
 });

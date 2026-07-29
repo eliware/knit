@@ -7,4 +7,3 @@ registerSignals({ log });
 
 log.info('Knit Wizard starting...');
 
-import { runWizard } from './src/wizard.mjs';

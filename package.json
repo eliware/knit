@@ -6,7 +6,8 @@
   "main": "knit.mjs",
   "scripts": {
     "start": "node knit.mjs",
-    "test": "npx --node-options=\"--experimental-vm-modules --no-warnings\" jest --detectOpenHandles --silent"
+    "test": "npx --node-options=\"--experimental-vm-modules --no-warnings\" jest --detectOpenHandles --silent --coverage",
+    "lint": "npx oxlint ."
   },
   "repository": {
     "type": "git",
@@ -31,7 +32,7 @@
   "homepage": "https://github.com/eliware/knit#readme",
   "devDependencies": {
     "jest": "^30.0.4",
-    "oxlint": "^1.73.0"
+    "oxlint": "^1.76.0"
   },
   "jest": {
     "testEnvironment": "node",
