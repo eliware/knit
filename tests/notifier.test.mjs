@@ -76,4 +76,20 @@ describe('notifier.mjs', () => {
     expect(embed.url).toContain('v1%20beta');
   });
 
+
+  it('truncates long push descriptions', async () => {
+    const embed = await notifier.createEmbed({
+      post: { ref: 'refs/heads/main', repository: {}, commits: Array.from({ length: 100 }, (_, i) => ({ id: String(i).repeat(10), message: 'x'.repeat(100), url: '' })) },
+    });
+    expect(embed.description.length).toBeLessThanOrEqual(1800);
+    expect(embed.description).toContain('...');
+  });
+
+  it('uses repository owner avatar for tag fallback', async () => {
+    const embed = await notifier.createEmbed({
+      post: { ref: 'refs/tags/v1', repository: { full_name: 'o/r', owner: { avatar_url: 'owner.png' } } },
+    });
+    expect(embed.author.icon_url).toBe('owner.png');
+  });
+
 });
