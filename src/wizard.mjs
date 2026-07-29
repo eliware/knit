@@ -146,6 +146,3 @@ function printRepositoryInfo(filePath) {
     console.log('\nReminder: Set the GitHub webhook!\nURL to https://knit.eliware.org\nPOST: application/json\n');
 }
 
-if (process.env.NODE_ENV !== 'test') {
-    runWizard();
-}
