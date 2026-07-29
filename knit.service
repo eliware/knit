@@ -1,0 +1,18 @@
+[Unit]
+Description=DevOps Engine
+After=network-online.target
+Wants=network-online.target
+StartLimitBurst=3
+StartLimitIntervalSec=60
+
+[Service]
+User=root
+Group=root
+RestartSec=5
+Restart=on-failure
+WorkingDirectory=/opt/knit
+ExecStart=/opt/knit/knit.mjs
+EnvironmentFile=/opt/knit/.env
+
+[Install]
+WantedBy=multi-user.target
