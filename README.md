@@ -1,136 +1,97 @@
-# [![eliware.org](https://eliware.org/logos/brand.png)](https://discord.gg/M6aTR9eTwN)
+# @eliware/knit
 
-## @eliware/knit [![npm version](https://img.shields.io/npm/v/@eliware/knit.svg)](https://www.npmjs.com/package/@eliware/knit)[![license](https://img.shields.io/github/license/eliware/knit.svg)](LICENSE)[![build status](https://github.com/eliware/knit/actions/workflows/nodejs.yml/badge.svg)](https://github.com/eliware/knit/actions)
+GitHub webhook handler and deployment automation service. Knit validates GitHub signatures, routes events, deploys configured repositories locally or over SSH, and sends Discord notifications.
 
-A GitHub webhook handler and deployment automation tool. Knit listens for GitHub webhook events, validates signatures, updates local repositories, runs deployment commands, and sends notifications (e.g., to Discord). Use this as a foundation for automating deployments and notifications for your projects.
+## Runtime
 
----
+- Node.js >=26; ESM.
+- HTTP port: `PORT` (default `3456`).
+- `POST /` receives GitHub webhooks. `GET /health` returns `{ "status": "ok", "version": "..." }`.
+- Public deployment endpoint: `https://knit.eliware.org/`.
 
-## Table of Contents
+## Configuration repository
 
-- [Features](#features)
-- [Getting Started](#getting-started)
-- [Development](#development)
-- [Testing](#testing)
-- [Repository configuration](#repository-configuration)
-- [Customization](#customization)
-- [Support](#support)
-- [License](#license)
+Production configuration is kept in the encrypted `knit-configs` repository, normally cloned to `./repos` ( `/opt/knit/repos` under systemd/container defaults). Files are `owner/repo.json.age`; Knit decrypts them with age and validates them. Plain `.json` files are supported for controlled local use, with legacy `repos/<name>.json` fallback.
 
-## Features
+Required config-sync inputs:
 
-- GitHub webhook listener (Express server)
-- Signature validation for security
-- Automated repository updates and deployment commands
-- Discord webhook notifications for deployments and errors
-- Interactive CLI wizard for repository configuration
-- Pre-configured for Node.js (ESM)
-- Environment variable support via dotenv
-- Logging and signal handling via `@eliware/common`
-- Jest for testing
-- MIT License
+- `KNIT_CONFIG_REPO_URL`, `KNIT_CONFIG_REPO_REF`
+- SSH deploy key (`KNIT_CONFIG_DEPLOY_KEY_FILE`)
+- SSH `known_hosts` (`KNIT_CONFIG_KNOWN_HOSTS_FILE`)
 
-## Getting Started
+Sync uses strict host checking and `IdentitiesOnly`; missing key or known_hosts fails startup. Never disable host verification or commit secrets.
 
-1. **Clone this template:**
-
-   ```bash
-   git clone https://github.com/eliware/knit.git
-   cd knit
-   npm install
-   ```
-
-2. **Update project details:**
-   - Edit `package.json` (name, description, author, etc.)
-   - Update this `README.md` as needed
-   - Change the license if required
-
-3. **Configure your repositories:**
-   - Run the interactive wizard:
-
-     ```bash
-     ./wizard.mjs
-     ```
-
-   - This will guide you through setting up deployment paths, commands, and notification URLs for each repository.
-
-4. **Set up your GitHub webhook:**
-   - Point your repository’s webhook to your Knit server URL (e.g., `https://yourdomain.com/`)
-   - Use content type `application/json`
-   - Set the webhook secret to match your `.env` file’s `GITHUB_WEBHOOK_SECRET`
-
-## Repository configuration
-
-Each repository configuration contains `pwd`, optional `pre` and `post` command arrays, optional `user`/`group`, and an optional `notify` value.
-
-A notification can be a legacy webhook URL string:
+### Modern repository config
 
 ```json
 {
+  "repository": "owner/repo",
+  "git": { "url": "git@github.com:owner/repo.git", "ref": "main" },
+  "targets": [{
+    "name": "dev",
+    "host": "dev.purinton.us",
+    "user": "root",
+    "identity": "host-installed",
+    "knownHosts": "host-installed",
+    "workingDirectory": "/opt/repo",
+    "pre": [], "post": []
+  }],
+  "execution": { "mode": "sequential", "stopOnError": true },
   "notify": "https://discord.com/api/webhooks/..."
 }
 ```
 
-Or an object that passes delivery options through `@eliware/discord-webhook`:
+Targets execute pre-commands, fetch/reset the configured Git ref, then post-commands over SSH. `identity` and `knownHosts` may be `host-installed` or paths (relative paths resolve inside the config repository). Targets are sequential; `stopOnError` controls continuation. Legacy local configs with `pwd`, `pre`, `post`, `user`, `group`, and `notify` remain supported.
+
+## Secrets and deployment files
+
+Use age for config encryption. Set `KNIT_CONFIG_RECIPIENT` (or `KNIT_AGE_RECIPIENT`) when encrypting and `KNIT_AGE_IDENTITY_FILE` (or `KNIT_AGE_KEY_FILE`) for decryption. The identity must be available to the service; do not store plaintext configs, private keys, webhook URLs, or tokens in Git.
+
+Docker installs git, OpenSSH, age, and CA certificates. `docker-entrypoint.sh` requires the config deploy key and known_hosts, clones or hard-resets the config repo, then starts Knit. `docker-compose.yml` mounts these as secrets and restarts the service unless stopped. `Dockerfile` defaults to port 3456 and `/opt/knit/repos`.
+
+Systemd runs `knit-config-sync.sh` as `ExecStartPre`, then starts `knit.mjs` with `/opt/knit/.env`. The sync script fetches/reset the configured ref or reclones it, using strict SSH verification.
+
+## Environment
+
+| Variable | Purpose |
+|---|---|
+| `PORT` | Listen port; default `3456` |
+| `GITHUB_WEBHOOK_SECRET` | Required HMAC secret |
+| `LOG_LEVEL` | Logger level |
+| `KNIT_CONFIG_REPO_URL` | Config Git URL |
+| `KNIT_CONFIG_REPO_REF` | Config Git ref; default `main` |
+| `KNIT_CONFIG_REPO_PATH` | Config checkout; default `./repos` |
+| `KNIT_CONFIG_DEPLOY_KEY_FILE` | Config-repo SSH key |
+| `KNIT_CONFIG_KNOWN_HOSTS_FILE` | Config-repo known_hosts |
+| `KNIT_AGE_IDENTITY_FILE` / `KNIT_AGE_KEY_FILE` | age identity for `.age` configs |
+| `KNIT_CONFIG_RECIPIENT` / `KNIT_AGE_RECIPIENT` | age encryption recipient |
+| `KNIT_CONFIG_PLAINTEXT_PATH` | Wizard plaintext output; default `/root/.config/knit-configs/plaintext` |
+| `KNIT_DEFAULT_TARGET_HOST` | Wizard host default |
+| `KNIT_AGE_BINARY` | age executable; default `age` |
+
+## Wizard
+
+Run `./wizard.mjs` (or `node wizard.mjs`) interactively. It collects repository, SSH target, working directory, pre/post commands, npm install/test choices, user, and notification URL. It writes a mode-0600 plaintext draft outside the checkout and an encrypted `owner/repo.json.age` under `KNIT_CONFIG_REPO_PATH`; encryption configuration is mandatory. Commit/push the encrypted file to the private config repository, not the plaintext draft.
+
+## Notifications
+
+`notify` accepts a webhook URL string or an object:
 
 ```json
-{
-  "notify": {
-    "url": "https://discord.com/api/webhooks/...",
-    "maxRetries": 3,
-    "timeoutMs": 30000,
-    "wait": false,
-    "threadId": "1234567890"
-  }
-}
+{ "url": "https://discord.com/api/webhooks/...", "maxRetries": 3, "timeoutMs": 30000, "wait": false, "threadId": "123", "threadName": "deployments" }
 ```
 
-Supported delivery options are `maxRetries`, `timeoutMs`, `wait`, `threadId`, and `threadName`. Knit validates Discord embed limits before sending, preserves the tail of oversized deployment logs, and reports delivery failures with repository/event context.
+Options are passed to `@eliware/discord-webhook`. Embeds are validated against package limits, cloned before truncation, and preserve deployment-log tails. Delivery failures are logged with event/repository context and rethrown.
 
-## Development
+## Development and testing
 
-- Main entry: `knit.mjs`
-- Start your app:
+```bash
+npm install
+npm start
+npm test
+npm run lint
+```
 
-  ```bash
-  ./knit.mjs
-  ```
+Use `npm test` for Jest tests and `npm run test:gaps` for coverage-gap reporting. Do not run deployment or config sync casually: webhook processing can execute commands and push automatic `Pushback YYYY-MM-DD HH:mm:ss` commits after successful updates.
 
-- Add your code in new files and import as needed.
-
-## Testing
-
-- Run tests with:
-
-  ```bash
-  npm test
-  ```
-
-- Add your tests in the `tests` folder or alongside your code.
-
-## Customization
-
-- Extend the logging, notification, or deployment logic as needed.
-- Add dependencies and scripts to fit your project.
-- Remove or modify template files and sections.
-
-## Support
-
-For help, questions, or to chat with the author and community, visit:
-
-[![Discord](https://eliware.org/logos/discord_96.png)](https://discord.gg/M6aTR9eTwN)[![eliware.org](https://eliware.org/logos/eliware_96.png)](https://discord.gg/M6aTR9eTwN)
-
-**[eliware.org on Discord](https://discord.gg/M6aTR9eTwN)**
-
-## License
-
-[MIT © 2025 Eli Sterling, eliware.org](LICENSE)
-
-## Links
-
-
-- [Home Page](https://eliware.org)
-- [GitHub Repo](https://github.com/eliware/knit)
-- [GitHub Org](https://github.com/eliware)
-- [GitHub Personal](https://github.com/reliware)
-- [Discord](https://discord.gg/M6aTR9eTwN)
+License: MIT.
