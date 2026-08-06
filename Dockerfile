@@ -3,9 +3,12 @@ FROM node:26-bookworm-slim
 WORKDIR /opt/knit
 ENV NODE_ENV=production \
     PORT=3456 \
+    KNIT_APP_REPO_URL=https://github.com/eliware/knit.git \
+    KNIT_APP_REPO_REF=main \
+    KNIT_APP_REPO_PATH=/opt/knit \
     KNIT_CONFIG_REPO_URL=git@github.com:eliware/knit-configs.git \
     KNIT_CONFIG_REPO_REF=main \
-    KNIT_CONFIG_REPO_PATH=./repos \
+    KNIT_CONFIG_REPO_PATH=/opt/knit/repos \
     KNIT_CONFIG_DEPLOY_KEY_FILE=/run/secrets/knit_configs_deploy_key \
     KNIT_CONFIG_KNOWN_HOSTS_FILE=/run/secrets/knit_known_hosts \
     KNIT_AGE_IDENTITY_FILE=/run/secrets/knit_configs_age_key
@@ -15,10 +18,6 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /opt/knit/repos
 
-COPY package*.json ./
-RUN npm ci --omit=dev
-COPY knit.mjs wizard.mjs crypto.mjs ./
-COPY src ./src
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod 0755 /usr/local/bin/docker-entrypoint.sh
 
