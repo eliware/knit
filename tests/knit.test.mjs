@@ -8,8 +8,7 @@ describe('knit.mjs', () => {
   const registerSignals = jest.fn();
 
   beforeAll(async () => {
-    jest.unstable_mockModule('@eliware/log', () => ({ default: log }));
-    jest.unstable_mockModule('@eliware/common', () => ({ registerHandlers, registerSignals }));
+    jest.unstable_mockModule('@eliware/common', () => ({ log, registerHandlers, registerSignals }));
     jest.unstable_mockModule('../src/app.mjs', () => ({ createApp, startApp }));
     process.env.NODE_ENV = 'test';
     await import('../knit.mjs');

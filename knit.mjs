@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import 'dotenv/config';
-import log from '@eliware/log';
-import { registerHandlers, registerSignals } from '@eliware/common';
+import { log, registerHandlers, registerSignals } from '@eliware/common';
 import { createApp, startApp } from './src/app.mjs';
 
 registerHandlers({ log });
