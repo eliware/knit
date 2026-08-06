@@ -14,6 +14,14 @@ describe('repo.mjs', () => {
     jest.clearAllMocks();
   });
 
+  it('uses createRepo and update default arguments', async () => {
+    expect(() => createRepo()).toThrow();
+    const repo = createRepo({ config: { pwd: '/tmp' }, execCommandFn: jest.fn().mockResolvedValue({ stdout: '', stderr: '' }) });
+    jest.spyOn(process, 'chdir').mockImplementation(() => {});
+    await expect(repo.update({ body })).resolves.toBe(true);
+    process.chdir.mockRestore();
+  });
+
   it('should create a repo handler with update method', () => {
     const repo = createRepo({ config, log, execCommandFn, sendNotification });
     expect(typeof repo.update).toBe('function');
@@ -141,12 +149,12 @@ describe('repo.mjs', () => {
   });
 
   it('returns null when repository config is missing', async () => {
-    await expect(get({ name: 'does-not-exist', log })).resolves.toBeNull();
+    await expect(get({ name: 'does-not-exist' })).resolves.toBeNull();
   });
 
   it('sends notifications only for configured repositories', async () => {
     const repo = { notify: null };
-    await sendRepoNotification({ repo, body, logOutput: '', hasError: false, log });
+    await sendRepoNotification({ repo, body, logOutput: '', hasError: false });
   });
 
   it('sends exported notifications for configured repositories', async () => {

@@ -14,7 +14,7 @@ export function createRepo({ config, execCommandFn = execCommand, sendNotificati
   // Default sendNotification implementation if not injected
   const notifyFn = sendNotification
     ? sendNotification
-    : async ({ repo, body, logOutput, hasError, log = logger }) => {
+    : async ({ repo, body, logOutput, hasError, log }) => {
         if (!repo.notify) return;
         await Notifier.send({ notifyUrl: repo.notify, post: body, logOutput, hasError, log });
       };
