@@ -1,5 +1,11 @@
 # Release Notes
 
+## 1.1.7 — August 6, 2026
+
+- Aligned Docker Compose with Kubernetes runtime behavior.
+- Added a 30-second graceful shutdown window and automatic image rebuild policy.
+- Verified Compose configuration and successfully rebuilt the container image.
+
 ## 1.1.6 — August 6, 2026
 
 ### Added
