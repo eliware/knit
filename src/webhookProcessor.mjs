@@ -43,7 +43,13 @@ export function createWebhookProcessor({ publisher = Publisher, log = logger, Si
         const data = req.body;
         validateSignature({ body: rawData, signature: req.headers['x-hub-signature-256'], secret, log });
         log.info('[WebhookProcessor] Signature validated');
-        publisher.publish({ raw: rawData, parsed: data, log });
+        publisher.publish({
+      raw: rawData,
+      parsed: data,
+      event: req.headers['x-github-event'] || 'push',
+      deliveryId: req.headers['x-github-delivery'] || null,
+      log
+    });
         log.info('[WebhookProcessor] Published data to Publisher');
         res.sendStatus(200);
       } catch (err) {

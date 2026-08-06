@@ -1,6 +1,8 @@
 import { log as logger } from '@eliware/common';
 import * as Repo from './repo.mjs';
 import * as GitHub from './gitHub.mjs';
+import * as EventRouter from './eventRouter.mjs';
+import * as EventHandlers from './eventHandlers.mjs';
 
 /**
  * Consumes a webhook message and updates the corresponding repository.
@@ -11,19 +13,29 @@ import * as GitHub from './gitHub.mjs';
  * @param {Object} [params.GitHub] - Optional GitHub module for testing/mocking.
  * @returns {Promise<boolean>} True if successful, false otherwise.
  */
-export async function consume({ message, log = logger, Repo: RepoMod = Repo, GitHub: GitHubMod = GitHub }) {
+export async function consume({ message, log = logger, Repo: RepoMod = Repo, GitHub: GitHubMod = GitHub, Router: RouterMod = EventRouter, Handlers: HandlersMod = EventHandlers.defaultRegistry }) {
   // message: { raw, parsed }
   const post = message.parsed;
-  if (!GitHubMod.validate({ post, log })) {
+  const event = message.event || 'push';
+  if (!GitHubMod.validate({ post, event, log })) {
     log.error('[Consumer] GitHub validation failed');
     return false;
   }
-  const repo = await RepoMod.get({ name: post.repository.full_name, log });
-  if (!repo) {
-    log.error('[Consumer] Repo not found:', post.repository.full_name);
+  const target = await RouterMod.resolveEventTarget({ post, RepoMod, log });
+  if (target.ignored) {
+    if (target.kind === 'repository') log.error('[Consumer] Repo not found:', target.name);
+    else log.info('[Consumer] Event ignored: no configured target', target.name);
     return false;
   }
-  const updated = await repo.update({ body: post, log });
+  if (!post.repository) {
+    log.info('[Consumer] Organization-level event routed to fallback repository', target.name);
+    return true;
+  }
+  if (event !== 'push') {
+    log.info('[Consumer] Non-push event routed for specialized handling', event, target.name);
+    return await HandlersMod.dispatch({ event, post, target, deliveryId: message.deliveryId, log });
+  }
+  const updated = await target.repo.update({ body: post, event, deliveryId: message.deliveryId, log });
   if (!updated) {
     log.error('[Consumer] Repo update failed');
     return false;

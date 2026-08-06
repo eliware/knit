@@ -7,8 +7,12 @@ import { log as logger } from '@eliware/common';
  * @param {Object} [params.log] - Logger instance to use.
  * @returns {boolean} True if valid, false otherwise.
  */
-export function validate({ post, log = logger }) {
-  if (!post || !post.repository) {
+export function validate({ post, event = 'push', log = logger }) {
+  if (!post || typeof post !== 'object') {
+    log.error('GitHub::validate post not set', post);
+    return false;
+  }
+  if (event === 'push' && !post.repository) {
     log.error('GitHub::validate post repository not set', post);
     return false;
   }

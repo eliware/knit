@@ -8,11 +8,13 @@ import { sendMessage as realSendMessage } from '@eliware/discord-webhook';
  * @param {Object} params.post - The webhook payload.
  * @param {string} params.log - The log output.
  * @param {boolean} params.hasError - Whether an error occurred.
+ * @param {string} [params.event] - GitHub event name.
+ * @param {Object} [params.embed] - Optional pre-built embed.
  * @param {Function} [params.sendMessageFn] - Optional sendMessage function for testing/mocking.
  */
-export async function send({ notifyUrl, post, logOutput, hasError, log = logger, sendMessageFn = realSendMessage }) {
+export async function send({ notifyUrl, post, event = 'push', embed: providedEmbed, logOutput, hasError, log = logger, sendMessageFn = realSendMessage }) {
   if (!notifyUrl) return;
-  const embed = await createEmbed({ post, logOutput, hasError });
+  const embed = providedEmbed || await createEmbed({ post, event, logOutput, hasError });
   if (hasError) {
     embed.color = 0xFF0000;
     embed.title = `\u274c Error: ${embed.title}`;
@@ -36,9 +38,10 @@ export async function send({ notifyUrl, post, logOutput, hasError, log = logger,
  * @param {Object} params.post - The webhook payload.
  * @param {string} [params.logOutput] - The log output.
  * @param {boolean} [params.hasError] - Whether an error occurred.
+ * @param {string} [params.event] - GitHub event name.
  * @returns {Object} The embed object.
  */
-export async function createEmbed({ post, logOutput, hasError }) {
+export async function createEmbed({ post, event, logOutput, hasError }) {
   const embed = {};
   if (post.ref && post.ref.startsWith('refs/tags/')) {
     const repoName = post.repository?.full_name || 'Unknown Repository';
@@ -164,9 +167,13 @@ export async function createEmbed({ post, logOutput, hasError }) {
   } else {
     const repoName = post.repository?.full_name || 'Unknown Repository';
     const action = post.action || 'Event';
-    embed.title = `${repoName} - ${action}`;
+    embed.title = event && event !== 'push'
+      ? `${repoName} - ${event}${post.action ? `: ${action}` : ''}`
+      : `${repoName} - ${action}`;
     embed.color = 0x3498db;
-    embed.description = 'See details on GitHub for more information.';
+    embed.description = event
+      ? `GitHub event **${event}** received. See details on GitHub for more information.`
+      : 'See details on GitHub for more information.';
     embed.thumbnail = { url: 'https://knit.eliware.org/assets/knit.png' };
     if (hasError && logOutput) {
       // Truncate before appending log output

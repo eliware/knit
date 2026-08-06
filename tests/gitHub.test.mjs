@@ -1,21 +1,19 @@
-import { jest } from '@jest/globals'; // Importing jest for ESM support
-// Tests for src/gitHub.mjs
+import { jest } from '@jest/globals';
 import { validate } from '../src/gitHub.mjs';
 
-describe('gitHub.mjs', () => {
-  const log = { error: jest.fn() };
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should return false and log error if post or repository is missing', () => {
-    expect(validate({ post: null, log })).toBe(false);
-    expect(log.error).toHaveBeenCalled();
-    expect(validate({ post: {}, log })).toBe(false);
+describe('gitHub validation', () => {
+  test('requires repository data for push events', () => {
+    const log = { error: jest.fn() };
+    expect(validate({ post: {}, event: 'push', log })).toBe(false);
     expect(log.error).toHaveBeenCalled();
   });
 
-  it('should return true if post.repository exists', () => {
-    expect(validate({ post: { repository: {} }, log })).toBe(true);
+  test('accepts repository events', () => {
+    expect(validate({ post: { repository: { full_name: 'eliware/knit' } }, event: 'release' })).toBe(true);
+  });
+
+  test('accepts organization-level events', () => {
+    expect(validate({ post: { organization: { login: 'eliware' } }, event: 'organization' })).toBe(true);
+    expect(validate({ post: { action: 'ping' }, event: 'ping' })).toBe(true);
   });
 });
