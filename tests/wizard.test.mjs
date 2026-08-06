@@ -1,6 +1,7 @@
 process.env.NODE_ENV = 'test';
 import { jest } from '@jest/globals';
 import inquirer from 'inquirer';
+import nodeFs from 'node:fs';
 import * as wizard from '../src/wizard.mjs';
 
 const mockFs = {
@@ -70,6 +71,19 @@ describe('wizard.mjs', () => {
     expect(configs[0].validate('o/r')).toBe(true);
     expect(configs[1].validate('')).toBe('Install path cannot be empty.');
     expect(configs[1].validate('/tmp')).toBe(true);
+  });
+
+  it('uses default wizard dependencies', async () => {
+    answers(
+      { repoName: 'coverage/defaults' }, { installPath: '/tmp' },
+      { hasCommand: false }, { runNpm: false }, { hasCommand: false },
+      { user: 'root' }, { group: 'root' }, { notify: '' }
+    );
+    const print = jest.spyOn(console, 'log').mockImplementation(() => {});
+    await wizard.runWizard();
+
+    expect(print).toHaveBeenCalledTimes(2);
+    nodeFs.rmSync(new URL('../repos/coverage', import.meta.url), { recursive: true, force: true });
   });
 
   it('handles errors in the wizard', async () => {
