@@ -83,4 +83,25 @@ describe('consumer.mjs', () => {
     await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(true);
     expect(GitHub.validate).toHaveBeenCalledWith({ post: message.parsed, event: 'push', log });
   });
+
+  it('uses the default logger when no logger is provided', async () => {
+    GitHub.validate.mockReturnValue(false);
+
+    await expect(consume({ message, GitHub, Router, Handlers })).resolves.toBe(false);
+    expect(GitHub.validate).toHaveBeenCalledWith({ post: message.parsed, event: 'push', log: expect.anything() });
+  });
+
+  it('uses the default GitHub module when no GitHub module is provided', async () => {
+    message.parsed = null;
+
+    await expect(consume({ message, log, Repo, Router, Handlers })).resolves.toBe(false);
+    expect(log.error).toHaveBeenCalledWith('[Consumer] GitHub validation failed');
+  });
+
+  it('uses the default event handlers when no handlers module is provided', async () => {
+    message.event = 'issues';
+    Router.resolveEventTarget.mockResolvedValue({ ignored: false, repo: { update: jest.fn() }, name: 'foo' });
+
+    await expect(consume({ message, log, Repo, GitHub, Router })).resolves.toBe(true);
+  });
 });
