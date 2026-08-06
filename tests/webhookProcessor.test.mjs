@@ -88,3 +88,20 @@ describe('webhookProcessor.mjs', () => {
     expect(log.error).toHaveBeenCalledWith('[WebhookProcessor] Error:', 'failed');
   });
 });
+
+test('logs basic GitHub Actions event details without payload contents', async () => {
+  const publisher = { publish: jest.fn() };
+  SignatureValidator.validate.mockReturnValue(true);
+  const body = {
+    action: 'completed',
+    repository: { full_name: 'eliware/demo' },
+    workflow_run: { name: 'Node CI', status: 'completed', conclusion: 'success' },
+  };
+  await createWebhookProcessor({ log, publisher, SignatureValidatorMod: SignatureValidator }).process(
+    { rawBody: 'payload', body, headers: { 'x-hub-signature-256': 'sig', 'x-github-event': 'workflow_run', 'x-github-delivery': 'delivery-actions' } }, res
+  );
+  expect(log.info).toHaveBeenCalledWith('[WebhookProcessor] GitHub event received', {
+    event: 'workflow_run', deliveryId: 'delivery-actions', repository: 'eliware/demo', action: 'completed',
+    ref: null, workflow: 'Node CI', status: 'completed', conclusion: 'success'
+  });
+});

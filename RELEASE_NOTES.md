@@ -1,5 +1,25 @@
 # Release Notes
 
+## 1.1.5 — August 6, 2026
+
+### Added
+
+- Discord embed size enforcement using Discord's published limits.
+- Tail-preserving truncation for oversized deployment logs, retaining the final error output.
+- Limits for embed descriptions, total text, field count, field names, and field values.
+- Jest setup to suppress Winston/console output during automated tests.
+
+### Changed
+
+- Added a manual Node.js workflow dispatch workflow.
+- Cleaned up notifier test lint issues and expanded notifier limit coverage.
+- Automatic pushback commits now record the successful Knit maintenance updates.
+
+### Verification
+
+- Jest: **150 tests passed**.
+- Oxlint: **0 warnings/errors**.
+
 ## 1.1.3 — Current changes
 
 This release expands Knit from push-focused deployment handling into a broader GitHub event routing and notification system, while completing comprehensive test coverage.

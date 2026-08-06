@@ -43,11 +43,25 @@ export function createWebhookProcessor({ publisher = Publisher, log = logger, Si
         const data = req.body;
         validateSignature({ body: rawData, signature: req.headers['x-hub-signature-256'], secret, log });
         log.info('[WebhookProcessor] Signature validated');
+        const event = req.headers['x-github-event'] || 'push';
+        const deliveryId = req.headers['x-github-delivery'] || null;
+        const repository = data?.repository?.full_name || data?.organization?.login || 'unknown';
+        const details = {
+          event,
+          deliveryId,
+          repository,
+          action: data?.action || null,
+          ref: data?.ref || null,
+          workflow: data?.workflow_run?.name || data?.workflow_job?.name || data?.workflow?.name || null,
+          status: data?.workflow_run?.status || data?.workflow_job?.status || data?.workflow_run?.conclusion || null,
+          conclusion: data?.workflow_run?.conclusion || data?.workflow_job?.conclusion || null,
+        };
+        log.info('[WebhookProcessor] GitHub event received', details);
         publisher.publish({
       raw: rawData,
       parsed: data,
-      event: req.headers['x-github-event'] || 'push',
-      deliveryId: req.headers['x-github-delivery'] || null,
+      event,
+      deliveryId,
       log
     });
         log.info('[WebhookProcessor] Published data to Publisher');
