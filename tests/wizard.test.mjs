@@ -101,6 +101,16 @@ describe('wizard.mjs', () => {
     expect(fs.writeFileSync).toHaveBeenCalledWith(filePath, '{}');
   });
 
+  it('saves encrypted configuration with restricted permissions', async () => {
+    const fs = { existsSync: jest.fn(() => true), mkdirSync: jest.fn(), writeFileSync: jest.fn() };
+    const crypto = { isEncryptionConfigured: jest.fn(() => true), encrypt: jest.fn().mockResolvedValue('encrypted') };
+    const filePath = await wizard.saveConfigurationFile('owner', 'repo', '{}', fs, mockPath, crypto);
+
+    expect(filePath).toBe('../repos/owner/repo.json.age');
+    expect(crypto.encrypt).toHaveBeenCalledWith('{}');
+    expect(fs.writeFileSync).toHaveBeenCalledWith(filePath, 'encrypted', { mode: 0o600 });
+  });
+
   it('handles errors in the wizard', async () => {
     jest.spyOn(inquirer, 'prompt').mockRejectedValue(new Error('fail'));
     const log = { info: jest.fn(), error: jest.fn() };
