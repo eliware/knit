@@ -1,5 +1,6 @@
 import { fs as defaultFs, resolvePath as defaultPath, log as logger } from '@eliware/common';
 import inquirer from 'inquirer';
+import { encrypt, isEncryptionConfigured } from './crypto.mjs';
 
 /**
  * Interactive setup wizard for repository configuration.
@@ -131,13 +132,15 @@ function buildConfig(installPath, pre, user, group, post, notify) {
     };
 }
 
-export async function saveConfigurationFile(owner, repo, jsonConfig, fs = defaultFs, path = defaultPath) {
+export async function saveConfigurationFile(owner, repo, jsonConfig, fs = defaultFs, path = defaultPath, crypto = { encrypt, isEncryptionConfigured }) {
     const dirPath = path(import.meta, '..', 'repos', owner);
     if (!fs.existsSync(dirPath)) {
         fs.mkdirSync(dirPath, { recursive: true });
     }
-    const filePath = path(dirPath, `${repo}.json`);
-    fs.writeFileSync(filePath, jsonConfig);
+    const encrypted = crypto.isEncryptionConfigured();
+    const filePath = path(dirPath, `${repo}.json${encrypted ? '.age' : ''}`);
+    const contents = encrypted ? await crypto.encrypt(jsonConfig) : jsonConfig;
+    fs.writeFileSync(filePath, contents, encrypted ? { mode: 0o600 } : undefined);
     return filePath;
 }
 
