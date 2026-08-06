@@ -118,7 +118,7 @@ describe('notifier.mjs', () => {
   it('supports webhook options without mutating provided embeds', async () => {
     const embed = { title: 'Deployment', fields: [{ name: 'log', value: 'ok' }] };
     const sendMessageFn = jest.fn();
-    await notifier.send({ notifyUrl: { url: 'hook', maxRetries: 1, timeoutMs: 5000, wait: true, threadId: '42' }, post: { repository: { full_name: 'foo/bar' } }, embed, hasError: false, log, sendMessageFn });
+    await notifier.send({ notifyUrl: { url: 'hook', maxRetries: 1, timeoutMs: 5000, wait: true, threadId: '42' }, post: { repository: { full_name: 'foo/bar' } }, embed, hasError: false, log: { info: jest.fn() }, sendMessageFn });
     expect(embed).toEqual({ title: 'Deployment', fields: [{ name: 'log', value: 'ok' }] });
     expect(sendMessageFn).toHaveBeenCalledWith(expect.objectContaining({ url: 'hook', maxRetries: 1, timeoutMs: 5000, wait: true, threadId: '42' }));
   });
@@ -126,6 +126,7 @@ describe('notifier.mjs', () => {
   it('logs and rethrows Discord send failures with context', async () => {
     const error = new Error('discord down');
     const sendMessageFn = jest.fn().mockRejectedValue(error);
+    const log = { info: jest.fn(), error: jest.fn() };
     await expect(notifier.send({ notifyUrl: 'hook', post: { repository: { full_name: 'foo/bar' } }, log, sendMessageFn })).rejects.toBe(error);
     expect(log.error).toHaveBeenCalledWith('[Notifier] Discord webhook send failed', { error, event: 'push', repository: 'foo/bar' });
   });
