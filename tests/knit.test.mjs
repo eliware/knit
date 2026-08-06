@@ -4,7 +4,8 @@ describe('knit.mjs', () => {
   const log = { info: jest.fn(), error: jest.fn() };
   const createApp = jest.fn();
   const startApp = jest.fn();
-  const registerHandlers = jest.fn();
+  const errorHandlers = { removeHandlers: jest.fn() };
+  const registerHandlers = jest.fn(() => errorHandlers);
   const registerSignals = jest.fn();
 
   beforeAll(async () => {
@@ -32,6 +33,7 @@ describe('knit.mjs', () => {
     expect(registerSignals).toHaveBeenCalledWith({ log, shutdownHook: expect.any(Function) });
     registerSignals.mock.calls.at(-1)?.[0].shutdownHook?.();
     expect(server.close).toHaveBeenCalled();
+    expect(errorHandlers.removeHandlers).toHaveBeenCalled();
   });
 
   test('starts automatically outside test mode', async () => {
