@@ -1,5 +1,7 @@
 import { jest } from '@jest/globals';
-import { FALLBACK_REPOSITORY, repositoryName, resolveEventTarget } from '../src/eventRouter.mjs';
+jest.unstable_mockModule('../src/repo.mjs', () => ({ get: jest.fn() }));
+
+const { FALLBACK_REPOSITORY, repositoryName, resolveEventTarget } = await import('../src/eventRouter.mjs');
 
 describe('eventRouter', () => {
   test('extracts repository names and handles missing data', () => {
@@ -45,6 +47,12 @@ describe('eventRouter', () => {
     const RepoMod = { get: jest.fn().mockResolvedValue(null) };
 
     await expect(resolveEventTarget({ post: {}, RepoMod })).resolves.toEqual({
+      kind: 'organization', name: FALLBACK_REPOSITORY, repo: null, ignored: true,
+    });
+  });
+
+  test('uses default options when called without arguments', async () => {
+    await expect(resolveEventTarget()).resolves.toEqual({
       kind: 'organization', name: FALLBACK_REPOSITORY, repo: null, ignored: true,
     });
   });
