@@ -191,7 +191,7 @@ describe('repo.mjs', () => {
     const repo = createRepo({ config: { pwd: '/tmp', notify: null }, log, execCommandFn: exec });
     jest.spyOn(process, 'chdir').mockImplementation(() => {});
     await expect(repo.update({ body, log })).resolves.toBe(true);
-    expect(calls).toEqual(['git pull', 'chown -R root:root /tmp', 'git diff --quiet', 'git add -A', expect.stringMatching(/^git commit/), 'git push --quiet']);
+    expect(calls).toEqual(['git pull -q', 'chown -R root:root /tmp', 'git diff --quiet', 'git add -A', expect.stringMatching(/^git commit/), 'git push --quiet']);
     process.chdir.mockRestore();
   });
 
