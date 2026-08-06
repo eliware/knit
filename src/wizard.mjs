@@ -140,7 +140,8 @@ export async function saveConfigurationFile(owner, repo, jsonConfig, fs = defaul
     const encrypted = crypto.isEncryptionConfigured();
     const filePath = path(dirPath, `${repo}.json${encrypted ? '.age' : ''}`);
     const contents = encrypted ? await crypto.encrypt(jsonConfig) : jsonConfig;
-    fs.writeFileSync(filePath, contents, encrypted ? { mode: 0o600 } : undefined);
+    if (encrypted) fs.writeFileSync(filePath, contents, { mode: 0o600 });
+    else fs.writeFileSync(filePath, contents);
     return filePath;
 }
 
