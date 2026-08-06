@@ -182,7 +182,13 @@ describe('repo.mjs', () => {
   });
 
   it('pushes back tracked changes after a successful update', async () => {
-    const repo = createRepo({ config: { pwd: '/tmp', notify: null }, log });
+    const calls = [];
+    const exec = jest.fn(async ({ cmd }) => {
+      calls.push(cmd);
+      if (cmd === 'git diff --quiet') throw Object.assign(new Error('changes'), { code: 1 });
+      return { stdout: '', stderr: '' };
+    });
+    const repo = createRepo({ config: { pwd: '/tmp', notify: null }, log, execCommandFn: exec });
     const calls = [];
     const exec = jest.fn(async ({ cmd }) => {
       calls.push(cmd);
