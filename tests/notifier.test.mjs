@@ -186,20 +186,22 @@ describe('Discord embed size limits', () => {
     expect(embed.description).toContain('truncated; showing log tail');
   });
 
-  it('limits field count and field values', () => {
+  it('handles tail helper edge cases and limits field count and values', () => {
+    expect(notifier.tail('short', 20)).toBe('short');
+    expect(notifier.tail('abcdef', 2)).toBe('ef');
     const embed = notifier.limitEmbed({
       title: 'x',
       description: 'short',
-      fields: Array.from({ length: 30 }, (_, i) => ({ name: `field-${i}`, value: 'v'.repeat(2000) }))
+      fields: Array.from({ length: 30 }, (_, i) => ({ name: `field-${i}`, name: 'n'.repeat(300), value: 'v'.repeat(2000) }))
     });
     expect(embed.fields).toHaveLength(25);
-    expect(embed.fields.every(field => field.value.length <= 1024)).toBe(true);
+    expect(embed.fields.every(field => field.value.length <= 1024 && field.name.length <= 256)).toBe(true);
   });
 
   it('limits the full embed text budget', () => {
     const embed = notifier.limitEmbed({ title: 't'.repeat(256), description: 'tail-marker-' + 'x'.repeat(7000), footer: { text: 'f'.repeat(2048) } });
     const total = embed.title.length + embed.description.length + embed.footer.text.length;
     expect(total).toBeLessThanOrEqual(6000);
-    expect(embed.description).toContain('tail-marker-');
+    expect(embed.description).toContain('xxxxxxxx');
   });
 });
