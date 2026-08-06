@@ -1,5 +1,23 @@
 # Release Notes
 
+## 1.1.6 — August 6, 2026
+
+### Added
+
+- GHCR container publishing workflow for version tags and manual dispatch.
+- Tracked `repos/.gitkeep` placeholder so clean checkouts retain the runtime directory.
+
+### Changed
+
+- Node.js CI now installs the `age` command-line tool required by the crypto test suite.
+- Container and CI workflows remain compatible with the encrypted configuration runtime.
+
+### Verification
+
+- Jest: **200 tests passed**.
+- Coverage: **100% statements, branches, functions, and lines**.
+- Oxlint: **0 warnings/errors**.
+
 ## 1.1.5 — August 6, 2026
 
 This release completes the encrypted configuration, SSH deployment, container-runtime, and operational hardening work since 1.1.4.
