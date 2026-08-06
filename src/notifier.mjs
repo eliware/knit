@@ -176,10 +176,6 @@ export async function createEmbed({ post, event, logOutput, hasError }) {
       : 'See details on GitHub for more information.';
     embed.thumbnail = { url: 'https://knit.eliware.org/assets/knit.png' };
     if (hasError && logOutput) {
-      // Truncate before appending log output
-      if (embed.description.length > 1800) {
-        embed.description = embed.description.slice(0, 1797) + '...';
-      }
       embed.description += '```text\n' + logOutput + '\n```';
     }
     embed.footer = { text: 'GitHub Event' };

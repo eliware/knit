@@ -93,3 +93,64 @@ describe('notifier.mjs', () => {
   });
 
 });
+
+  it('send uses provided embed, defaults event, logs, and passes webhook metadata', async () => {
+    const embed = { title: 'Deployment' };
+    const log = { info: jest.fn() };
+    const sendMessageFn = jest.fn();
+    await notifier.send({ notifyUrl: 'hook', post: {}, embed, hasError: false, log, sendMessageFn });
+    expect(log.info).toHaveBeenCalledWith('[Notifier] Sending message to Discord webhook');
+    expect(sendMessageFn).toHaveBeenCalledWith({
+      url: 'hook',
+      body: { embeds: [{ title: '✅ Deployment' }], username: 'Knit', avatar_url: 'https://knit.eliware.org/assets/github.png' },
+    });
+  });
+
+  it('send prefixes provided error embeds and awaits sender', async () => {
+    const embed = { title: 'Failure' };
+    const log = { info: jest.fn() };
+    const sendMessageFn = jest.fn(() => Promise.resolve());
+    await notifier.send({ notifyUrl: 'hook', post: {}, embed, hasError: true, log, sendMessageFn });
+    expect(embed).toEqual({ title: '❌ Error: Failure', color: 0xFF0000 });
+  });
+
+  it('builds tag embed with fallback repository data and no author extras', async () => {
+    const embed = await notifier.createEmbed({ post: { ref: 'refs/tags/v1', repository: {} } });
+    expect(embed).toMatchObject({ title: 'Unknown Repository v1 has been released! 🎉', url: 'https://github.com/Unknown Repository/releases/tag/v1', author: { name: 'unknown' } });
+    expect(embed.author).not.toHaveProperty('icon_url');
+    expect(embed.author).not.toHaveProperty('url');
+  });
+
+  it('builds push embed with sender avatar and handles absent change arrays', async () => {
+    const embed = await notifier.createEmbed({
+      post: {
+        commits: [{ id: '123', message: '', url: '', added: 'bad', removed: [], modified: ['same'] }, { added: ['same'] }],
+        head_commit: { added: 'bad', removed: 'bad', modified: 'bad' },
+        sender: { avatar_url: 'sender.png' },
+        repository: { full_name: 'r/r', owner: {} },
+        pusher: {},
+      },
+      event: 'pull_request',
+    });
+    expect(embed.author).toEqual({ name: 'unknown', icon_url: 'sender.png' });
+    expect(embed.fields).toEqual([{ name: 'Modified (1)', value: 'same', inline: false }]);
+    expect(embed.description).toContain('**123**: []()');
+  });
+
+  it('builds generic embeds for missing event, push event, and defaults', async () => {
+    await expect(notifier.createEmbed({ post: {} })).resolves.toMatchObject({
+      title: 'Unknown Repository - Event',
+      description: 'See details on GitHub for more information.',
+    });
+    await expect(notifier.createEmbed({ post: { action: 'closed' }, event: 'push' })).resolves.toMatchObject({
+      title: 'Unknown Repository - closed',
+    });
+    await expect(notifier.createEmbed({ post: {}, event: 'issues' })).resolves.toMatchObject({
+      title: 'Unknown Repository - issues',
+    });
+  });
+
+  it('adds generic error output without altering the short description', async () => {
+    const embed = await notifier.createEmbed({ post: {}, event: null, hasError: true, logOutput: 'failure' });
+    expect(embed.description).toBe('See details on GitHub for more information.```text\nfailure\n```');
+  });
