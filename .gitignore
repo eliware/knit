@@ -61,8 +61,10 @@ node_modules/
 # Generic cache
 .cache
 
-# repos
+# Runtime config checkout and decrypted SSH material
 repos/
+repos/**/ssh/known_hosts
+repos/**/ssh/id_*
 
 # AgentX
 .agentx_responseid
