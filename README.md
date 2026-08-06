@@ -95,3 +95,11 @@ npm run lint
 Use `npm test` for Jest tests and `npm run test:gaps` for coverage-gap reporting. Do not run deployment or config sync casually: webhook processing can execute commands and push automatic `Pushback YYYY-MM-DD HH:mm:ss` commits after successful updates.
 
 License: MIT.
+
+## Runtime restart behavior
+
+Set `"restart": "graceful"` in a modern repository configuration to request a restart only after all configured targets complete successfully. Knit drains its FIFO webhook queue before exiting. Under Docker Compose, `restart: unless-stopped` starts the process again; under systemd, `Restart=always` provides the equivalent supervision. Run only one runtime manager at a time.
+
+For container deployments, `docker compose up -d --build` exposes Knit at `http://127.0.0.1:3456`. The entrypoint refreshes both the application checkout and encrypted configuration checkout, decrypts runtime SSH support files, and starts the current application checkout. Docker secrets must provide the config deploy key, known-hosts file, and age identity.
+
+A local target uses `"type": "local"` and executes in its `workingDirectory`; SSH targets use strict host verification. For containerized SSH deployments, reference an encrypted config-repository asset such as `eliware/ssh/id_rsa` rather than `host-installed`.

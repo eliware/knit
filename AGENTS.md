@@ -38,3 +38,15 @@ Run `./wizard.mjs` interactively. It requires age configuration, writes a mode-0
 ## Notifications
 
 `notify` accepts a URL string or object `{url, maxRetries, timeoutMs, wait, threadId, threadName}`. `@eliware/discord-webhook` owns validation, limits, retries, timeouts, and HTTP errors. Clone provided embeds before truncation and preserve deployment-log tails. Test notification behavior changes for success, oversized content, options, immutability, and contextual failures.
+
+## Container and restart workflow
+
+- Docker Compose is the active runtime on the development host; systemd is disabled there. Do not run both on port 3456.
+- `docker compose up -d --build` builds and starts the service; verify `docker compose ps` reports healthy and query `/health`.
+- The entrypoint clones or refreshes the Knit checkout at `/opt/knit`, refreshes the encrypted config checkout, decrypts only runtime SSH assets, and then starts `knit.mjs`.
+- A graceful restart is requested only after configured commands succeed. The FIFO publisher drains pending work before terminating so the container supervisor can restart it.
+- Do not print or commit `.env`, decrypted configs, private keys, webhook secrets, or generated runtime files.
+
+## Documentation checks
+
+For documentation-only changes, verify links/paths against the repository and inspect `git diff --check`. Do not modify `RELEASE_NOTES.md` unless specifically requested.
