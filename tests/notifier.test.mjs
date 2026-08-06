@@ -205,3 +205,9 @@ describe('Discord embed size limits', () => {
     expect(embed.description).toContain('xxxxxxxx');
   });
 });
+
+test('covers empty and null values in embed limit helpers', () => {
+  expect(notifier.tail(null, 10)).toBe('');
+  const embed = notifier.limitEmbed({ fields: [{ name: '', value: '' }] });
+  expect(embed.fields).toEqual([{ name: '', value: '' }]);
+});
