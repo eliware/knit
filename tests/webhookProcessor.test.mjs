@@ -87,9 +87,11 @@ describe('webhookProcessor.mjs', () => {
     );
     expect(log.error).toHaveBeenCalledWith('[WebhookProcessor] Error:', 'failed');
   });
+  delete process.env.GITHUB_WEBHOOK_SECRET;
 });
 
 test('logs basic GitHub Actions event details without payload contents', async () => {
+  process.env.GITHUB_WEBHOOK_SECRET = 'shhh';
   const publisher = { publish: jest.fn() };
   const SignatureValidator = { validate: jest.fn().mockReturnValue(true) };
   const log = { info: jest.fn(), error: jest.fn() };
