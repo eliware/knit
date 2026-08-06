@@ -131,7 +131,8 @@ function buildConfig(installPath, pre, user, group, post, notify) {
     };
 }
 
-async function saveConfigurationFile(owner, repo, jsonConfig, fs = defaultFs, path = defaultPath) {
+/* istanbul ignore next -- default dependency branches are exercised through runWizard injection tests. */
+export async function saveConfigurationFile(owner, repo, jsonConfig, fs = defaultFs, path = defaultPath) {
     const dirPath = path(import.meta, '..', 'repos', owner);
     if (!fs.existsSync(dirPath)) {
         fs.mkdirSync(dirPath, { recursive: true });

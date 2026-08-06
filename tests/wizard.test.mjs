@@ -86,6 +86,15 @@ describe('wizard.mjs', () => {
     nodeFs.rmSync(new URL('../repos/coverage', import.meta.url), { recursive: true, force: true });
   });
 
+  it('uses default save configuration dependencies', async () => {
+    const tempPath = jest.fn((...args) => args.length > 2
+      ? '/tmp/knit-wizard-test/owner'
+      : `/tmp/knit-wizard-test/${args[1]}`);
+    const filePath = await wizard.saveConfigurationFile('owner', 'repo', '{}', undefined, tempPath);
+    expect(filePath).toContain('/tmp/knit-wizard-test');
+    nodeFs.rmSync('/tmp/knit-wizard-test', { recursive: true, force: true });
+  });
+
   it('handles errors in the wizard', async () => {
     jest.spyOn(inquirer, 'prompt').mockRejectedValue(new Error('fail'));
     const log = { info: jest.fn(), error: jest.fn() };
