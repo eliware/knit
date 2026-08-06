@@ -1,4 +1,4 @@
-import { fs as defaultFs, path as defaultPath, log as logger } from '@eliware/common';
+import { fs as defaultFs, resolvePath as defaultPath, log as logger } from '@eliware/common';
 import inquirer from 'inquirer';
 
 /**
@@ -78,7 +78,7 @@ export async function runWizard({ log = logger, getCommands: getCommandsFn = get
         const config = buildConfig(installPath, preCommands, user, group, postCommands, notify);
         const jsonConfig = JSON.stringify(config, null, 2);
         const filePath = await saveConfigurationFile(owner, repo, jsonConfig, fs, path);
-        printRepositoryInfo(filePath);
+        printRepositoryInfo(filePath, log);
         log.info('Repository configuration complete');
     } catch (err) {
         log.error('Wizard error:', err);
@@ -131,7 +131,6 @@ function buildConfig(installPath, pre, user, group, post, notify) {
     };
 }
 
-/* istanbul ignore next -- default dependency branches are exercised through runWizard injection tests. */
 export async function saveConfigurationFile(owner, repo, jsonConfig, fs = defaultFs, path = defaultPath) {
     const dirPath = path(import.meta, '..', 'repos', owner);
     if (!fs.existsSync(dirPath)) {
@@ -142,8 +141,8 @@ export async function saveConfigurationFile(owner, repo, jsonConfig, fs = defaul
     return filePath;
 }
 
-function printRepositoryInfo(filePath) {
-    console.log(`Repository configuration saved to ${filePath}`);
-    console.log('\nReminder: Set the GitHub webhook!\nURL to https://knit.eliware.org\nPOST: application/json\n');
+function printRepositoryInfo(filePath, log = logger) {
+    log.info(`Repository configuration saved to ${filePath}`);
+    log.info('Reminder: Set the GitHub webhook!', { url: 'https://knit.eliware.org', post: 'application/json' });
 }
 
