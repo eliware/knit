@@ -2,23 +2,32 @@
 
 ## 1.1.5 — August 6, 2026
 
+This release completes the encrypted configuration, SSH deployment, container-runtime, and operational hardening work since 1.1.4.
+
 ### Added
 
-- Discord embed size enforcement using Discord's published limits.
-- Tail-preserving truncation for oversized deployment logs, retaining the final error output.
-- Limits for embed descriptions, total text, field count, field names, and field values.
-- Jest setup to suppress Winston/console output during automated tests.
+- Age-encrypted repository configuration loading and runtime SSH asset decryption.
+- Modern sequential local and SSH deployment targets with strict host verification.
+- Graceful FIFO queue draining before supervised restarts.
+- Dockerfile, Docker Compose deployment, startup checkout synchronization, mounted secrets, and `/health` support.
+- GHCR container publishing workflow for version tags and manual dispatch.
+- Expanded event-aware Discord notifications with safe truncation and preserved repository context.
+- Comprehensive focused tests for crypto, lifecycle, configuration validation, local/SSH execution, and notifications.
 
 ### Changed
 
-- Added a manual Node.js workflow dispatch workflow.
-- Cleaned up notifier test lint issues and expanded notifier limit coverage.
-- Automatic pushback commits now record the successful Knit maintenance updates.
+- Container startup refreshes the Knit and `knit-configs` checkouts before launching the service.
+- Containerized SSH deployments use encrypted config-repository identities instead of host-installed keys.
+- Systemd restart behavior was hardened with immediate restart and burst limiting; the current host uses Compose instead.
+- Tests isolate environment-dependent encryption and wizard configuration paths.
+- Documentation was refreshed for encrypted configs, Docker operation, SSH targets, graceful restarts, and rollback procedures.
 
 ### Verification
 
-- Jest: **150 tests passed**.
+- Jest: **200 tests passed**.
+- Coverage: **100% statements, branches, functions, and lines**.
 - Oxlint: **0 warnings/errors**.
+- Docker image build, Compose startup, health check, and container SSH connectivity verified.
 
 ## 1.1.3 — Current changes
 
