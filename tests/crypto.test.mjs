@@ -12,8 +12,8 @@ describe('crypto', () => {
   beforeEach(async () => {
     dir = await fs.mkdtemp(path.join(os.tmpdir(), 'knit-crypto-'));
     identity = path.join(dir, 'keys.txt');
-    const { stdout } = await exec('age-keygen', ['-o', identity]);
-    recipient = stdout.trim().match(/age1\w+/)?.[0];
+    const result = await exec('age-keygen', ['-o', identity]);
+    recipient = `${result.stdout}\n${result.stderr}`.match(/age1[0-9a-z]+/)?.[0];
   });
   afterEach(() => fs.rm(dir, { recursive: true, force: true }));
 

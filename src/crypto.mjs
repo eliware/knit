@@ -1,9 +1,7 @@
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
+import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-const execFileAsync = promisify(execFile);
 const ageBinary = process.env.KNIT_AGE_BINARY || 'age';
 
 function recipientFromEnv() {
@@ -19,12 +17,19 @@ export function isEncryptionConfigured(env = process.env) {
 }
 
 async function runAge(args, input) {
-  try {
-    const result = await execFileAsync(ageBinary, args, { input, maxBuffer: 16 * 1024 * 1024 });
-    return Buffer.from(result.stdout);
-  } catch (error) {
-    throw new Error(`age encryption operation failed: ${error.stderr?.trim() || error.message}`, { cause: error });
-  }
+  return new Promise((resolve, reject) => {
+    const child = spawn(ageBinary, args, { stdio: ['pipe', 'pipe', 'pipe'] });
+    const stdout = []; const stderr = [];
+    child.stdout.on('data', chunk => stdout.push(chunk));
+    child.stderr.on('data', chunk => stderr.push(chunk));
+    child.on('error', error => reject(new Error(`age encryption operation failed: ${error.message}`, { cause: error })));
+    child.on('close', code => {
+      if (code === 0) return resolve(Buffer.concat(stdout));
+      const message = Buffer.concat(stderr).toString('utf8').trim() || `age exited with code ${code}`;
+      reject(new Error(`age encryption operation failed: ${message}`));
+    });
+    child.stdin.end(input);
+  });
 }
 
 export async function encrypt(data, { recipient = recipientFromEnv() } = {}) {
