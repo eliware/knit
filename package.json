@@ -49,6 +49,7 @@
     "dependencies": {
         "@eliware/common": "^1.1.5",
         "@eliware/discord-webhook": "^1.1.6",
+        "body-parser": "^2.3.0",
         "dotenv": "^17.2.0",
         "express": "^5.1.0",
         "inquirer": "^14.0.2"
