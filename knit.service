@@ -8,7 +8,7 @@ StartLimitIntervalSec=60
 [Service]
 User=root
 Group=root
-RestartSec=5
+RestartSec=0
 Restart=always
 WorkingDirectory=/opt/knit
 ExecStartPre=/opt/knit/knit-config-sync.sh
