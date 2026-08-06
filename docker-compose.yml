@@ -6,6 +6,10 @@ services:
     env_file:
       - path: .env
         format: raw
+    environment:
+      KNIT_CONFIG_DEPLOY_KEY_FILE: /run/secrets/knit_configs_deploy_key
+      KNIT_CONFIG_KNOWN_HOSTS_FILE: /run/secrets/knit_known_hosts
+      KNIT_AGE_IDENTITY_FILE: /run/secrets/knit_configs_age_key
     secrets:
       - knit_configs_deploy_key
       - knit_known_hosts

@@ -27,6 +27,8 @@ clone_or_update() {
 }
 
 install -d -m 0700 "$(dirname "$app_path")" "$(dirname "$repo_path")"
+# The image workdir is the application checkout and may be removed during a fresh clone.
+cd /
 clone_or_update "$app_url" "$app_ref" "$app_path"
 
 cd "$app_path"
@@ -36,7 +38,7 @@ export GIT_SSH_COMMAND="ssh -i $key_file -o IdentitiesOnly=yes -o StrictHostKeyC
 clone_or_update "$repo_url" "$repo_ref" "$repo_path"
 
 # Materialize encrypted SSH support files only in the local runtime checkout.
-find "$repo_path" -type f -name '*.age' -path '*/ssh/*' -print0 | while IFS= read -r -d '' encrypted; do
+find "$repo_path" -type f -name '*.age' -path '*/ssh/*' | while IFS= read -r encrypted; do
   plaintext="${encrypted%.age}"
   temporary="${plaintext}.tmp.$$"
   age --decrypt --identity "$age_identity" "$encrypted" > "$temporary"
