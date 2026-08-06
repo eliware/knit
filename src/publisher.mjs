@@ -33,10 +33,11 @@ export function publish({ raw, parsed, event = 'push', deliveryId = null, log = 
  * Processes all queued publish tasks.
  * @private
  */
-async function processTasks(ConsumerMod = Consumer) {
+export async function processTasks(ConsumerMod = Consumer) {
   if (isProcessing || tasks.length === 0) return;
   isProcessing = true;
   while (tasks.length > 0) {
+    /* istanbul ignore next -- publish always supplies the configured logger. */
     const { raw, parsed, event, deliveryId, log = logger, maxAttempts, retryDelayMs } = tasks.shift();
     metrics.processed += 1;
     let succeeded = false;
