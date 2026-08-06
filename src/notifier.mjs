@@ -1,10 +1,10 @@
 import { log as logger } from '@eliware/common';
-import { sendMessage as realSendMessage } from '@eliware/discord-webhook';
+import { DISCORD_LIMITS, sendMessage as realSendMessage, validateWebhookBody } from '@eliware/discord-webhook';
 
 // Discord limits: https://discord.com/developers/docs/resources/message#embed-limits
-export const DISCORD_EMBED_DESCRIPTION_LIMIT = 4096;
-export const DISCORD_EMBED_TOTAL_LIMIT = 6000;
-export const DISCORD_EMBED_FIELD_VALUE_LIMIT = 1024;
+export const DISCORD_EMBED_DESCRIPTION_LIMIT = DISCORD_LIMITS.description;
+export const DISCORD_EMBED_TOTAL_LIMIT = DISCORD_LIMITS.totalEmbedText;
+export const DISCORD_EMBED_FIELD_VALUE_LIMIT = DISCORD_LIMITS.fieldValue;
 
 /** Keep the most useful part of oversized output: the tail contains the final error. */
 export function tail(value, limit, marker = '\n... [truncated; showing log tail] ...\n') {
@@ -49,7 +49,11 @@ export function limitEmbed(embed) {
  */
 export async function send({ notifyUrl, post, event = 'push', embed: providedEmbed, logOutput, hasError, log = logger, sendMessageFn = realSendMessage }) {
   if (!notifyUrl) return;
-  const embed = providedEmbed || await createEmbed({ post, event, logOutput, hasError });
+  const notification = typeof notifyUrl === 'string' ? { url: notifyUrl } : notifyUrl;
+  const { url, ...sendOptions } = notification;
+  const embed = providedEmbed
+    ? { ...providedEmbed, fields: providedEmbed.fields?.map(field => ({ ...field })) }
+    : await createEmbed({ post, event, logOutput, hasError });
   if (hasError) {
     embed.color = 0xFF0000;
     embed.title = `\u274c Error: ${embed.title}`;
@@ -57,15 +61,19 @@ export async function send({ notifyUrl, post, event = 'push', embed: providedEmb
     embed.title = `\u2705 ${embed.title}`;
   }
   limitEmbed(embed);
+  const body = {
+    embeds: [embed],
+    username: 'Knit',
+    avatar_url: 'https://knit.eliware.org/assets/github.png'
+  };
+  validateWebhookBody(body);
   log.info('[Notifier] Sending message to Discord webhook');
-  await sendMessageFn({
-    url: notifyUrl,
-    body: {
-      embeds: [embed],
-      username: 'Knit',
-      avatar_url: 'https://knit.eliware.org/assets/github.png'
-    }
-  });
+  try {
+    await sendMessageFn({ url, body, ...sendOptions });
+  } catch (error) {
+    log.error?.('[Notifier] Discord webhook send failed', { error, event, repository: post.repository?.full_name });
+    throw error;
+  }
 }
 
 /**
