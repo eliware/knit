@@ -41,3 +41,11 @@ Helpful references:
 - /docs/services/service-maps.md
 - /docs/domains/eliware-org.md
 - /docs/networking/core1-core2.md
+
+## Discord notifications
+
+Repository `notify` configuration supports either a webhook URL string or an object with `url` plus optional `maxRetries`, `timeoutMs`, `wait`, `threadId`, and `threadName`. Keep compatibility with existing string configurations.
+
+Knit uses `@eliware/discord-webhook` for URL validation, payload validation, retries, timeouts, and HTTP error handling. Do not duplicate Discord limits; use the package exports. Notification embeds must be cloned before truncation so caller-owned objects are not mutated. Preserve deployment-log tails when enforcing embed limits.
+
+When changing notification behavior, test successful delivery, oversized content, custom delivery options, immutable provided embeds, and send failures with contextual logging. Never commit webhook URLs or tokens.

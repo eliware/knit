@@ -12,6 +12,7 @@ A GitHub webhook handler and deployment automation tool. Knit listens for GitHub
 - [Getting Started](#getting-started)
 - [Development](#development)
 - [Testing](#testing)
+- [Repository configuration](#repository-configuration)
 - [Customization](#customization)
 - [Support](#support)
 - [License](#license)
@@ -57,6 +58,34 @@ A GitHub webhook handler and deployment automation tool. Knit listens for GitHub
    - Point your repository’s webhook to your Knit server URL (e.g., `https://yourdomain.com/`)
    - Use content type `application/json`
    - Set the webhook secret to match your `.env` file’s `GITHUB_WEBHOOK_SECRET`
+
+## Repository configuration
+
+Each repository configuration contains `pwd`, optional `pre` and `post` command arrays, optional `user`/`group`, and an optional `notify` value.
+
+A notification can be a legacy webhook URL string:
+
+```json
+{
+  "notify": "https://discord.com/api/webhooks/..."
+}
+```
+
+Or an object that passes delivery options through `@eliware/discord-webhook`:
+
+```json
+{
+  "notify": {
+    "url": "https://discord.com/api/webhooks/...",
+    "maxRetries": 3,
+    "timeoutMs": 30000,
+    "wait": false,
+    "threadId": "1234567890"
+  }
+}
+```
+
+Supported delivery options are `maxRetries`, `timeoutMs`, `wait`, `threadId`, and `threadName`. Knit validates Discord embed limits before sending, preserves the tail of oversized deployment logs, and reports delivery failures with repository/event context.
 
 ## Development
 
