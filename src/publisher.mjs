@@ -1,5 +1,6 @@
 import { log as logger } from '@eliware/common';
 import * as Consumer from './consumer.mjs';
+import { takeGracefulRestartRequest } from './lifecycle.mjs';
 
 let tasks = [];
 let isProcessing = false;
@@ -62,6 +63,7 @@ export async function processTasks(ConsumerMod = Consumer) {
     if (succeeded) metrics.succeeded += 1;
   }
   isProcessing = false;
+  if (takeGracefulRestartRequest()) process.kill(process.pid, 'SIGTERM');
 }
 
 /**

@@ -7,6 +7,7 @@ import fsSync from 'node:fs';
 import os from 'node:os';
 import pathNode from 'node:path';
 import * as Notifier from './notifier.mjs';
+import { requestGracefulRestart } from './lifecycle.mjs';
 
 /**
  * Creates a repository handler for update operations.
@@ -250,7 +251,9 @@ export function createSshRepo({ config, execFile: injectedExecFile, fsModule = f
     if (body.ref?.startsWith('refs/tags/')) { await notifyFn?.({ repo: this, body, logOutput: '', hasError: false, log: requestLog }); return true; }
     let output = ''; let failed = false; const git = config.git?.url && config.git?.ref ? `git fetch --prune ${quote(config.git.url)} ${quote(config.git.ref)} && git reset --hard FETCH_HEAD` : 'git pull --ff-only';
     for (const target of config.targets) { for (const command of [...(target.pre || []), git, ...(target.post || [])]) { requestLog.info(`[Repo] Running SSH command: ${command}`); try { const result = await run(target, command); output += formatCommandOutput({ cmd: command, ...result, exitCode: 0 }); } catch (error) { output += formatCommandOutput({ cmd: command, stdout: error.stdout, stderr: error.stderr, exitCode: error.code || 1 }); requestLog.error(`[Repo] SSH command failed: ${command}`, error); failed = true; break; } } if (failed && execution.stopOnError) break; }
-    await notifyFn?.({ repo: this, body, logOutput: output, hasError: failed, log: requestLog }); return !failed;
+    await notifyFn?.({ repo: this, body, logOutput: output, hasError: failed, log: requestLog });
+    if (!failed && config.restart === 'graceful') requestGracefulRestart();
+    return !failed;
   } };
 }
 
