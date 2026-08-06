@@ -30,6 +30,12 @@ describe('configValidator.mjs', () => {
     expect(validateJsonFile({ path: 'good.json', log })).toEqual({ pwd: '/tmp' });
   });
 
+  it('should use the default logger for valid JSON', () => {
+    jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+    jest.spyOn(fs, 'readFileSync').mockReturnValue('{"pwd":"/tmp"}');
+    expect(validateJsonFile({ path: 'good.json' })).toEqual({ pwd: '/tmp' });
+  });
+
   it('should return false if config is invalid', () => {
     const log = { error: jest.fn() };
     expect(validate({ config: null, log })).toBe(false);
@@ -37,7 +43,19 @@ describe('configValidator.mjs', () => {
     expect(log.error).toHaveBeenCalled();
   });
 
-  it('should return true if config is valid', () => {
-    expect(validate({ config: { pwd: '/tmp' }, log: { error: jest.fn() } })).toBe(true);
+  it('should return false for non-object configs', () => {
+    const log = { error: jest.fn() };
+    expect(validate({ config: 'invalid', log })).toBe(false);
+    expect(log.error).toHaveBeenCalledWith('ConfigValidator::validate failed: config invalid');
+  });
+
+  it('should return false when pwd is missing', () => {
+    const log = { error: jest.fn() };
+    expect(validate({ config: { name: 'knit' }, log })).toBe(false);
+    expect(log.error).toHaveBeenCalledWith('ConfigValidator::validate failed: config invalid');
+  });
+
+  it('should use the default logger for valid configs', () => {
+    expect(validate({ config: { pwd: '/tmp' } })).toBe(true);
   });
 });
