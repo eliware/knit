@@ -1,6 +1,41 @@
 import { log as logger } from '@eliware/common';
 import { sendMessage as realSendMessage } from '@eliware/discord-webhook';
 
+// Discord limits: https://discord.com/developers/docs/resources/message#embed-limits
+export const DISCORD_EMBED_DESCRIPTION_LIMIT = 4096;
+export const DISCORD_EMBED_TOTAL_LIMIT = 6000;
+export const DISCORD_EMBED_FIELD_VALUE_LIMIT = 1024;
+
+/** Keep the most useful part of oversized output: the tail contains the final error. */
+export function tail(value, limit, marker = '\n... [truncated; showing log tail] ...\n') {
+  const text = String(value ?? '');
+  if (text.length <= limit) return text;
+  if (limit <= marker.length) return text.slice(-limit);
+  return marker + text.slice(-(limit - marker.length));
+}
+
+function textLength(value) {
+  return typeof value === 'string' ? value.length : 0;
+}
+
+/** Enforce Discord's embed limits without dropping the end of deployment logs. */
+export function limitEmbed(embed) {
+  if (embed.description) embed.description = tail(embed.description, DISCORD_EMBED_DESCRIPTION_LIMIT);
+  if (Array.isArray(embed.fields)) {
+    embed.fields = embed.fields.slice(0, 25).map(field => ({
+      ...field,
+      name: tail(field.name || '', 256),
+      value: tail(field.value || '', DISCORD_EMBED_FIELD_VALUE_LIMIT)
+    }));
+  }
+  const textSize = () => textLength(embed.title) + textLength(embed.description) + textLength(embed.footer?.text) + textLength(embed.author?.name) + (embed.fields || []).reduce((n, f) => n + textLength(f.name) + textLength(f.value), 0);
+  if (textSize() > DISCORD_EMBED_TOTAL_LIMIT && embed.description) {
+    const other = textSize() - textLength(embed.description);
+    embed.description = tail(embed.description, Math.max(0, DISCORD_EMBED_TOTAL_LIMIT - other));
+  }
+  return embed;
+}
+
 /**
  * Sends a notification to a Discord webhook.
  * @param {Object} params
@@ -21,6 +56,7 @@ export async function send({ notifyUrl, post, event = 'push', embed: providedEmb
   } else {
     embed.title = `\u2705 ${embed.title}`;
   }
+  limitEmbed(embed);
   log.info('[Notifier] Sending message to Discord webhook');
   await sendMessageFn({
     url: notifyUrl,
@@ -124,7 +160,8 @@ export async function createEmbed({ post, event, logOutput, hasError }) {
       description = description.slice(0, 1797) + '...';
     }
     if (hasError && logOutput) {
-      description += '```text\n' + logOutput + '\n```';
+      const available = Math.max(0, DISCORD_EMBED_DESCRIPTION_LIMIT - description.length - 10);
+      description += '```text\n' + tail(logOutput, available) + '\n```';
     }
     embed.description = description.trim();
     let authorName = pusher;
@@ -180,5 +217,5 @@ export async function createEmbed({ post, event, logOutput, hasError }) {
     }
     embed.footer = { text: 'GitHub Event' };
   }
-  return embed;
+  return limitEmbed(embed);
 }
