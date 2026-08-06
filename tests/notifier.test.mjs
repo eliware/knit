@@ -154,3 +154,25 @@ describe('notifier.mjs', () => {
     const embed = await notifier.createEmbed({ post: {}, event: null, hasError: true, logOutput: 'failure' });
     expect(embed.description).toBe('See details on GitHub for more information.```text\nfailure\n```');
   });
+
+it('covers send parameter defaults on an early return', async () => {
+  await notifier.send({ notifyUrl: '', post: {} });
+});
+
+it('uses repository URL when a tag name is empty', async () => {
+  const embed = await notifier.createEmbed({
+    post: { ref: 'refs/tags/', repository: { full_name: 'o/r', html_url: 'repo-url' } },
+  });
+  expect(embed.url).toBe('repo-url');
+});
+
+it('handles truthy non-array commits and generic events without actions', async () => {
+  const push = await notifier.createEmbed({ post: { commits: 'x', repository: {} } });
+  expect(push.description).toContain('Branch: **unknown** - Commits: **1**');
+
+  const generic = await notifier.createEmbed({ post: {}, event: 'issues' });
+  expect(generic.title).toBe('Unknown Repository - issues');
+
+  const actionEvent = await notifier.createEmbed({ post: { action: 'opened' }, event: 'issues' });
+  expect(actionEvent.title).toBe('Unknown Repository - issues: opened');
+});
