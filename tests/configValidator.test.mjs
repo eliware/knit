@@ -1,6 +1,6 @@
 // Tests for src/configValidator.mjs
 import { jest } from '@jest/globals';
-import { validateJsonFile, validate } from '../src/configValidator.mjs';
+import { validateJsonFile, validate, isModern } from '../src/configValidator.mjs';
 import fs from 'fs';
 
 describe('configValidator.mjs', () => {
@@ -59,3 +59,32 @@ describe('configValidator.mjs', () => {
     expect(validate({ config: { pwd: '/tmp' } })).toBe(true);
   });
 });
+
+  it('validates a complete modern SSH config', () => {
+    expect(validate({ config: {
+      repository: 'owner/repo',
+      git: { url: 'git@github.com:owner/repo.git', ref: 'main' },
+      targets: [{ host: 'dev.example', user: 'root', workingDirectory: '/srv/repo', pre: [], post: [], identity: 'host-installed', knownHosts: 'owner/ssh/known_hosts' }],
+      execution: { mode: 'sequential', stopOnError: true }
+    } })).toBe(true);
+  });
+
+  it.each([
+    { repository: 'owner/repo', git: { ref: 'main' }, targets: [], execution: { mode: 'sequential', stopOnError: true } },
+    { repository: 'owner/repo', git: { url: 'url', ref: 'main' }, targets: [{ host: '', user: 'root', workingDirectory: '/x' }], execution: { mode: 'sequential', stopOnError: true } },
+    { repository: 'owner/repo', git: { url: 'url', ref: 'main' }, targets: [{ host: 'h', user: 'u', workingDirectory: '/x', pre: ['ok', 1] }], execution: { mode: 'sequential', stopOnError: true } },
+    { repository: 'owner/repo', git: { url: 'url', ref: 'main' }, targets: [{ host: 'h', user: 'u', workingDirectory: '/x' }], execution: { mode: 'parallel', stopOnError: true } },
+  ])('rejects malformed modern configs', config => {
+    expect(validate({ config, log: { error: jest.fn() } })).toBe(false);
+  });
+
+
+  describe('isModern', () => {
+    it('returns false for missing config', () => {
+      expect(isModern(null)).toBe(false);
+    });
+
+    it('returns true when modern config markers are present', () => {
+      expect(isModern({ repository: 'owner/repo', git: {}, targets: [] })).toBe(true);
+    });
+  });
