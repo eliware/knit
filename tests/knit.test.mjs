@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 
 describe('knit.mjs', () => {
-  const log = { info: jest.fn(), error: jest.fn() };
+  const log = { info: jest.fn(), debug: jest.fn(), error: jest.fn() };
   const createApp = jest.fn();
   const startApp = jest.fn();
   const errorHandlers = { removeHandlers: jest.fn() };
