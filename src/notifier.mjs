@@ -85,7 +85,7 @@ export async function send({ notifyUrl, post, event = 'push', embed: providedEmb
  * @param {string} [params.event] - GitHub event name.
  * @returns {Object} The embed object.
  */
-export async function createEmbed({ post, event, logOutput, hasError }) {
+export async function createEmbed({ post = {}, event, logOutput, hasError }) {
   const embed = {};
   if (post.ref && post.ref.startsWith('refs/tags/')) {
     const repoName = post.repository?.full_name || 'Unknown Repository';
