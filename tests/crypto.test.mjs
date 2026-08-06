@@ -48,4 +48,12 @@ describe('crypto', () => {
   it('wraps age failures', async () => {
     await expect(decrypt(Buffer.from('not age'), { identityFile: identity })).rejects.toThrow('age encryption operation failed');
   });
+  it('rejects decrypted content that is not JSON', async () => {
+    const encrypted = await encrypt('not json', { recipient });
+    await expect(decryptJson(encrypted, { identityFile: identity })).rejects.toThrow();
+  });
+
+  it('handles string input for decrypt', async () => {
+    await expect(decrypt('not age', { identityFile: identity })).rejects.toThrow('age encryption operation failed');
+  });
 });
