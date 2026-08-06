@@ -2,6 +2,7 @@ import { jest } from '@jest/globals';
 jest.unstable_mockModule('../src/notifier.mjs', () => ({ send: jest.fn().mockResolvedValue(undefined) }));
 const { createRepo, sendNotification: sendRepoNotification, get } = await import('../src/repo.mjs');
 const notifier = await import('../src/notifier.mjs');
+const ConfigValidator = await import('../src/configValidator.mjs');
 
 describe('repo.mjs', () => {
   const log = { info: jest.fn(), error: jest.fn() };
@@ -94,6 +95,28 @@ describe('repo.mjs', () => {
     process.chdir.mockRestore();
   });
 
+  it('stops pre commands after the first failure', async () => {
+    const repo = createRepo({ config: { ...config, pre: ['first', 'second'] }, execCommandFn, sendNotification });
+    jest.spyOn(process, 'chdir').mockImplementation(() => {});
+    execCommandFn.mockRejectedValueOnce(Object.assign(new Error('pre'), { stdout: '', stderr: '' }));
+    await expect(repo.update({ body, log })).resolves.toBe(false);
+    expect(execCommandFn).toHaveBeenCalledTimes(1);
+    process.chdir.mockRestore();
+  });
+
+  it('stops post commands after the first failure', async () => {
+    const repo = createRepo({ config: { ...config, post: ['first', 'second'] }, execCommandFn, sendNotification });
+    jest.spyOn(process, 'chdir').mockImplementation(() => {});
+    execCommandFn
+      .mockResolvedValueOnce({ stdout: '', stderr: '' })
+      .mockResolvedValueOnce({ stdout: '', stderr: '' })
+      .mockResolvedValueOnce({ stdout: '', stderr: '' })
+      .mockRejectedValueOnce(Object.assign(new Error('post'), { stdout: '', stderr: '' }));
+    await expect(repo.update({ body, log })).resolves.toBe(false);
+    expect(execCommandFn).toHaveBeenCalledTimes(4);
+    process.chdir.mockRestore();
+  });
+
   it('handles post command failure and formats command output', async () => {
     const repo = createRepo({ config, log, execCommandFn, sendNotification });
     jest.spyOn(process, 'chdir').mockImplementation(() => {});
@@ -124,6 +147,21 @@ describe('repo.mjs', () => {
   it('sends notifications only for configured repositories', async () => {
     const repo = { notify: null };
     await sendRepoNotification({ repo, body, logOutput: '', hasError: false, log });
+  });
+
+  it('sends exported notifications for configured repositories', async () => {
+    const repo = { notify: 'http://dummy' };
+    await sendRepoNotification({ repo, body, logOutput: 'output', hasError: true, log });
+    expect(notifier.send).toHaveBeenCalledWith({
+      notifyUrl: repo.notify, post: body, logOutput: 'output', hasError: true, log
+    });
+  });
+
+  it('covers missing config and validation branches', async () => {
+    expect(() => ConfigValidator.validateJsonFile({ path: '/tmp/no-such-config.json', log })).toThrow();
+    expect(ConfigValidator.validate({ config: null, log })).toBe(false);
+    expect(ConfigValidator.validate({ config: 'invalid', log })).toBe(false);
+    expect(ConfigValidator.validate({ config: {}, log })).toBe(false);
   });
 
 
