@@ -91,7 +91,9 @@ describe('webhookProcessor.mjs', () => {
 
 test('logs basic GitHub Actions event details without payload contents', async () => {
   const publisher = { publish: jest.fn() };
-  SignatureValidator.validate.mockReturnValue(true);
+  const SignatureValidator = { validate: jest.fn().mockReturnValue(true) };
+  const log = { info: jest.fn(), error: jest.fn() };
+  const res = { sendStatus: jest.fn(), status: jest.fn().mockReturnThis(), send: jest.fn() };
   const body = {
     action: 'completed',
     repository: { full_name: 'eliware/demo' },
