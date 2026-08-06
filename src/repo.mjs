@@ -103,6 +103,11 @@ export function createRepo({ config, execCommandFn = execCommand, sendNotificati
           }
         }
       }
+      if (!hasError) {
+        const pushback = await pushbackChanges({ execCommandFn, log });
+        logOutput += pushback.logOutput;
+        hasError = pushback.hasError;
+      }
       await notifyFn({ repo: this, body, logOutput, hasError, log });
       log.info(`[Repo] Update complete for repo: ${this.pwd} Error: ${hasError}`);
       return !hasError;
@@ -110,6 +115,35 @@ export function createRepo({ config, execCommandFn = execCommand, sendNotificati
   };
 }
 export { sendNotification };
+
+async function pushbackChanges({ execCommandFn, log, now = new Date() }) {
+  const check = await runCommand({ execCommandFn, cmd: 'git diff --quiet', allowFailure: true });
+  if (check.exitCode === 0) return { logOutput: '', hasError: false };
+
+  const message = `Pushback ${formatTimestamp(now)}`;
+  let logOutput = '';
+  for (const cmd of ['git add -A', `git commit --quiet -m '${message}'`, 'git push --quiet']) {
+    log.info(`[Repo] Running pushback command: ${cmd}`);
+    const result = await runCommand({ execCommandFn, cmd, allowFailure: false });
+    logOutput += formatCommandOutput({ cmd, stdout: result.stdout, stderr: result.stderr, exitCode: 0 });
+  }
+  return { logOutput, hasError: false };
+}
+
+async function runCommand({ execCommandFn, cmd, allowFailure }) {
+  try {
+    const result = await execCommandFn({ cmd });
+    return { ...result, exitCode: 0 };
+  } catch (err) {
+    if (allowFailure) return { stdout: err.stdout || '', stderr: err.stderr || '', exitCode: err.code || 1 };
+    throw err;
+  }
+}
+
+function formatTimestamp(date) {
+  const pad = value => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
 
 /**
  * Validates the webhook body.
