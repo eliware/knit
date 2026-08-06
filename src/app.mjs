@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import { createWebhookProcessor } from './webhookProcessor.mjs';
 import { log as logger, path } from '@eliware/common';
+import packageJson from '../package.json' with { type: 'json' };
 
 
 function configureMiddleware(app, assetsPath) {
@@ -13,7 +14,11 @@ function configureMiddleware(app, assetsPath) {
     }));
 }
 
-function configureRoutes(app, processor, log) {
+function configureRoutes(app, processor, log, version) {
+    app.get('/health', (req, res) => {
+        res.status(200).json({ status: 'ok', version });
+    });
+
     app.post('/', (req, res) => {
         log.info('[App] Incoming POST / request');
         processor.process(req, res);
@@ -25,11 +30,12 @@ export async function createApp({
     publisher = undefined,
     assetsPath = path(import.meta, '..', 'assets'),
     log = logger,
+    version = packageJson.version,
 } = {}) {
     const app = express();
     configureMiddleware(app, assetsPath);
     const processor = webhookProcessorFactory({ publisher, log });
-    configureRoutes(app, processor, log);
+    configureRoutes(app, processor, log, version);
     return app;
 }
 

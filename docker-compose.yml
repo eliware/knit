@@ -1,0 +1,20 @@
+services:
+  knit:
+    build: .
+    ports:
+      - "${PORT:-3456}:3456"
+    env_file:
+      - .env
+    secrets:
+      - knit_configs_deploy_key
+      - knit_known_hosts
+      - knit_configs_age_key
+    restart: unless-stopped
+
+secrets:
+  knit_configs_deploy_key:
+    file: ${KNIT_CONFIG_DEPLOY_KEY_FILE:-/root/.ssh/knit-configs-deploy}
+  knit_known_hosts:
+    file: ${KNIT_CONFIG_KNOWN_HOSTS_FILE:-/root/.ssh/known_hosts}
+  knit_configs_age_key:
+    file: ${KNIT_AGE_IDENTITY_FILE:-/root/.config/sops/age/knit-configs-keys.txt}

@@ -11,6 +11,7 @@ Group=root
 RestartSec=5
 Restart=on-failure
 WorkingDirectory=/opt/knit
+ExecStartPre=/opt/knit/knit-config-sync.sh
 ExecStart=/opt/knit/knit.mjs
 EnvironmentFile=/opt/knit/.env
 

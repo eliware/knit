@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import * as Crypto from './crypto.mjs';
 import * as Validator from './configValidator.mjs';
-export function createConfigLoader({ fsModule = fs, crypto = Crypto, configPath = process.env.KNIT_CONFIG_REPO_PATH || '/opt/knit-configs', legacyPath = path.resolve('repos'), log = console } = {}) {
+export function createConfigLoader({ fsModule = fs, crypto = Crypto, configPath = process.env.KNIT_CONFIG_REPO_PATH || path.resolve('repos'), legacyPath = path.resolve('repos'), log = console } = {}) {
   const cache = new Map();
   return { async load(name) {
     const candidates = [path.join(configPath, `${name}.json.age`), path.join(configPath, `${name}.json`), path.join(legacyPath, `${name}.json`)];

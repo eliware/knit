@@ -220,7 +220,7 @@ describe('repo.mjs', () => {
     await expect(get({ name: 'valid', log })).resolves.toMatchObject({ pwd: '/tmp' });
     unlinkSync(malformed); unlinkSync(invalid); unlinkSync(valid);
 
-    const success = createRepo({ config: { pwd: '/tmp', pre: ['printf ok'] } });
+    const success = createRepo({ config: { pwd: '/tmp', pre: ['printf ok'] }, execCommandFn: jest.fn(async ({ cmd }) => ({ stdout: cmd === 'git diff --quiet' ? '' : 'ok', stderr: '' })) });
     jest.spyOn(process, 'chdir').mockImplementation(() => {});
     await expect(success.update({ body, log })).resolves.toBe(true);
     process.chdir.mockRestore();

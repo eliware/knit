@@ -5,7 +5,7 @@ import { encrypt, isEncryptionConfigured } from './crypto.mjs';
 /**
  * Interactive setup wizard for repository configuration.
  */
-export async function runWizard({ log = logger, getCommands: getCommandsFn = getCommands, fs = defaultFs, path = defaultPath } = {}) {
+export async function runWizard({ log = logger, getCommands: getCommandsFn = getCommands, fs = defaultFs, path = defaultPath, crypto = { encrypt, isEncryptionConfigured } } = {}) {
     try {
         log.info('Starting interactive setup wizard');
         const { repoName } = await inquirer.prompt([
@@ -17,6 +17,9 @@ export async function runWizard({ log = logger, getCommands: getCommandsFn = get
             }
         ]);
         const [owner, repo] = repoName.split('/');
+        const { targetHost } = await inquirer.prompt([
+            { type: 'input', name: 'targetHost', message: 'Target host:', default: process.env.KNIT_DEFAULT_TARGET_HOST || 'dev.purinton.us', validate: input => Boolean(input) || 'Target host cannot be empty.' }
+        ]);
         const { installPath } = await inquirer.prompt([
             {
                 type: 'input',
@@ -60,14 +63,6 @@ export async function runWizard({ log = logger, getCommands: getCommandsFn = get
                 default: 'root'
             }
         ]);
-        const { group } = await inquirer.prompt([
-            {
-                type: 'input',
-                name: 'group',
-                message: 'Group:',
-                default: 'root'
-            }
-        ]);
         // Remove default webhook URL
         const { notify } = await inquirer.prompt([
             {
@@ -76,9 +71,9 @@ export async function runWizard({ log = logger, getCommands: getCommandsFn = get
                 message: 'Notification URL:'
             }
         ]);
-        const config = buildConfig(installPath, preCommands, user, group, postCommands, notify);
+        const config = buildConfig(owner, repo, targetHost, installPath, preCommands, user, postCommands, notify);
         const jsonConfig = JSON.stringify(config, null, 2);
-        const filePath = await saveConfigurationFile(owner, repo, jsonConfig, fs, path);
+        const filePath = await saveConfigurationFile(owner, repo, jsonConfig, fs, path, crypto);
         printRepositoryInfo(filePath, log);
         log.info('Repository configuration complete');
     } catch (err) {
@@ -121,28 +116,39 @@ export async function getCommands(type) {
     return commands;
 }
 
-function buildConfig(installPath, pre, user, group, post, notify) {
+function buildConfig(owner, repo, host, workingDirectory, pre, user, post, notify) {
     return {
-        pwd: installPath,
-        pre,
-        user,
-        group,
-        post,
+        repository: `${owner}/${repo}`,
+        git: { url: `git@github.com:${owner}/${repo}.git`, ref: 'main', credential: 'host-installed' },
+        targets: [{
+            name: host.split('.')[0],
+            host,
+            user,
+            identity: 'host-installed',
+            knownHosts: `${owner}/ssh/known_hosts`,
+            workingDirectory,
+            pre: pre.filter(command => command !== 'git pull --ff-only'),
+            post
+        }],
+        execution: { mode: 'sequential', stopOnError: true },
         notify
     };
 }
 
 export async function saveConfigurationFile(owner, repo, jsonConfig, fs = defaultFs, path = defaultPath, crypto = { encrypt, isEncryptionConfigured }) {
-    const dirPath = path(import.meta, '..', 'repos', owner);
-    if (!fs.existsSync(dirPath)) {
-        fs.mkdirSync(dirPath, { recursive: true });
+    if (!crypto.isEncryptionConfigured()) throw new Error('Knit config encryption is required');
+    const plaintextRoot = process.env.KNIT_CONFIG_PLAINTEXT_PATH || '/root/.config/knit-configs/plaintext';
+    const encryptedRoot = process.env.KNIT_CONFIG_REPO_PATH || path(import.meta, '..', 'repos');
+    const plaintextDir = path(plaintextRoot, owner);
+    const encryptedDir = path(encryptedRoot, owner);
+    for (const dir of [plaintextDir, encryptedDir]) {
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     }
-    const encrypted = crypto.isEncryptionConfigured();
-    const filePath = path(dirPath, `${repo}.json${encrypted ? '.age' : ''}`);
-    const contents = encrypted ? await crypto.encrypt(jsonConfig) : jsonConfig;
-    if (encrypted) fs.writeFileSync(filePath, contents, { mode: 0o600 });
-    else fs.writeFileSync(filePath, contents);
-    return filePath;
+    const plaintextPath = path(plaintextDir, `${repo}.json`);
+    const encryptedPath = path(encryptedDir, `${repo}.json.age`);
+    fs.writeFileSync(plaintextPath, jsonConfig, { mode: 0o600 });
+    fs.writeFileSync(encryptedPath, await crypto.encrypt(jsonConfig), { mode: 0o600 });
+    return encryptedPath;
 }
 
 function printRepositoryInfo(filePath, log) {

@@ -217,7 +217,7 @@ async function sendNotification({ repo, body, logOutput, hasError, log = logger 
  * @param {string} params.name - The repository name.
  * @returns {Promise<Object|null>} The repository handler or null if not found/invalid.
  */
-export function createSshRepo({ config, execFile: injectedExecFile, fsModule = fsSync, log = logger, sendNotification, configPath = process.env.KNIT_CONFIG_REPO_PATH || '/opt/knit-configs', tmpdir = os.tmpdir() } = {}, legacyExecFile) {
+export function createSshRepo({ config, execFile: injectedExecFile, fsModule = fsSync, log = logger, sendNotification, configPath = process.env.KNIT_CONFIG_REPO_PATH || pathNode.resolve('repos'), tmpdir = os.tmpdir() } = {}, legacyExecFile) {
   const execFile = injectedExecFile || legacyExecFile || realExecFile;
   const notifyFn = sendNotification || (args => config.notify ? Notifier.send({ notifyUrl: config.notify, ...args }) : undefined);
   const quote = value => `'${String(value).replace(/'/g, `'"'"'`)}'`;
@@ -246,5 +246,5 @@ export function createSshRepo({ config, execFile: injectedExecFile, fsModule = f
 export async function get({ name, log = logger, loader = defaultLoader, loaderOptions } = {}) {
   const config = await (loaderOptions ? loaderOptions.load(name) : loader.load(name));
   if (!config || !ConfigValidator.validate({ config, log })) return null;
-  return ConfigValidator.isModern(config) ? createSshRepo({ config, log, ...(loaderOptions || {}) }) : createRepo({ config, log });
+  return ConfigValidator.isModern(config) ? createSshRepo({ config, log, ...loaderOptions }) : createRepo({ config, log });
 }

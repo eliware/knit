@@ -49,9 +49,10 @@ describe('eventRouter', () => {
     });
   });
 
-  test('uses default modules and options', async () => {
-    await expect(resolveEventTarget()).resolves.toEqual({
-      kind: 'organization', name: FALLBACK_REPOSITORY, repo: expect.any(Object), ignored: false,
+  test('uses default options with an injected fallback repository', async () => {
+    const repo = { notify: 'fallback' };
+    await expect(resolveEventTarget({ RepoMod: { get: jest.fn().mockResolvedValue(repo) } })).resolves.toEqual({
+      kind: 'organization', name: FALLBACK_REPOSITORY, repo, ignored: false,
     });
   });
 
