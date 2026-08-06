@@ -1,0 +1,3 @@
+import { jest } from '@jest/globals';
+import { createSshRepo } from '../src/repo.mjs';
+test('runs SSH targets in order with strict options and stops', async()=>{const calls=[]; const execFile=jest.fn((bin,args,opt,cb)=>{calls.push(args); cb(args.at(-1).includes('bad')?Object.assign(new Error('x'),{code:1}):null,'','err')}); const repo=createSshRepo({config:{notify:null,targets:[{host:'a',user:'u',workingDirectory:'/x',pre:['one'],post:['bad','later']}],execution:{stopOnError:true}},execFile}); expect(await repo.update({body:{commits:[]}})).toBe(false); expect(calls).toHaveLength(3); expect(calls[1]).toEqual(expect.arrayContaining(['-o','StrictHostKeyChecking=yes','-o','IdentitiesOnly=yes']));});

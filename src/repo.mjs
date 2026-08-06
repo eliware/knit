@@ -1,6 +1,11 @@
-import { fs, path, log as logger } from '@eliware/common';
+import { log as logger } from '@eliware/common';
 import { exec } from 'child_process';
 import * as ConfigValidator from './configValidator.mjs';
+import { defaultLoader } from './configLoader.mjs';
+import { execFile as realExecFile } from 'node:child_process';
+import fsSync from 'node:fs';
+import os from 'node:os';
+import pathNode from 'node:path';
 import * as Notifier from './notifier.mjs';
 
 /**
@@ -212,19 +217,34 @@ async function sendNotification({ repo, body, logOutput, hasError, log = logger 
  * @param {string} params.name - The repository name.
  * @returns {Promise<Object|null>} The repository handler or null if not found/invalid.
  */
-export async function get({ name, log = logger }) {
-  const configFile = path(import.meta, '..', 'repos', `${name}.json`);
-  if (!fs.existsSync(configFile)) {
-    return null;
-  }
-  let config;
-  try {
-    config = ConfigValidator.validateJsonFile({ path: configFile });
-  } catch {
-    return null;
-  }
-  if (!ConfigValidator.validate({ config })) {
-    return null;
-  }
-  return createRepo({ config, log });
+export function createSshRepo({ config, execFile: injectedExecFile, fsModule = fsSync, log = logger, sendNotification, configPath = process.env.KNIT_CONFIG_REPO_PATH || '/opt/knit-configs', tmpdir = os.tmpdir() } = {}, legacyExecFile) {
+  const execFile = injectedExecFile || legacyExecFile || realExecFile;
+  const notifyFn = sendNotification || (args => config.notify ? Notifier.send({ notifyUrl: config.notify, ...args }) : undefined);
+  const quote = value => `'${String(value).replace(/'/g, `'"'"'`)}'`;
+  const resolveRef = ref => !ref || ref === 'host-installed' ? null : pathNode.isAbsolute(ref) ? ref : pathNode.join(configPath, ref);
+  const run = (target, command) => new Promise((resolve, reject) => {
+    const args = ['-o', 'StrictHostKeyChecking=yes', '-o', 'IdentitiesOnly=yes'];
+    let keyFile; const knownHosts = resolveRef(target.knownHosts);
+    if (knownHosts) args.push('-o', `UserKnownHostsFile=${knownHosts}`);
+    try {
+      const identity = target.identity;
+      if (identity && identity !== 'host-installed') { keyFile = pathNode.join(tmpdir, `knit-key-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`); fsModule.writeFileSync(keyFile, fsModule.readFileSync(resolveRef(identity)), { mode: 0o600 }); args.push('-i', keyFile); }
+      const remote = `cd -- ${quote(target.workingDirectory)} && ${command}`;
+      args.push(`${target.user}@${target.host}`, remote);
+      execFile('ssh', args, {}, (error, stdout = '', stderr = '') => { if (keyFile) { try { fsModule.unlinkSync(keyFile); } catch {} } if (error) Object.assign(error, { stdout, stderr }); if (error) reject(error); else resolve({ stdout, stderr }); });
+    } catch (error) { if (keyFile) try { fsModule.unlinkSync(keyFile); } catch {} reject(error); }
+  });
+  return { notify: config.notify || null, targets: config.targets, async update({ body, log: requestLog = log }) {
+    if (!body || !Array.isArray(body.commits)) { requestLog.error('[Repo] body validation failed'); return false; }
+    if (body.ref?.startsWith('refs/tags/')) { await notifyFn?.({ repo: this, body, logOutput: '', hasError: false, log: requestLog }); return true; }
+    let output = ''; let failed = false; const git = config.git?.url && config.git?.ref ? `git fetch --prune ${quote(config.git.url)} ${quote(config.git.ref)} && git reset --hard FETCH_HEAD` : 'git pull --ff-only';
+    for (const target of config.targets) { for (const command of [...(target.pre || []), git, ...(target.post || [])]) { requestLog.info(`[Repo] Running SSH command: ${command}`); try { const result = await run(target, command); output += formatCommandOutput({ cmd: command, ...result, exitCode: 0 }); } catch (error) { output += formatCommandOutput({ cmd: command, stdout: error.stdout, stderr: error.stderr, exitCode: error.code || 1 }); requestLog.error(`[Repo] SSH command failed: ${command}`, error); failed = true; break; } } if (failed && config.execution.stopOnError) break; }
+    await notifyFn?.({ repo: this, body, logOutput: output, hasError: failed, log: requestLog }); return !failed;
+  } };
+}
+
+export async function get({ name, log = logger, loader = defaultLoader, loaderOptions } = {}) {
+  const config = await (loaderOptions ? loaderOptions.load(name) : loader.load(name));
+  if (!config || !ConfigValidator.validate({ config, log })) return null;
+  return ConfigValidator.isModern(config) ? createSshRepo({ config, log, ...(loaderOptions || {}) }) : createRepo({ config, log });
 }

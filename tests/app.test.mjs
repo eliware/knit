@@ -25,6 +25,24 @@ describe('app.mjs', () => {
     expect(typeof app.use).toBe('function');
   });
 
+  it('should return health status and version', async () => {
+    const app = await createApp({
+      webhookProcessorFactory: () => ({ process: jest.fn() }),
+      version: '9.9.9',
+      assetsPath: 'assets',
+      log: { info: jest.fn() }
+    });
+    const server = app.listen(0);
+
+    try {
+      const response = await request(server, { method: 'GET', path: '/health' });
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.data)).toEqual({ status: 'ok', version: '9.9.9' });
+    } finally {
+      await new Promise(resolve => server.close(resolve));
+    }
+  });
+
   it('should apply middleware and process POST requests', async () => {
     const process = jest.fn((req, res) => res.status(202).send(req.rawBody));
     const log = { info: jest.fn() };
