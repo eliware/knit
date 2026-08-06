@@ -94,6 +94,13 @@ describe('wizard.mjs', () => {
     nodeFs.rmSync('/tmp/knit-wizard-test', { recursive: true, force: true });
   });
 
+  it('uses the default path resolver when saving a configuration', async () => {
+    const fs = { existsSync: jest.fn(() => true), mkdirSync: jest.fn(), writeFileSync: jest.fn() };
+    const filePath = await wizard.saveConfigurationFile('owner', 'repo', '{}', fs);
+    expect(filePath).toContain('/repos/owner/repo.json');
+    expect(fs.writeFileSync).toHaveBeenCalledWith(filePath, '{}');
+  });
+
   it('handles errors in the wizard', async () => {
     jest.spyOn(inquirer, 'prompt').mockRejectedValue(new Error('fail'));
     const log = { info: jest.fn(), error: jest.fn() };

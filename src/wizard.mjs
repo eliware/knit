@@ -141,7 +141,7 @@ export async function saveConfigurationFile(owner, repo, jsonConfig, fs = defaul
     return filePath;
 }
 
-function printRepositoryInfo(filePath, log = logger) {
+function printRepositoryInfo(filePath, log) {
     log.info(`Repository configuration saved to ${filePath}`);
     log.info('Reminder: Set the GitHub webhook!', { url: 'https://knit.eliware.org', post: 'application/json' });
 }
