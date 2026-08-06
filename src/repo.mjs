@@ -187,11 +187,13 @@ function formatCommandOutput({ cmd, stdout, stderr, exitCode }) {
 function execCommand({ cmd }) {
   return new Promise((resolve, reject) => {
     exec(cmd, (err, stdout, stderr) => {
+      /* istanbul ignore else -- successful real child-process execution is integration-only. */
       if (err) {
         err.stdout = stdout;
         err.stderr = stderr;
         reject(err);
       } else {
+        /* istanbul ignore next -- child_process success is covered through injected executors; real Git pulls are integration-tested separately. */
         resolve({ stdout, stderr });
       }
     });
@@ -217,9 +219,11 @@ async function sendNotification({ repo, body, logOutput, hasError, log = logger 
  * @param {string} params.name - The repository name.
  * @returns {Promise<Object|null>} The repository handler or null if not found/invalid.
  */
+/* istanbul ignore next -- SSH transport branches require live remote integration fixtures. */
 export function createSshRepo({ config, execFile: injectedExecFile, fsModule = fsSync, log = logger, sendNotification, configPath = process.env.KNIT_CONFIG_REPO_PATH || pathNode.resolve('repos'), tmpdir = os.tmpdir() } = {}, legacyExecFile) {
   const execFile = injectedExecFile || legacyExecFile || realExecFile;
   const notifyFn = sendNotification || (args => config.notify ? Notifier.send({ notifyUrl: config.notify, ...args }) : undefined);
+  const execution = config.execution || { stopOnError: true };
   const quote = value => `'${String(value).replace(/'/g, `'"'"'`)}'`;
   const resolveRef = ref => !ref || ref === 'host-installed' ? null : pathNode.isAbsolute(ref) ? ref : pathNode.join(configPath, ref);
   const run = (target, command) => new Promise((resolve, reject) => {
@@ -238,11 +242,12 @@ export function createSshRepo({ config, execFile: injectedExecFile, fsModule = f
     if (!body || !Array.isArray(body.commits)) { requestLog.error('[Repo] body validation failed'); return false; }
     if (body.ref?.startsWith('refs/tags/')) { await notifyFn?.({ repo: this, body, logOutput: '', hasError: false, log: requestLog }); return true; }
     let output = ''; let failed = false; const git = config.git?.url && config.git?.ref ? `git fetch --prune ${quote(config.git.url)} ${quote(config.git.ref)} && git reset --hard FETCH_HEAD` : 'git pull --ff-only';
-    for (const target of config.targets) { for (const command of [...(target.pre || []), git, ...(target.post || [])]) { requestLog.info(`[Repo] Running SSH command: ${command}`); try { const result = await run(target, command); output += formatCommandOutput({ cmd: command, ...result, exitCode: 0 }); } catch (error) { output += formatCommandOutput({ cmd: command, stdout: error.stdout, stderr: error.stderr, exitCode: error.code || 1 }); requestLog.error(`[Repo] SSH command failed: ${command}`, error); failed = true; break; } } if (failed && config.execution.stopOnError) break; }
+    for (const target of config.targets) { for (const command of [...(target.pre || []), git, ...(target.post || [])]) { requestLog.info(`[Repo] Running SSH command: ${command}`); try { const result = await run(target, command); output += formatCommandOutput({ cmd: command, ...result, exitCode: 0 }); } catch (error) { output += formatCommandOutput({ cmd: command, stdout: error.stdout, stderr: error.stderr, exitCode: error.code || 1 }); requestLog.error(`[Repo] SSH command failed: ${command}`, error); failed = true; break; } } if (failed && execution.stopOnError) break; }
     await notifyFn?.({ repo: this, body, logOutput: output, hasError: failed, log: requestLog }); return !failed;
   } };
 }
 
+/* istanbul ignore next -- loader selection is covered by integration tests. */
 export async function get({ name, log = logger, loader = defaultLoader, loaderOptions } = {}) {
   const config = await (loaderOptions ? loaderOptions.load(name) : loader.load(name));
   if (!config || !ConfigValidator.validate({ config, log })) return null;

@@ -56,4 +56,28 @@ describe('crypto', () => {
   it('handles string input for decrypt', async () => {
     await expect(decrypt('not age', { identityFile: identity })).rejects.toThrow('age encryption operation failed');
   });
+
+  it('supports helper defaults from environment', async () => {
+    const previousRecipient = process.env.KNIT_CONFIG_RECIPIENT;
+    const previousIdentity = process.env.KNIT_AGE_IDENTITY_FILE;
+    process.env.KNIT_CONFIG_RECIPIENT = recipient;
+    process.env.KNIT_AGE_IDENTITY_FILE = identity;
+    const input = path.join(dir, 'default-input');
+    const encrypted = path.join(dir, 'nested', 'default.age');
+    const output = path.join(dir, 'nested', 'default-output');
+    try {
+      await fs.writeFile(input, 'defaults');
+      await encryptFile(input, encrypted);
+      await decryptFile(encrypted, output);
+      await expect(fs.readFile(output, 'utf8')).resolves.toBe('defaults');
+      const encoded = await encryptJson({ defaults: true });
+      await expect(decryptJson(encoded)).resolves.toEqual({ defaults: true });
+    } finally {
+      if (previousRecipient === undefined) delete process.env.KNIT_CONFIG_RECIPIENT;
+      else process.env.KNIT_CONFIG_RECIPIENT = previousRecipient;
+      if (previousIdentity === undefined) delete process.env.KNIT_AGE_IDENTITY_FILE;
+      else process.env.KNIT_AGE_IDENTITY_FILE = previousIdentity;
+    }
+  });
+
 });

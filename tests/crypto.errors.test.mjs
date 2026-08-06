@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { EventEmitter } from 'node:events';
 
 const spawn = jest.fn();

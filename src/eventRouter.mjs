@@ -13,7 +13,7 @@ export async function resolveEventTarget({ post, RepoMod = Repo, log = console }
     return repo ? { kind: 'repository', name, repo, ignored: false } : { kind: 'repository', name, repo: null, ignored: true };
   }
   const repo = await RepoMod.get({ name: FALLBACK_REPOSITORY, log });
-  return { kind: 'organization', name: FALLBACK_REPOSITORY, repo, ignored: !repo };
+  return { kind: 'organization', name: FALLBACK_REPOSITORY, repo: repo || null, ignored: !repo };
 }
 
 export { FALLBACK_REPOSITORY };

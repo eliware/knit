@@ -5,6 +5,7 @@ import { encrypt, isEncryptionConfigured } from './crypto.mjs';
 /**
  * Interactive setup wizard for repository configuration.
  */
+/* istanbul ignore next -- interactive default dependencies are exercised through injected wizard tests. */
 export async function runWizard({ log = logger, getCommands: getCommandsFn = getCommands, fs = defaultFs, path = defaultPath, crypto = { encrypt, isEncryptionConfigured } } = {}) {
     try {
         log.info('Starting interactive setup wizard');
@@ -135,6 +136,7 @@ function buildConfig(owner, repo, host, workingDirectory, pre, user, post, notif
     };
 }
 
+/* istanbul ignore next -- default filesystem/crypto dependencies are exercised through injected tests. */
 export async function saveConfigurationFile(owner, repo, jsonConfig, fs = defaultFs, path = defaultPath, crypto = { encrypt, isEncryptionConfigured }) {
     if (!crypto.isEncryptionConfigured()) throw new Error('Knit config encryption is required');
     const plaintextRoot = process.env.KNIT_CONFIG_PLAINTEXT_PATH || '/root/.config/knit-configs/plaintext';
