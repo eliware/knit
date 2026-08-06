@@ -31,7 +31,7 @@ describe('knit.mjs', () => {
     expect(createApp).toHaveBeenCalledWith({ log });
     expect(startApp).toHaveBeenCalledWith({ appInstance: app, log });
     expect(registerSignals).toHaveBeenCalledWith({ log, shutdownHook: expect.any(Function) });
-    registerSignals.mock.calls.at(-1)?.[0].shutdownHook?.();
+    await registerSignals.mock.calls.at(-1)?.[0].shutdownHook?.();
     expect(server.close).toHaveBeenCalled();
     expect(errorHandlers.removeHandlers).toHaveBeenCalled();
   });
