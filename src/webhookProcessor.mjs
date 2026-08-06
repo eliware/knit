@@ -21,7 +21,7 @@ export function createWebhookProcessor({ publisher = Publisher, log = logger, Si
    * @param {Object} [params.log] - Logger instance to use.
    * @throws {Error} If the signature is missing or invalid.
    */
-  function validateSignature({ body, signature, secret, log = logger }) {
+  function validateSignature({ body, signature, secret, log }) {
     if (!secret || !signature) {
       log.error('Forbidden: Missing secret or signature.');
       throw new Error('Forbidden: Missing secret or signature.');
