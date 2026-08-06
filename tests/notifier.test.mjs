@@ -228,3 +228,9 @@ test('covers empty and null values in embed limit helpers', () => {
   const embed = notifier.limitEmbed({ fields: [{ name: '', value: '' }] });
   expect(embed.fields).toEqual([{ name: '', value: '' }]);
 });
+
+it('defaults an omitted post when creating an embed', async () => {
+  await expect(notifier.createEmbed({ post: undefined })).resolves.toMatchObject({
+    title: 'Unknown Repository - Event',
+  });
+});

@@ -88,3 +88,36 @@ describe('configValidator.mjs', () => {
       expect(isModern({ repository: 'owner/repo', git: {}, targets: [] })).toBe(true);
     });
   });
+
+it('rejects unsupported restart mode', () => {
+  const log = { error: jest.fn() };
+  expect(validate({ config: {
+    repository: 'owner/repo', git: { url: 'url', ref: 'main' },
+    targets: [{ host: 'h', user: 'u', workingDirectory: '/tmp' }],
+    execution: { mode: 'sequential', stopOnError: true }, restart: 'always'
+  }, log })).toBe(false);
+  expect(log.error).toHaveBeenCalledWith('ConfigValidator::validate failed: invalid restart mode');
+});
+
+it('accepts graceful restart and local modern targets', () => {
+  expect(validate({ config: {
+    repository: 'owner/repo',
+    git: { url: 'url', ref: 'main' },
+    targets: [{ type: 'local', workingDirectory: '/tmp' }],
+    execution: { mode: 'sequential', stopOnError: false },
+    restart: 'graceful'
+  } })).toBe(true);
+});
+
+it.each([
+  { identity: '' },
+  { knownHosts: '' },
+])('rejects modern targets with invalid optional $identity/$knownHosts', field => {
+  const log = { error: jest.fn() };
+  expect(validate({ config: {
+    repository: 'owner/repo',
+    git: { url: 'url', ref: 'main' },
+    targets: [{ host: 'h', user: 'u', workingDirectory: '/tmp', ...field }],
+    execution: { mode: 'sequential', stopOnError: true }
+  }, log })).toBe(false);
+});

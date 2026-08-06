@@ -1,5 +1,6 @@
 import { jest } from '@jest/globals';
 import { publish, processTasks, getPublisherMetrics, _resetPublisherState } from '../src/publisher.mjs';
+import { requestGracefulRestart, resetLifecycleState } from '../src/lifecycle.mjs';
 
 const payload = { raw: 'raw', parsed: 'parsed' };
 const wait = () => new Promise(resolve => setImmediate(() => setTimeout(resolve, 5)));
@@ -7,6 +8,7 @@ const wait = () => new Promise(resolve => setImmediate(() => setTimeout(resolve,
 beforeEach(() => {
   jest.restoreAllMocks();
   _resetPublisherState();
+  resetLifecycleState();
 });
 
 describe('publish', () => {
@@ -81,6 +83,17 @@ describe('processing', () => {
     await Promise.resolve();
     immediate.mockRestore();
     expect(getPublisherMetrics().processed).toBe(0);
+  });
+
+  it('requests process termination after a graceful restart request', async () => {
+    const Consumer = { consume: jest.fn().mockResolvedValue(true) };
+    const log = { info: jest.fn(), error: jest.fn() };
+    const kill = jest.spyOn(process, 'kill').mockImplementation(() => true);
+    requestGracefulRestart();
+    publish({ ...payload, log, ConsumerMod: Consumer });
+    await wait();
+    expect(kill).toHaveBeenCalledWith(process.pid, 'SIGTERM');
+    kill.mockRestore();
   });
 
   it('normalizes zero attempts and tolerates concurrent scheduling', async () => {
