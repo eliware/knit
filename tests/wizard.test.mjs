@@ -8,50 +8,87 @@ const mockFs = {
   mkdirSync: jest.fn(),
   writeFileSync: jest.fn(),
 };
-const mockPath = jest.fn((...args) => args.join('/'));
+const mockPath = jest.fn((...args) => args.filter(arg => typeof arg === 'string').join('/'));
+
+const answers = (...values) => jest.spyOn(inquirer, 'prompt').mockImplementation(async () => values.shift());
 
 describe('wizard.mjs', () => {
   beforeEach(() => {
+    jest.restoreAllMocks();
     jest.clearAllMocks();
+    mockFs.existsSync.mockReturnValue(true);
   });
 
-  it('should run the wizard and collect all answers', async () => {
-    jest.spyOn(inquirer, 'prompt')
-      .mockResolvedValueOnce({ repoName: 'owner/repo' })
-      .mockResolvedValueOnce({ installPath: '/tmp' })
-      .mockResolvedValueOnce({ runNpm: true })
-      .mockResolvedValueOnce({ runNpmTest: true })
-      .mockResolvedValueOnce({ user: 'root' })
-      .mockResolvedValueOnce({ group: 'root' })
-      .mockResolvedValueOnce({ notify: '' });
-    const getCommands = jest.fn().mockResolvedValue([]);
+  it('runs the wizard with npm install/test, commands, and existing directory', async () => {
+    answers(
+      { repoName: 'owner/repo' }, { installPath: '/tmp' },
+      { runNpm: true }, { runNpmTest: true },
+      { user: 'root' }, { group: 'root' }, { notify: 'https://example.test' }
+    );
     const log = { info: jest.fn(), error: jest.fn() };
-    await expect(wizard.runWizard({ log, getCommands, fs: mockFs, path: mockPath })).resolves.toBeUndefined();
-    expect(log.info).toHaveBeenCalledWith('Starting interactive setup wizard');
-    expect(() => mockFs.writeFileSync).not.toThrow();
+    await wizard.runWizard({ log, getCommands: jest.fn().mockResolvedValueOnce(['pre']).mockResolvedValueOnce(['post']), fs: mockFs, path: mockPath });
+
+    expect(mockFs.mkdirSync).not.toHaveBeenCalled();
+    expect(mockFs.writeFileSync).toHaveBeenCalledWith(
+      '../repos/owner/repo.json',
+      JSON.stringify({ pwd: '/tmp', pre: ['pre'], user: 'root', group: 'root', post: ['npm install --silent', 'npm test > .jest.result 2>&1', 'post'], notify: 'https://example.test' }, null, 2)
+    );
+    expect(log.info).toHaveBeenLastCalledWith('Repository configuration complete');
   });
 
-  it('should handle errors in the wizard', async () => {
+  it('runs without npm and creates the owner directory', async () => {
+    mockFs.existsSync.mockReturnValue(false);
+    answers(
+      { repoName: 'acme/app' }, { installPath: '/srv/app' },
+      { runNpm: false },
+      { user: 'deploy' }, { group: 'apps' }, { notify: '' }
+    );
+    const log = { info: jest.fn(), error: jest.fn() };
+    const print = jest.spyOn(console, 'log').mockImplementation(() => {});
+    await wizard.runWizard({ log, getCommands: jest.fn().mockResolvedValue([]), fs: mockFs, path: mockPath });
+
+    expect(mockFs.mkdirSync).toHaveBeenCalledWith('../repos/acme', { recursive: true });
+    expect(mockFs.writeFileSync).toHaveBeenCalledWith(expect.stringContaining('/acme/app.json'), expect.any(String));
+    expect(print).toHaveBeenCalledTimes(2);
+  });
+
+  it('runs npm install without npm test', async () => {
+    answers(
+      { repoName: 'o/r' }, { installPath: 'x' }, { runNpm: true }, { runNpmTest: false },
+      { user: 'u' }, { group: 'g' }, { notify: 'n' }
+    );
+    await wizard.runWizard({ log: { info: jest.fn(), error: jest.fn() }, getCommands: jest.fn().mockResolvedValue([]), fs: mockFs, path: mockPath });
+    expect(mockFs.writeFileSync.mock.calls[0][1]).toContain('npm install --silent');
+    expect(mockFs.writeFileSync.mock.calls[0][1]).not.toContain('npm test');
+  });
+
+  it('exposes validation rules for required inputs', async () => {
+    const prompt = answers({ repoName: 'o/r' }, { installPath: 'x' }, { runNpm: false }, { user: 'u' }, { group: 'g' }, { notify: '' });
+    await wizard.runWizard({ log: { info: jest.fn(), error: jest.fn() }, getCommands: jest.fn().mockResolvedValue([]), fs: mockFs, path: mockPath });
+    const configs = prompt.mock.calls.map(call => call[0][0]);
+    expect(configs[0].validate('bad')).toBe('Invalid repository name format. Use owner/repo.');
+    expect(configs[0].validate('o/r')).toBe(true);
+    expect(configs[1].validate('')).toBe('Install path cannot be empty.');
+    expect(configs[1].validate('/tmp')).toBe(true);
+  });
+
+  it('handles errors in the wizard', async () => {
     jest.spyOn(inquirer, 'prompt').mockRejectedValue(new Error('fail'));
-    const getCommands = jest.fn();
     const log = { info: jest.fn(), error: jest.fn() };
-    await wizard.runWizard({ log, getCommands, fs: mockFs, path: mockPath });
+    await wizard.runWizard({ log, fs: mockFs, path: mockPath });
     expect(log.error).toHaveBeenCalledWith('Wizard error:', expect.any(Error));
   });
 
-  it('should collect commands until user stops', async () => {
-    jest.spyOn(inquirer, 'prompt')
-      .mockResolvedValueOnce({ hasCommand: true })
-      .mockResolvedValueOnce({ cmd: 'npm run build' })
-      .mockResolvedValueOnce({ more: true })
-      .mockResolvedValueOnce({ cmd: 'npm run lint' })
-      .mockResolvedValueOnce({ more: false });
-    await expect(wizard.getCommands('pre-deployment')).resolves.toEqual(['npm run build', 'npm run lint']);
+  it('collects commands until user stops', async () => {
+    const prompt = answers({ hasCommand: true }, { cmd: 'build' }, { more: false });
+    await expect(wizard.getCommands('pre-deployment')).resolves.toEqual(['build']);
+    const commandConfig = prompt.mock.calls[1][0][0];
+    expect(commandConfig.validate('')).toBe('Command cannot be empty.');
+    expect(commandConfig.validate('build')).toBe(true);
   });
 
-  it('should return no commands when none configured', async () => {
-    jest.spyOn(inquirer, 'prompt').mockResolvedValueOnce({ hasCommand: false });
+  it('returns no commands when none configured', async () => {
+    answers({ hasCommand: false });
     await expect(wizard.getCommands('post-deployment')).resolves.toEqual([]);
   });
-
 });
