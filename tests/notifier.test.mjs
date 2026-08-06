@@ -192,7 +192,7 @@ describe('Discord embed size limits', () => {
     const embed = notifier.limitEmbed({
       title: 'x',
       description: 'short',
-      fields: Array.from({ length: 30 }, (_, i) => ({ name: `field-${i}`, name: 'n'.repeat(300), value: 'v'.repeat(2000) }))
+      fields: Array.from({ length: 30 }, () => ({ name: 'n'.repeat(300), value: 'v'.repeat(2000) }))
     });
     expect(embed.fields).toHaveLength(25);
     expect(embed.fields.every(field => field.value.length <= 1024 && field.name.length <= 256)).toBe(true);
