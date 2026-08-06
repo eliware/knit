@@ -18,11 +18,17 @@ describe('crypto', () => {
 
   it('reports configured env values', () => {
     expect(isEncryptionConfigured({ KNIT_CONFIG_RECIPIENT: recipient })).toBe(true);
+    expect(isEncryptionConfigured({ KNIT_AGE_RECIPIENT: recipient })).toBe(true);
+    expect(isEncryptionConfigured({ KNIT_AGE_IDENTITY_FILE: identity })).toBe(true);
+    expect(isEncryptionConfigured({ KNIT_AGE_KEY_FILE: identity })).toBe(true);
     expect(isEncryptionConfigured({})).toBe(false);
   });
   it('encrypts and decrypts data', async () => {
     const encrypted = await encrypt('secret', { recipient });
     await expect(decrypt(encrypted, { identityFile: identity })).resolves.toEqual(Buffer.from('secret'));
+    const binary = Buffer.from([0, 1, 2, 255]);
+    const encryptedBinary = await encrypt(binary, { recipient });
+    await expect(decrypt(encryptedBinary, { identityFile: identity })).resolves.toEqual(binary);
   });
   it('requires key configuration', async () => {
     await expect(encrypt('x')).rejects.toThrow('recipient is required');
