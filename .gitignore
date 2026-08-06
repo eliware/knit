@@ -62,7 +62,7 @@ node_modules/
 .cache
 
 # repos
-repos/*
+repos/
 
 # AgentX
 .agentx_responseid
