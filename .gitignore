@@ -66,3 +66,5 @@ repos/*
 
 # AgentX
 .agentx_responseid
+
+.agentx*
