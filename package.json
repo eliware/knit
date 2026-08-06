@@ -24,7 +24,6 @@
         "discord",
         "ci",
         "cd",
-        null,
         "github-webhooks",
         "webhook-handler",
         "self-hosted"
