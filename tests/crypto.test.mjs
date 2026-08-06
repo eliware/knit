@@ -31,8 +31,18 @@ describe('crypto', () => {
     await expect(decrypt(encryptedBinary, { identityFile: identity })).resolves.toEqual(binary);
   });
   it('requires key configuration', async () => {
-    await expect(encrypt('x')).rejects.toThrow('recipient is required');
-    await expect(decrypt('x')).rejects.toThrow('identity file is required');
+    const names = ['KNIT_CONFIG_RECIPIENT', 'KNIT_AGE_RECIPIENT', 'KNIT_AGE_IDENTITY_FILE', 'KNIT_AGE_KEY_FILE'];
+    const previous = Object.fromEntries(names.map(name => [name, process.env[name]]));
+    try {
+      names.forEach(name => delete process.env[name]);
+      await expect(encrypt('x')).rejects.toThrow(/recipient is required/i);
+      await expect(decrypt('x')).rejects.toThrow(/identity file is required/i);
+    } finally {
+      names.forEach(name => {
+        if (previous[name] === undefined) delete process.env[name];
+        else process.env[name] = previous[name];
+      });
+    }
   });
   it('encrypts and decrypts files', async () => {
     const input = path.join(dir, 'input'); const encrypted = path.join(dir, 'input.age'); const output = path.join(dir, 'output');
