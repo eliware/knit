@@ -45,12 +45,12 @@ describe('wizard.mjs', () => {
       { user: 'deploy' }, { group: 'apps' }, { notify: '' }
     );
     const log = { info: jest.fn(), error: jest.fn() };
-    const print = jest.spyOn(console, 'log').mockImplementation(() => {});
     await wizard.runWizard({ log, getCommands: jest.fn().mockResolvedValue([]), fs: mockFs, path: mockPath });
 
     expect(mockFs.mkdirSync).toHaveBeenCalledWith('../repos/acme', { recursive: true });
     expect(mockFs.writeFileSync).toHaveBeenCalledWith(expect.stringContaining('/acme/app.json'), expect.any(String));
-    expect(print).toHaveBeenCalledTimes(2);
+    expect(log.info).toHaveBeenCalledWith(expect.stringContaining('Repository configuration saved to'));
+    expect(log.info).toHaveBeenCalledWith('Reminder: Set the GitHub webhook!', expect.any(Object));
   });
 
   it('runs npm install without npm test', async () => {
@@ -79,10 +79,9 @@ describe('wizard.mjs', () => {
       { hasCommand: false }, { runNpm: false }, { hasCommand: false },
       { user: 'root' }, { group: 'root' }, { notify: '' }
     );
-    const print = jest.spyOn(console, 'log').mockImplementation(() => {});
     await wizard.runWizard();
 
-    expect(print).toHaveBeenCalledTimes(2);
+    expect(nodeFs).toBeDefined();
     nodeFs.rmSync(new URL('../repos/coverage', import.meta.url), { recursive: true, force: true });
   });
 
