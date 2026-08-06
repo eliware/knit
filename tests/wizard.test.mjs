@@ -57,4 +57,45 @@ describe('wizard', () => {
     await wizard.runWizard({ log });
     expect(log.error).toHaveBeenCalledWith('Wizard error:', expect.any(Error));
   });
+
+  it('covers command validation and multiple commands', async () => {
+    const prompt = answers({ hasCommand: true }, { cmd: 'build' }, { more: true }, { cmd: 'deploy' }, { more: false });
+    await expect(wizard.getCommands('post')).resolves.toEqual(['build', 'deploy']);
+    const commandPrompt = prompt.mock.calls.find(call => call[0][0].name === 'cmd');
+    expect(commandPrompt[0][0].validate('')).toBe('Command cannot be empty.');
+    expect(commandPrompt[0][0].validate('ok')).toBe(true);
+  });
+
+  it('returns no commands when none are configured', async () => {
+    answers({ hasCommand: false });
+    await expect(wizard.getCommands('pre')).resolves.toEqual([]);
+  });
+
+  it('skips npm test when declined', async () => {
+    answers(
+      { repoName: 'owner/repo' }, { targetHost: 'host.example' }, { installPath: '/srv/repo' },
+      { runNpm: true }, { runNpmTest: false }, { user: 'root' }, { notify: '' }
+    );
+    await wizard.runWizard({ log: { info: jest.fn(), error: jest.fn() }, getCommands: jest.fn().mockResolvedValue([]), fs: fsMock, path: pathMock,
+      crypto: { isEncryptionConfigured: () => true, encrypt: jest.fn().mockResolvedValue('ciphertext') } });
+    const payload = JSON.parse(fsMock.writeFileSync.mock.calls[0][1]);
+    expect(payload.targets[0].post).toEqual(['npm install --silent']);
+  });
+
+
+  it('creates missing plaintext and encrypted directories and logs completion', async () => {
+    fsMock.existsSync.mockReturnValue(false);
+    const log = { info: jest.fn(), error: jest.fn() };
+    answers(
+      { repoName: 'owner/repo' }, { targetHost: 'host.example' }, { installPath: '/srv/repo' },
+      { runNpm: false }, { user: 'deploy' }, { notify: 'notify-url' }
+    );
+    await wizard.runWizard({ log, getCommands: jest.fn().mockResolvedValueOnce(['git pull --ff-only']).mockResolvedValueOnce([]), fs: fsMock, path: pathMock,
+      crypto: { isEncryptionConfigured: () => true, encrypt: jest.fn().mockResolvedValue('ciphertext') } });
+    expect(fsMock.mkdirSync).toHaveBeenCalledTimes(2);
+    const payload = JSON.parse(fsMock.writeFileSync.mock.calls[0][1]);
+    expect(payload.targets[0].pre).toEqual([]);
+    expect(log.info).toHaveBeenCalledWith('Repository configuration complete');
+    expect(log.info).toHaveBeenCalledWith('Reminder: Set the GitHub webhook!', { url: 'https://knit.eliware.org', post: 'application/json' });
+  });
 });
