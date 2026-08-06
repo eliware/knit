@@ -1,7 +1,7 @@
 {
     "name": "@eliware/knit",
     "type": "module",
-    "version": "1.1.3",
+    "version": "1.1.4",
     "description": "GitHub webhook handler and deployment automation tool. Listens for GitHub webhook events, validates signatures, updates repositories, runs deployment commands, and sends notifications.",
     "main": "knit.mjs",
     "scripts": {

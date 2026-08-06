@@ -50,3 +50,9 @@ This release expands Knit from push-focused deployment handling into a broader G
 
 - `d50356b` — first commit.
 - Additional pre-release maintenance commits preceded tag `1.1.1`.
+
+## 1.1.4
+
+- Added automatic pushback commits after successful post-update commands.
+- Pushback commits use the `Pushback YYYY-MM-DD HH:mm:ss` format and are pushed automatically.
+- Repository configurations use `npm install --silent` for live working-tree updates.
