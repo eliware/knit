@@ -195,6 +195,20 @@ describe('repo.mjs', () => {
     process.chdir.mockRestore();
   });
 
+  it('propagates pushback command failures', async () => {
+    const calls = [];
+    const exec = jest.fn(async ({ cmd }) => {
+      calls.push(cmd);
+      if (cmd === 'git diff --quiet') throw Object.assign(new Error('changes'), { code: 1 });
+      if (cmd === 'git add -A') throw new Error('pushback failed');
+      return { stdout: '', stderr: '' };
+    });
+    const repo = createRepo({ config: { pwd: '/tmp', notify: null }, log, execCommandFn: exec });
+    jest.spyOn(process, 'chdir').mockImplementation(() => {});
+    await expect(repo.update({ body, log })).rejects.toThrow('pushback failed');
+    process.chdir.mockRestore();
+  });
+
   it('covers default exec and config branches', async () => {
     const { writeFileSync, unlinkSync } = await import('node:fs');
     const malformed = `${process.cwd()}/repos/malformed.json`;
