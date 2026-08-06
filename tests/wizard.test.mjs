@@ -8,7 +8,7 @@ const pathMock = jest.fn((...args) => args.filter(arg => typeof arg === 'string'
 const answers = (...values) => jest.spyOn(inquirer, 'prompt').mockImplementation(async () => values.shift());
 
 describe('wizard', () => {
-  beforeEach(() => { jest.restoreAllMocks(); jest.clearAllMocks(); fsMock.existsSync.mockReturnValue(true); });
+  beforeEach(() => { jest.restoreAllMocks(); jest.clearAllMocks(); fsMock.existsSync.mockReturnValue(true); delete process.env.KNIT_CONFIG_REPO_PATH; });
 
   it('generates the new SSH target format and encrypts it', async () => {
     answers(
