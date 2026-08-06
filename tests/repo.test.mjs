@@ -199,7 +199,7 @@ describe('repo.mjs', () => {
     const calls = [];
     const exec = jest.fn(async ({ cmd }) => {
       calls.push(cmd);
-      if (cmd === 'git diff --quiet') throw Object.assign(new Error('changes'), { code: 1 });
+      if (cmd === 'git diff --quiet') throw new Error('changes');
       if (cmd === 'git add -A') throw new Error('pushback failed');
       return { stdout: '', stderr: '' };
     });
