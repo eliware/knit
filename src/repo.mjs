@@ -222,7 +222,7 @@ async function sendNotification({ repo, body, logOutput, hasError, log = logger 
 /* istanbul ignore next -- SSH transport branches require live remote integration fixtures. */
 export function createSshRepo({ config, execFile: injectedExecFile, fsModule = fsSync, log = logger, sendNotification, configPath = process.env.KNIT_CONFIG_REPO_PATH || pathNode.resolve('repos'), tmpdir = os.tmpdir() } = {}, legacyExecFile) {
   const execFile = injectedExecFile || legacyExecFile || realExecFile;
-  const notifyFn = sendNotification || (args => config.notify ? Notifier.send({ notifyUrl: config.notify, ...args }) : undefined);
+  const notifyFn = sendNotification || (args => config.notify ? Notifier.send({ notifyUrl: config.notify, post: args.body, ...args }) : undefined);
   const execution = config.execution || { stopOnError: true };
   const quote = value => `'${String(value).replace(/'/g, `'"'"'`)}'`;
   const resolveRef = ref => !ref || ref === 'host-installed' ? null : pathNode.isAbsolute(ref) ? ref : pathNode.join(configPath, ref);
