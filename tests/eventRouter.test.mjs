@@ -2,27 +2,60 @@ import { jest } from '@jest/globals';
 import { FALLBACK_REPOSITORY, repositoryName, resolveEventTarget } from '../src/eventRouter.mjs';
 
 describe('eventRouter', () => {
-  test('extracts repository names', () => {
+  test('extracts repository names and handles missing data', () => {
     expect(repositoryName({ repository: { full_name: 'eliware/knit' } })).toBe('eliware/knit');
+    expect(repositoryName({ repository: {} })).toBeNull();
+    expect(repositoryName({ repository: { full_name: '' } })).toBeNull();
     expect(repositoryName({})).toBeNull();
+    expect(repositoryName()).toBeNull();
   });
 
-  test('routes repository events to their configured repository', async () => {
+  test('routes configured repository events', async () => {
     const repo = { notify: 'configured' };
-    const Repo = { get: jest.fn().mockResolvedValue(repo) };
-    await expect(resolveEventTarget({ post: { repository: { full_name: 'eliware/knit' } }, RepoMod: Repo })).resolves.toEqual({ kind: 'repository', name: 'eliware/knit', repo, ignored: false });
+    const RepoMod = { get: jest.fn().mockResolvedValue(repo) };
+    const log = { info: jest.fn() };
+    const post = { repository: { full_name: 'eliware/knit' } };
+
+    await expect(resolveEventTarget({ post, RepoMod, log })).resolves.toEqual({
+      kind: 'repository', name: 'eliware/knit', repo, ignored: false,
+    });
+    expect(RepoMod.get).toHaveBeenCalledWith({ name: 'eliware/knit', log });
   });
 
   test('marks unknown repositories ignored', async () => {
-    const Repo = { get: jest.fn().mockResolvedValue(null) };
-    await expect(resolveEventTarget({ post: { repository: { full_name: 'unknown/repo' } }, RepoMod: Repo })).resolves.toEqual({ kind: 'repository', name: 'unknown/repo', repo: null, ignored: true });
+    const RepoMod = { get: jest.fn().mockResolvedValue(null) };
+    const post = { repository: { full_name: 'unknown/repo' } };
+
+    await expect(resolveEventTarget({ post, RepoMod })).resolves.toEqual({
+      kind: 'repository', name: 'unknown/repo', repo: null, ignored: true,
+    });
   });
 
-  test('routes organization events to the Knit fallback', async () => {
+  test.each([undefined, {}, { repository: {} }])('routes %j to fallback', async (post) => {
     const repo = { notify: 'fallback' };
-    const Repo = { get: jest.fn().mockResolvedValue(repo) };
-    const target = await resolveEventTarget({ post: { organization: { login: 'eliware' } }, RepoMod: Repo });
-    expect(target).toEqual({ kind: 'organization', name: FALLBACK_REPOSITORY, repo, ignored: false });
-    expect(Repo.get).toHaveBeenCalledWith(expect.objectContaining({ name: FALLBACK_REPOSITORY }));
+    const RepoMod = { get: jest.fn().mockResolvedValue(repo) };
+
+    await expect(resolveEventTarget({ post, RepoMod })).resolves.toEqual({
+      kind: 'organization', name: FALLBACK_REPOSITORY, repo, ignored: false,
+    });
+    expect(RepoMod.get).toHaveBeenCalledWith({ name: FALLBACK_REPOSITORY, log: console });
+  });
+
+  test('ignores fallback when Knit is not configured', async () => {
+    const RepoMod = { get: jest.fn().mockResolvedValue(null) };
+
+    await expect(resolveEventTarget({ post: {}, RepoMod })).resolves.toEqual({
+      kind: 'organization', name: FALLBACK_REPOSITORY, repo: null, ignored: true,
+    });
+  });
+
+  test('uses default modules and options', async () => {
+    await expect(resolveEventTarget()).resolves.toEqual({
+      kind: 'organization', name: FALLBACK_REPOSITORY, repo: expect.any(Object), ignored: false,
+    });
+  });
+
+  test('exports the expected fallback repository', () => {
+    expect(FALLBACK_REPOSITORY).toBe('eliware/knit');
   });
 });
