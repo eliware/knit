@@ -1,5 +1,7 @@
 import { jest } from '@jest/globals';
-import { createRepo, sendNotification as sendRepoNotification } from '../src/repo.mjs';
+jest.unstable_mockModule('../src/notifier.mjs', () => ({ send: jest.fn().mockResolvedValue(undefined) }));
+const { createRepo, sendNotification: sendRepoNotification, get } = await import('../src/repo.mjs');
+const notifier = await import('../src/notifier.mjs');
 
 describe('repo.mjs', () => {
   const log = { info: jest.fn(), error: jest.fn() };
@@ -116,7 +118,6 @@ describe('repo.mjs', () => {
   });
 
   it('returns null when repository config is missing', async () => {
-    const { get } = await import('../src/repo.mjs');
     await expect(get({ name: 'does-not-exist', log })).resolves.toBeNull();
   });
 
@@ -125,4 +126,33 @@ describe('repo.mjs', () => {
     await sendRepoNotification({ repo, body, logOutput: '', hasError: false, log });
   });
 
+
+  it('covers default command execution', async () => {
+    const repo = createRepo({ config: { pwd: '/tmp', pre: ['printf ok'], notify: 'http://dummy' }, execCommandFn: jest.fn().mockResolvedValue({ stdout: '', stderr: '' }) });
+    jest.spyOn(process, 'chdir').mockImplementation(() => {});
+    await expect(repo.update({ body, log })).resolves.toBe(true);
+    expect(notifier.send).toHaveBeenCalled();
+    process.chdir.mockRestore();
+  });
+
+  it('covers default exec and config branches', async () => {
+    const { writeFileSync, unlinkSync } = await import('node:fs');
+    const malformed = `${process.cwd()}/repos/malformed.json`;
+    const invalid = `${process.cwd()}/repos/invalid.json`;
+    const valid = `${process.cwd()}/repos/valid.json`;
+    writeFileSync(malformed, '{'); writeFileSync(invalid, '{}'); writeFileSync(valid, '{"pwd":"/tmp"}');
+    await expect(get({ name: 'malformed', log })).resolves.toBeNull();
+    await expect(get({ name: 'invalid', log })).resolves.toBeNull();
+    await expect(get({ name: 'valid', log })).resolves.toMatchObject({ pwd: '/tmp' });
+    unlinkSync(malformed); unlinkSync(invalid); unlinkSync(valid);
+
+    const success = createRepo({ config: { pwd: '/tmp', pre: ['printf ok'] } });
+    jest.spyOn(process, 'chdir').mockImplementation(() => {});
+    await expect(success.update({ body, log })).resolves.toBe(true);
+    process.chdir.mockRestore();
+    const failure = createRepo({ config: { pwd: '/tmp', pre: ['false'] } });
+    jest.spyOn(process, 'chdir').mockImplementation(() => {});
+    await expect(failure.update({ body, log })).resolves.toBe(false);
+    process.chdir.mockRestore();
+  });
 });
