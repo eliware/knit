@@ -26,6 +26,26 @@ test('loads plain config and caches until changed', async () => {
  expect(fs.readFileSync).toHaveBeenCalledTimes(1);
 });
 
+
+test('loads YAML configuration', async () => {
+ const files = {'/c/o/r.yaml': `repository: o/r
+git:
+  url: https://example.test/repo.git
+  ref: main
+targets:
+  - host: h
+    user: u
+    workingDirectory: /x
+    pre: []
+    post: []
+execution:
+  mode: sequential
+  stopOnError: true
+`};
+ const loader = createConfigLoader({fsModule:fsMock(files), configPath:'/c', legacyPath:'/l'});
+ expect(await loader.load('o/r')).toEqual(config);
+});
+
 test('decrypts encrypted config and caches until changed', async () => {
  const files={'/c/o/r.json.age':Buffer.from('cipher')};
  const crypto={decrypt:jest.fn(async()=>Buffer.from(validJson))};

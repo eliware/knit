@@ -55,7 +55,8 @@
         "body-parser": "^2.3.0",
         "dotenv": "^17.2.0",
         "express": "^5.1.0",
-        "inquirer": "^14.0.2"
+        "inquirer": "^14.0.2",
+        "js-yaml": "^4.3.1"
     },
     "engines": {
         "node": ">=26"
