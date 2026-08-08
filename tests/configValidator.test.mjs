@@ -99,14 +99,23 @@ it('rejects unsupported restart mode', () => {
   expect(log.error).toHaveBeenCalledWith('ConfigValidator::validate failed: invalid restart mode');
 });
 
-it('accepts graceful restart and local modern targets', () => {
+it('accepts graceful restart for SSH modern targets', () => {
+  expect(validate({ config: {
+    repository: 'owner/repo',
+    git: { url: 'url', ref: 'main' },
+    targets: [{ host: 'h', user: 'u', workingDirectory: '/tmp' }],
+    execution: { mode: 'sequential', stopOnError: false },
+    restart: 'graceful'
+  } })).toBe(true);
+});
+
+test('rejects local modern targets', () => {
   expect(validate({ config: {
     repository: 'owner/repo',
     git: { url: 'url', ref: 'main' },
     targets: [{ type: 'local', workingDirectory: '/tmp' }],
-    execution: { mode: 'sequential', stopOnError: false },
-    restart: 'graceful'
-  } })).toBe(true);
+    execution: { mode: 'sequential', stopOnError: true }
+  }, log: { error: jest.fn() } })).toBe(false);
 });
 
 it.each([

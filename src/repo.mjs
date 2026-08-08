@@ -230,14 +230,7 @@ export function createSshRepo({ config, execFile: injectedExecFile, fsModule = f
   const execution = config.execution || { stopOnError: true };
   const quote = value => `'${String(value).replace(/'/g, `'"'"'`)}'`;
   const resolveRef = ref => !ref || ref === 'host-installed' ? null : pathNode.isAbsolute(ref) ? ref : pathNode.join(configPath, ref);
-  const runLocal = (target, command) => new Promise((resolve, reject) => {
-    execFile('/bin/sh', ['-lc', command], { cwd: target.workingDirectory }, (error, stdout = '', stderr = '') => {
-      if (error) Object.assign(error, { stdout, stderr });
-      if (error) reject(error); else resolve({ stdout, stderr });
-    });
-  });
   const run = (target, command) => new Promise((resolve, reject) => {
-    if (target.type === 'local') return runLocal(target, command).then(resolve, reject);
     const args = ['-o', 'StrictHostKeyChecking=yes', '-o', 'IdentitiesOnly=yes'];
     let keyFile; const knownHosts = resolveRef(target.knownHosts);
     if (knownHosts) args.push('-o', `UserKnownHostsFile=${knownHosts}`);
