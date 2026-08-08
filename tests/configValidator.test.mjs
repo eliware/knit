@@ -20,3 +20,5 @@ test.each([
   {workingDirectory: ''},
 ])('rejects invalid SSH target: %j', field => expect(validate({config: {...base, targets: [{...base.targets[0], ...field}]}, log: {error: jest.fn()}})).toBe(false));
 test.each([null, 'bad'])('rejects non-object SSH target: %j', target => expect(validate({config: {...base, targets: [target]}, log: {error: jest.fn()}})).toBe(false));
+test('accepts SSH identity and knownHosts paths', () => expect(validate({config: {...base, targets: [{...base.targets[0], identity: 'ssh/id_rsa', knownHosts: 'ssh/known_hosts'}]}})).toBe(true));
+test('rejects truthy non-object target', () => expect(validate({config: {...base, targets: [1]}, log: {error: jest.fn()}})).toBe(false));
