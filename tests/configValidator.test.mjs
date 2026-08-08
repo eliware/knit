@@ -19,3 +19,4 @@ test.each([
   {user: ''},
   {workingDirectory: ''},
 ])('rejects invalid SSH target: %j', field => expect(validate({config: {...base, targets: [{...base.targets[0], ...field}]}, log: {error: jest.fn()}})).toBe(false));
+test.each([null, 'bad'])('rejects non-object SSH target: %j', target => expect(validate({config: {...base, targets: [target]}, log: {error: jest.fn()}})).toBe(false));
