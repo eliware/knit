@@ -1,16 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
-import * as Crypto from './crypto.mjs';
 import * as Validator from './configValidator.mjs';
-export function createConfigLoader({ fsModule = fs, crypto = Crypto, configPath = process.env.KNIT_CONFIG_REPO_PATH || path.resolve('repos'), legacyPath = path.resolve('repos'), log = console } = {}) {
+export function createConfigLoader({ fsModule = fs, configPath = process.env.KNIT_CONFIG_PATH || path.resolve('repos'), legacyPath = path.resolve('repos'), log = console } = {}) {
   const cache = new Map();
   return { async load(name) {
-    const candidates = [path.join(configPath, `${name}.yaml`), path.join(configPath, `${name}.yml`), path.join(configPath, `${name}.json.age`), path.join(configPath, `${name}.json`), path.join(legacyPath, `${name}.json`)];
+    const candidates = [path.join(configPath, `${name}.yaml`), path.join(configPath, `${name}.yml`), path.join(configPath, `${name}.json`), path.join(legacyPath, `${name}.json`)];
     const selected = candidates.find(p => fsModule.existsSync(p)); if (!selected) return null;
     const stat = fsModule.statSync(selected); const stamp = `${stat.mtimeMs}:${stat.size}:${stat.ino || ''}`; const old = cache.get(name);
     if (old?.path === selected && old.stamp === stamp) return old.config;
-    try { const raw = selected.endsWith('.age') ? await crypto.decrypt(fsModule.readFileSync(selected), { identityFile: process.env.KNIT_AGE_IDENTITY_FILE }) : fsModule.readFileSync(selected, 'utf8'); const text = Buffer.from(raw).toString('utf8'); const config = /\.(yaml|yml)$/.test(selected) ? yaml.load(text) : JSON.parse(text); if (!Validator.validate({ config, log })) return old?.config || null; cache.set(name, { path: selected, stamp, config }); return config; }
+    try { const text = fsModule.readFileSync(selected, 'utf8'); const config = /\.(yaml|yml)$/.test(selected) ? yaml.load(text) : JSON.parse(text); if (!Validator.validate({ config, log })) return old?.config || null; cache.set(name, { path: selected, stamp, config }); return config; }
     catch (error) { log.error?.('Config load failed', { name, error: error.message }); return old?.config || null; }
   }, clear() { cache.clear(); } };
 }

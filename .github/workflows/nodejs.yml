@@ -18,8 +18,6 @@ jobs:
         node-version: [26.x]
     steps:
       - uses: actions/checkout@v6
-      - name: Install age
-        run: sudo apt-get update && sudo apt-get install -y age
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v6
         with:

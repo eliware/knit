@@ -63,8 +63,6 @@
     },
     "files": [
         "knit.mjs",
-        "crypto.mjs",
-        "wizard.mjs",
         "src",
         "README.md",
         "LICENSE"

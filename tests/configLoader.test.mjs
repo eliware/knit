@@ -47,14 +47,6 @@ execution:
  expect(await loader.load('o/r')).toMatchObject({...config, notifyKey: 'o__r'});
 });
 
-test('decrypts encrypted config and caches until changed', async () => {
- const files={'/c/o/r.json.age':Buffer.from('cipher')};
- const crypto={decrypt:jest.fn(async()=>Buffer.from(validJson))};
- const loader=createConfigLoader({fsModule:fsMock(files),crypto,configPath:'/c',legacyPath:'/l'});
- await loader.load('o/r'); await loader.load('o/r');
- expect(crypto.decrypt).toHaveBeenCalledTimes(1);
-});
-
 test('uses legacy config when preferred candidates are absent', async () => {
  const loader = createConfigLoader({fsModule:fsMock({'/l/o/r.json':validJson}), configPath:'/c', legacyPath:'/l'});
  expect(await loader.load('o/r')).toEqual(config);
