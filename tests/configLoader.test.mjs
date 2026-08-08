@@ -29,6 +29,7 @@ test('loads plain config and caches until changed', async () => {
 
 test('loads YAML configuration', async () => {
  const files = {'/c/o/r.yaml': `repository: o/r
+notifyKey: o__r
 git:
   url: https://example.test/repo.git
   ref: main
@@ -43,7 +44,7 @@ execution:
   stopOnError: true
 `};
  const loader = createConfigLoader({fsModule:fsMock(files), configPath:'/c', legacyPath:'/l'});
- expect(await loader.load('o/r')).toEqual(config);
+ expect(await loader.load('o/r')).toMatchObject({...config, notifyKey: 'o__r'});
 });
 
 test('decrypts encrypted config and caches until changed', async () => {

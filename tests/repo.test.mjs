@@ -231,6 +231,20 @@ describe('repo.mjs', () => {
   });
 });
 
+test('get integrates loader config with notification secret resolver', async () => {
+ const resolver = {resolve: jest.fn(() => 'https://discord.test/webhook')};
+ const loader = {load: jest.fn(async () => ({
+   repository: 'owner/repo',
+   notifyKey: 'owner__repo',
+   git: {url: 'https://example.test/repo.git', ref: 'main'},
+   targets: [{host: 'h', user: 'u', workingDirectory: '/tmp'}],
+   execution: {mode: 'sequential', stopOnError: true}
+ }))};
+ const repo = await get({name: 'owner/repo', loaderOptions: {...loader, secretResolver: resolver}});
+ expect(repo.notify).toBe('https://discord.test/webhook');
+ expect(resolver.resolve).toHaveBeenCalledWith('owner__repo');
+});
+
 test('resolves modern notification webhook from notifyKey', () => {
  const resolver = {resolve: jest.fn(() => 'https://discord.test/webhook')};
  const repo = createRepo({config: {pwd: '/tmp', notifyKey: 'eliware__example'}, secretResolver: resolver});
