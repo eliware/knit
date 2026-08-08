@@ -7,7 +7,7 @@ GitHub webhook handler and SSH deployment automation service.
 - Node.js >=26; ESM.
 - `POST /` receives signed GitHub webhooks.
 - `GET /health` returns service status and version.
-- Repository configuration is YAML/JSON mounted at `KNIT_CONFIG_PATH` (default `./repos`).
+- Repository configuration is YAML mounted at `KNIT_CONFIG_PATH` (default `./repos`).
 - YAML files use `<owner>__<repo>.yaml` naming in Kubernetes ConfigMaps.
 
 ## Configuration
@@ -36,7 +36,7 @@ execution:
 
 Targets execute commands over SSH with strict host verification. `identity` and `knownHosts` may be `host-installed` or paths relative to the configured path. Modern targets are SSH-only.
 
-Legacy local JSON configurations remain supported only for migration. New configurations must use YAML and SSH targets.
+New configurations must use YAML and SSH targets. Local Compose requires `KNIT_CONFIG_PATH` and `KNIT_DISCORD_WEBHOOK_SECRET_HOST_PATH` directories; systemd requires equivalent mounted/provisioned paths.
 
 ## Environment
 
