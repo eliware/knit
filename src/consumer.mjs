@@ -29,7 +29,7 @@ export async function consume({ message, log = logger, Repo: RepoMod = Repo, Git
   }
   if (!post.repository) {
     log.info('[Consumer] Organization-level event routed to fallback repository', target.name);
-    return true;
+    return await HandlersMod.dispatch({ event, post, target, deliveryId: message.deliveryId, log });
   }
   if (event !== 'push') {
     log.info('[Consumer] Non-push event routed for specialized handling', event, target.name);

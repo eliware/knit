@@ -46,9 +46,11 @@ describe('consumer.mjs', () => {
   it('accepts an organization-level event routed to the fallback repository', async () => {
     message.parsed = {};
     Router.resolveEventTarget.mockResolvedValue({ ignored: false, kind: 'organization', name: 'eliware/knit' });
+    Handlers.dispatch.mockResolvedValue(true);
 
     await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(true);
     expect(log.info).toHaveBeenCalledWith('[Consumer] Organization-level event routed to fallback repository', 'eliware/knit');
+    expect(Handlers.dispatch).toHaveBeenCalledWith(expect.objectContaining({ event: 'push', target: expect.objectContaining({ kind: 'organization' }) }));
   });
 
   it('dispatches non-push events with the delivery id', async () => {
