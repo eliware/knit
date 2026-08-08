@@ -230,3 +230,10 @@ describe('repo.mjs', () => {
     process.chdir.mockRestore();
   });
 });
+
+test('resolves modern notification webhook from notifyKey', () => {
+ const resolver = {resolve: jest.fn(() => 'https://discord.test/webhook')};
+ const repo = createRepo({config: {pwd: '/tmp', notifyKey: 'eliware__example'}, secretResolver: resolver});
+ expect(repo.notify).toBe('https://discord.test/webhook');
+ expect(resolver.resolve).toHaveBeenCalledWith('eliware__example');
+});

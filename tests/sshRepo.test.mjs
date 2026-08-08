@@ -53,3 +53,10 @@ test('continues after target failure when stopOnError is disabled and handles in
   await expect(repo.update({ body: { commits: [] } })).resolves.toBe(false);
   expect(execFile.mock.calls.length).toBeGreaterThan(1);
 });
+
+test('resolves SSH notification webhook from notifyKey', () => {
+ const resolver = {resolve: jest.fn(() => 'https://discord.test/webhook')};
+ const repo = createSshRepo({config: {notifyKey: 'eliware__example', targets: [{host: 'h', user: 'u', workingDirectory: '/x'}]}, secretResolver: resolver, execFile: jest.fn()});
+ expect(repo.notify).toBe('https://discord.test/webhook');
+ expect(resolver.resolve).toHaveBeenCalledWith('eliware__example');
+});

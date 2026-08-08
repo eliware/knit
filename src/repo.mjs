@@ -8,6 +8,7 @@ import os from 'node:os';
 import pathNode from 'node:path';
 import * as Notifier from './notifier.mjs';
 import { requestGracefulRestart } from './lifecycle.mjs';
+import { defaultSecretResolver } from './secretResolver.mjs';
 
 /**
  * Creates a repository handler for update operations.
@@ -16,7 +17,8 @@ import { requestGracefulRestart } from './lifecycle.mjs';
  * @param {Function} [params.sendNotification] - Optional sendNotification for testing/mocking.
  * @returns {Object} The repository handler with an update method.
  */
-export function createRepo({ config, execCommandFn = execCommand, sendNotification } = {}) {
+export function createRepo({ config, execCommandFn = execCommand, sendNotification, secretResolver = defaultSecretResolver } = {}) {
+  const notify = config.notifyKey ? secretResolver.resolve(config.notifyKey) : (config.notify || null);
   // Default sendNotification implementation if not injected
   const notifyFn = sendNotification
     ? sendNotification
@@ -30,7 +32,7 @@ export function createRepo({ config, execCommandFn = execCommand, sendNotificati
     postCmds: config.post || [],
     user: config.user || 'root',
     group: config.group || 'root',
-    notify: config.notify || null,
+    notify,
     /**
      * Updates the repository based on the webhook body.
      * @param {Object} params
@@ -221,9 +223,10 @@ async function sendNotification({ repo, body, logOutput, hasError, log = logger 
  * @returns {Promise<Object|null>} The repository handler or null if not found/invalid.
  */
 /* istanbul ignore next -- SSH transport branches require live remote integration fixtures. */
-export function createSshRepo({ config, execFile: injectedExecFile, fsModule = fsSync, log = logger, sendNotification, configPath = process.env.KNIT_CONFIG_REPO_PATH || pathNode.resolve('repos'), tmpdir = os.tmpdir() } = {}, legacyExecFile) {
+export function createSshRepo({ config, execFile: injectedExecFile, fsModule = fsSync, log = logger, sendNotification, secretResolver = defaultSecretResolver, configPath = process.env.KNIT_CONFIG_REPO_PATH || pathNode.resolve('repos'), tmpdir = os.tmpdir() } = {}, legacyExecFile) {
   const execFile = injectedExecFile || legacyExecFile || realExecFile;
-  const notifyFn = sendNotification || (args => config.notify ? Notifier.send({ notifyUrl: config.notify, post: args.body, ...args }) : undefined);
+  const notify = config.notifyKey ? secretResolver.resolve(config.notifyKey) : (config.notify || null);
+  const notifyFn = sendNotification || (args => notify ? Notifier.send({ notifyUrl: notify, post: args.body, ...args }) : undefined);
   const execution = config.execution || { stopOnError: true };
   const quote = value => `'${String(value).replace(/'/g, `'"'"'`)}'`;
   const resolveRef = ref => !ref || ref === 'host-installed' ? null : pathNode.isAbsolute(ref) ? ref : pathNode.join(configPath, ref);
@@ -246,7 +249,7 @@ export function createSshRepo({ config, execFile: injectedExecFile, fsModule = f
       execFile('ssh', args, {}, (error, stdout = '', stderr = '') => { if (keyFile) { try { fsModule.unlinkSync(keyFile); } catch {} } if (error) Object.assign(error, { stdout, stderr }); if (error) reject(error); else resolve({ stdout, stderr }); });
     } catch (error) { if (keyFile) try { fsModule.unlinkSync(keyFile); } catch {} reject(error); }
   });
-  return { notify: config.notify || null, targets: config.targets, async update({ body, log: requestLog = log }) {
+  return { notify, targets: config.targets, async update({ body, log: requestLog = log }) {
     if (!body || !Array.isArray(body.commits)) { requestLog.error('[Repo] body validation failed'); return false; }
     if (body.ref?.startsWith('refs/tags/')) { await notifyFn?.({ repo: this, body, logOutput: '', hasError: false, log: requestLog }); return true; }
     let output = ''; let failed = false; const git = config.git?.url && config.git?.ref ? `git fetch --prune ${quote(config.git.url)} ${quote(config.git.ref)} && git reset --hard FETCH_HEAD` : 'git pull --ff-only';
