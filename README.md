@@ -32,11 +32,15 @@ execution:
   stopOnError: true
 ```
 
-`notifyKey` resolves to `/run/secrets/discord-webhooks/<notifyKey>`. Webhook URLs belong in Kubernetes Secrets, encrypted in GitOps with SOPS/age. They must not appear in configuration files.
+`notifyKey` resolves to `/run/secrets/discord-webhooks/<notifyKey>`. Webhook URLs belong in Kubernetes Secrets, encrypted in GitOps with SOPS/age. They must not appear in configuration files. SSH assets are mounted at `/run/secrets/eliware/ssh/`.
 
 Targets execute commands over SSH with strict host verification. `identity` and `knownHosts` may be `host-installed` or paths relative to the configured path. Modern targets are SSH-only.
 
 New configurations must use YAML and SSH targets. Local Compose requires `KNIT_CONFIG_PATH` and `KNIT_DISCORD_WEBHOOK_SECRET_HOST_PATH` directories; systemd requires equivalent mounted/provisioned paths.
+
+## Knit self-deployment and organization fallback
+
+`eliware/knit` is configured as the fallback target for organization-level GitHub events. Its push deployment runs `git pull`, `npm install`, and `npm test` on `dev.purinton.us:/opt/knit`, then sends the result to Discord. Successful deployments do not restart the process; release a new image and let Argo CD roll it out for Knit code changes.
 
 ## Environment
 
@@ -57,4 +61,4 @@ npm run lint
 npm start
 ```
 
-Kubernetes releases use immutable container images and Argo CD GitOps. Knit does not clone or update its own source or configuration repositories.
+Kubernetes releases use immutable container images and Argo CD GitOps. Knit can receive its own repository webhook and SSH-deploy `/opt/knit`; new Knit code is delivered by releasing an image, not by runtime self-updating.

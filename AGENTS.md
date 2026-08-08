@@ -16,8 +16,9 @@ Knit (`@eliware/knit`) is a GitHub webhook handler and SSH deployment automation
 - `POST /` receives signed GitHub webhooks; `GET /health` returns status and version.
 - Repository configs are YAML files mounted at `KNIT_CONFIG_PATH`; Kubernetes uses `<owner>__<repo>.yaml` filenames.
 - Modern configs deploy sequentially to SSH targets (`host`, `user`, `workingDirectory`, optional `identity`/`knownHosts`).
-- `notifyKey` resolves a webhook URL from the mounted Secret path `KNIT_DISCORD_WEBHOOK_SECRET_PATH`.
-- Knit does not clone/update its own source or configuration repositories.
+- `notifyKey` resolves a webhook URL from the mounted Secret path `KNIT_DISCORD_WEBHOOK_SECRET_PATH`; SSH assets are mounted under `/run/secrets/eliware/ssh/`.
+- Organization-level events use `eliware/knit` as the notification fallback.
+- `eliware/knit` may SSH-deploy `/opt/knit` after pushes; it does not self-restart. New Knit code requires an image release and Argo CD rollout.
 - SSH uses strict host verification. Never weaken verification or commit secrets.
 
 ## Configuration

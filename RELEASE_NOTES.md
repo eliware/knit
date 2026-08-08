@@ -1,12 +1,30 @@
 # Release Notes
 
+## 1.1.10 — August 8, 2026
+
+### Changed
+
+- Restored `eliware/knit` self-deployment configuration and organization-level fallback notifications.
+- Added mounted SSH deployment credentials for configured targets.
+- Removed graceful self-restart/lifecycle handling; Knit code updates use immutable images and Argo CD.
+
+### Verification
+
+- Jest: **158 tests passed**; coverage **100%**.
+- Oxlint: **0 warnings/errors**.
+- Local Docker image build, CI, GHCR publish, Argo rollout, health check, and signed webhook smoke tests verified.
+
+## 1.1.9 — August 8, 2026
+
+- Restored organization fallback routing and the `eliware/knit` deployment configuration.
+
 ## 1.1.8 — August 8, 2026
 
 ### Changed
 
 - Migrated repository configuration to YAML and Kubernetes ConfigMaps.
 - Moved Discord webhook URLs into encrypted Kubernetes Secrets referenced by `notifyKey`.
-- Removed age-encrypted config handling, config-repository synchronization, local execution, and self-management behavior.
+- Removed age-encrypted config handling, config-repository synchronization, and local execution from the 1.1.8 runtime; later releases restore only webhook-driven SSH deployment for `eliware/knit`.
 - Simplified the container image and removed Git/age runtime dependencies.
 - Added strict SSH-only modern targets and updated runtime documentation.
 
