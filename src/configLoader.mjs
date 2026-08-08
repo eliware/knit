@@ -2,11 +2,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
 import * as Validator from './configValidator.mjs';
-export function createConfigLoader({ fsModule = fs, configPath = process.env.KNIT_CONFIG_PATH || path.resolve('repos'), legacyPath = path.resolve('repos'), log = console } = {}) {
+export function createConfigLoader({ fsModule = fs, configPath = process.env.KNIT_CONFIG_PATH || path.resolve('repos'), log = console } = {}) {
   const cache = new Map();
   return { async load(name) {
     const configKey = name.replaceAll('/', '__');
-    const candidates = [path.join(configPath, `${configKey}.yaml`), path.join(configPath, `${configKey}.yml`), path.join(configPath, `${name}.json`), path.join(legacyPath, `${name}.json`)];
+    const candidates = [path.join(configPath, `${configKey}.yaml`), path.join(configPath, `${configKey}.yml`), ];
     const selected = candidates.find(p => fsModule.existsSync(p)); if (!selected) return null;
     const stat = fsModule.statSync(selected); const stamp = `${stat.mtimeMs}:${stat.size}:${stat.ino || ''}`; const old = cache.get(name);
     if (old?.path === selected && old.stamp === stamp) return old.config;
