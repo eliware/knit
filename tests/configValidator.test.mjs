@@ -10,3 +10,12 @@ test('rejects local targets', () => expect(validate({config: {...base, targets: 
 test('rejects unsafe notifyKey', () => expect(validate({config: {...base, notifyKey: '../secret'}, log: {error: jest.fn()}})).toBe(false));
 test('rejects invalid restart', () => expect(validate({config: {...base, restart: 'always'}, log: {error: jest.fn()}})).toBe(false));
 test('isModern detects modern configs', () => { expect(isModern(base)).toBe(true); expect(isModern(null)).toBe(false); });
+test.each([
+  {identity: ''},
+  {knownHosts: ''},
+  {pre: ['ok', 1]},
+  {post: ['ok', null]},
+  {host: ''},
+  {user: ''},
+  {workingDirectory: ''},
+])('rejects invalid SSH target: %j', field => expect(validate({config: {...base, targets: [{...base.targets[0], ...field}]}, log: {error: jest.fn()}})).toBe(false));
