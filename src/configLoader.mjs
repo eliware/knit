@@ -5,7 +5,8 @@ import * as Validator from './configValidator.mjs';
 export function createConfigLoader({ fsModule = fs, configPath = process.env.KNIT_CONFIG_PATH || path.resolve('repos'), legacyPath = path.resolve('repos'), log = console } = {}) {
   const cache = new Map();
   return { async load(name) {
-    const candidates = [path.join(configPath, `${name}.yaml`), path.join(configPath, `${name}.yml`), path.join(configPath, `${name}.json`), path.join(legacyPath, `${name}.json`)];
+    const configKey = name.replaceAll('/', '__');
+    const candidates = [path.join(configPath, `${configKey}.yaml`), path.join(configPath, `${configKey}.yml`), path.join(configPath, `${name}.json`), path.join(legacyPath, `${name}.json`)];
     const selected = candidates.find(p => fsModule.existsSync(p)); if (!selected) return null;
     const stat = fsModule.statSync(selected); const stamp = `${stat.mtimeMs}:${stat.size}:${stat.ino || ''}`; const old = cache.get(name);
     if (old?.path === selected && old.stamp === stamp) return old.config;

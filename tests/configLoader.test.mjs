@@ -28,7 +28,7 @@ test('loads plain config and caches until changed', async () => {
 
 
 test('loads YAML configuration', async () => {
- const files = {'/c/o/r.yaml': `repository: o/r
+ const files = {'/c/o__r.yaml': `repository: o/r
 notifyKey: o__r
 git:
   url: https://example.test/repo.git
