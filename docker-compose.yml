@@ -6,14 +6,6 @@ services:
     env_file:
       - path: .env
         format: raw
-    environment:
-      KNIT_CONFIG_DEPLOY_KEY_FILE: /run/secrets/knit_configs_deploy_key
-      KNIT_CONFIG_KNOWN_HOSTS_FILE: /run/secrets/knit_known_hosts
-      KNIT_AGE_IDENTITY_FILE: /run/secrets/knit_configs_age_key
-    secrets:
-      - knit_configs_deploy_key
-      - knit_known_hosts
-      - knit_configs_age_key
     restart: unless-stopped
     stop_grace_period: 30s
     init: true
@@ -24,11 +16,3 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-
-secrets:
-  knit_configs_deploy_key:
-    file: ${KNIT_CONFIG_DEPLOY_KEY_FILE:-/root/.ssh/knit-configs-deploy}
-  knit_known_hosts:
-    file: ${KNIT_CONFIG_KNOWN_HOSTS_FILE:-/root/.ssh/known_hosts}
-  knit_configs_age_key:
-    file: ${KNIT_AGE_IDENTITY_FILE:-/root/.config/sops/age/knit-configs-keys.txt}
