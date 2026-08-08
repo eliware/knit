@@ -1,5 +1,23 @@
 # Release Notes
 
+## 1.1.8 — August 8, 2026
+
+### Changed
+
+- Migrated repository configuration to YAML and Kubernetes ConfigMaps.
+- Moved Discord webhook URLs into encrypted Kubernetes Secrets referenced by `notifyKey`.
+- Removed age-encrypted config handling, config-repository synchronization, local execution, and self-management behavior.
+- Simplified the container image and removed Git/age runtime dependencies.
+- Added strict SSH-only modern targets and updated runtime documentation.
+
+### Verification
+
+- Jest: **163 tests passed**.
+- Coverage: **100% statements, branches, functions, and lines**.
+- Oxlint: **0 warnings/errors**.
+- Docker image build and Kustomize rendering verified.
+
+
 ## 1.1.7 — August 6, 2026
 
 - Aligned Docker Compose with Kubernetes runtime behavior.
