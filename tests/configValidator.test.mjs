@@ -121,3 +121,23 @@ it.each([
     execution: { mode: 'sequential', stopOnError: true }
   }, log })).toBe(false);
 });
+
+
+test.each(['owner/repo', '../secret'])('rejects invalid modern notifyKey: %s', notifyKey => {
+  expect(validate({ config: {
+    repository: 'owner/repo',
+    notifyKey,
+    git: { url: 'url', ref: 'main' },
+    targets: [{ host: 'h', user: 'u', workingDirectory: '/tmp' }],
+    execution: { mode: 'sequential', stopOnError: true }
+  }, log: { error: jest.fn() } })).toBe(false);
+});
+
+test('accepts safe modern notifyKey', () => {
+  expect(validate({ config: {
+    repository: 'owner/repo', notifyKey: 'owner__repo.v1-1',
+    git: { url: 'url', ref: 'main' },
+    targets: [{ host: 'h', user: 'u', workingDirectory: '/tmp' }],
+    execution: { mode: 'sequential', stopOnError: true }
+  } })).toBe(true);
+});
