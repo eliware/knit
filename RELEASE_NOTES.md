@@ -1,5 +1,20 @@
 # Release Notes
 
+## 1.1.11 — August 10, 2026
+
+### Changed
+
+- Fixed absolute SSH identity and known-host path resolution.
+- Added regression coverage for mounted Kubernetes SSH secrets.
+- Added the Knit web UI product and implementation specification.
+- Updated `@eliware/common` to 1.1.8.
+
+### Verification
+
+- Jest: **159 tests passed**; coverage **100%**.
+- Oxlint: **0 warnings/errors**.
+- Production dependency audit: **0 vulnerabilities**.
+
 ## 1.1.10 — August 8, 2026
 
 ### Changed
