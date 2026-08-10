@@ -24,6 +24,18 @@ test('uses resolved SSH identity and known-host files, quoting remote paths, and
   expect(notify).toHaveBeenCalledWith(expect.objectContaining({ hasError: false }));
 });
 
+test('preserves absolute SSH reference paths', async () => {
+  const fsModule = { readFileSync: jest.fn(() => 'PRIVATE KEY'), writeFileSync: jest.fn(), unlinkSync: jest.fn() };
+  const execFile = jest.fn((bin, args, options, callback) => callback(null, '', ''));
+  const repo = createSshRepo({
+    config: { targets: [{ host: 'h', user: 'u', workingDirectory: '/x', identity: '/run/secrets/id_rsa', knownHosts: '/run/secrets/known_hosts' }] },
+    configPath: '/etc/knit/config', tmpdir: '/tmp', fsModule, execFile,
+  });
+  await expect(repo.update({ body: { commits: [] } })).resolves.toBe(true);
+  expect(fsModule.readFileSync).toHaveBeenCalledWith('/run/secrets/id_rsa');
+  expect(execFile.mock.calls[0][1]).toEqual(expect.arrayContaining(['-o', 'UserKnownHostsFile=/run/secrets/known_hosts']));
+});
+
 test('supports host-installed references and legacy execFile argument', async () => {
   const execFile = jest.fn((bin, args, options, callback) => callback(null, '', ''));
   const repo = createSshRepo({ config: { targets: [{ host: 'h', user: 'u', workingDirectory: '/x', identity: 'host-installed', knownHosts: 'host-installed' }] } }, execFile);
