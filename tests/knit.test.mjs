@@ -7,10 +7,13 @@ describe('knit.mjs', () => {
   const errorHandlers = { removeHandlers: jest.fn() };
   const registerHandlers = jest.fn(() => errorHandlers);
   const registerSignals = jest.fn();
+  const startDiscordClient = jest.fn().mockResolvedValue(null);
+  const stopDiscordClient = jest.fn().mockResolvedValue(undefined);
 
   beforeAll(async () => {
     jest.unstable_mockModule('@eliware/common', () => ({ log, registerHandlers, registerSignals }));
     jest.unstable_mockModule('../src/app.mjs', () => ({ createApp, startApp }));
+    jest.unstable_mockModule('../src/discordClient.mjs', () => ({ startDiscordClient, stopDiscordClient }));
     process.env.NODE_ENV = 'test';
     await import('../knit.mjs');
   });
@@ -29,10 +32,12 @@ describe('knit.mjs', () => {
     expect(registerSignals).toHaveBeenCalledWith({ log });
     expect(log.info).toHaveBeenCalledWith('knit service starting...');
     expect(createApp).toHaveBeenCalledWith({ log });
+    expect(startDiscordClient).toHaveBeenCalledWith({ log });
     expect(startApp).toHaveBeenCalledWith({ appInstance: app, log });
     expect(registerSignals).toHaveBeenCalledWith({ log, shutdownHook: expect.any(Function) });
     await registerSignals.mock.calls.at(-1)?.[0].shutdownHook?.();
     expect(server.close).toHaveBeenCalled();
+    expect(stopDiscordClient).toHaveBeenCalledWith(null);
     expect(errorHandlers.removeHandlers).toHaveBeenCalled();
   });
 

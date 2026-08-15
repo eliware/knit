@@ -19,14 +19,14 @@ describe('specializedHandlers', () => {
   test('handler sends specialized embed', async () => {
     const send = jest.fn().mockResolvedValue(undefined);
     const handler = createHandler({ event: 'issues', Notifier: { send } });
-    await expect(handler({ post: { action: 'opened' }, target: { repo: { notify: 'url' } } })).resolves.toBe(true);
-    expect(send).toHaveBeenCalledWith(expect.objectContaining({ notifyUrl: 'url', event: 'issues', embed: expect.any(Object) }));
+    await expect(handler({ post: { action: 'opened' }, target: { repo: { discordChannelId: '123456789012345678' } } })).resolves.toBe(true);
+    expect(send).toHaveBeenCalledWith(expect.objectContaining({ channelId: '123456789012345678', event: 'issues', embed: expect.any(Object) }));
   });
 
   test('handler supports default options and logger', async () => {
     const send = jest.fn().mockResolvedValue(undefined);
     const handler = createHandler({ event: 'issues', Notifier: { send } });
-    await expect(handler({ post: {}, target: { repo: { notify: 'url' } } })).resolves.toBe(true);
+    await expect(handler({ post: {}, target: { repo: { discordChannelId: '123456789012345678' } } })).resolves.toBe(true);
     expect(send).toHaveBeenCalledWith(expect.objectContaining({ log: expect.anything() }));
     await expect(createHandler()({ post: {}, target: {} })).resolves.toBe(true);
   });
@@ -91,7 +91,7 @@ describe('specializedHandlers', () => {
     const send = jest.fn().mockResolvedValue(undefined);
     const log = jest.fn();
     const post = { action: 'closed', repository: { full_name: 'org/repo' } };
-    await createHandler({ event: 'issues', Notifier: { send } })({ post, target: { repo: { notify: 'url' } }, log });
-    expect(send).toHaveBeenCalledWith(expect.objectContaining({ notifyUrl: 'url', post, log, logOutput: '', hasError: false }));
+    await createHandler({ event: 'issues', Notifier: { send } })({ post, target: { repo: { discordChannelId: '123456789012345678' } }, log });
+    expect(send).toHaveBeenCalledWith(expect.objectContaining({ channelId: '123456789012345678', post, log, logOutput: '', hasError: false }));
   });
 });

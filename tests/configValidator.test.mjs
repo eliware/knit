@@ -5,6 +5,8 @@ const base = { repository: 'owner/repo', git: { url: 'git@github.com:owner/repo.
 
 test('accepts a complete modern SSH config', () => expect(validate({config: base})).toBe(true));
 test('accepts notifyKey', () => expect(validate({config: {...base, notifyKey: 'owner__repo'}})).toBe(true));
+test('accepts a Discord channel snowflake', () => expect(validate({config: {...base, discordChannelId: '123456789012345678'}})).toBe(true));
+test.each(['123', 'not-a-channel', true])('rejects invalid Discord channel IDs: %j', discordChannelId => expect(validate({config: {...base, discordChannelId}, log: {error: jest.fn()}})).toBe(false));
 test('rejects invalid configs', () => expect(validate({config: {}, log: {error: jest.fn()}})).toBe(false));
 test('rejects local targets', () => expect(validate({config: {...base, targets: [{type: 'local', workingDirectory: '/tmp'}]}, log: {error: jest.fn()}})).toBe(false));
 test('rejects unsafe notifyKey', () => expect(validate({config: {...base, notifyKey: '../secret'}, log: {error: jest.fn()}})).toBe(false));

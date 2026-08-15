@@ -2,18 +2,21 @@
 import 'dotenv/config';
 import { log, registerHandlers, registerSignals } from '@eliware/common';
 import { createApp, startApp } from './src/app.mjs';
+import { startDiscordClient, stopDiscordClient } from './src/discordClient.mjs';
 
 const errorHandlers = registerHandlers({ log });
 registerSignals({ log });
 
 export async function main() {
   log.info('knit service starting...');
+  const discordClient = await startDiscordClient({ log });
   const app = await createApp({ log });
   const server = startApp({ appInstance: app, log });
   registerSignals({
     log,
     shutdownHook: async signal => {
       await server.close();
+      await stopDiscordClient(discordClient);
       errorHandlers.removeHandlers?.();
       log.debug(`Shutdown complete after ${signal}`);
     },

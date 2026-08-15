@@ -51,7 +51,7 @@
     },
     "dependencies": {
         "@eliware/common": "^1.1.8",
-        "@eliware/discord-webhook": "^1.1.8",
+        "@eliware/discord": "^1.1.4",
         "body-parser": "^2.3.0",
         "dotenv": "^17.2.0",
         "express": "^5.1.0",

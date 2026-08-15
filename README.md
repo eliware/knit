@@ -16,7 +16,7 @@ Modern configuration uses SSH targets:
 
 ```yaml
 repository: owner/repo
-notifyKey: owner__repo
+discordChannelId: "123456789012345678"
 git:
   url: git@github.com:owner/repo.git
   ref: main
@@ -32,7 +32,7 @@ execution:
   stopOnError: true
 ```
 
-`notifyKey` resolves to `/run/secrets/discord-webhooks/<notifyKey>`. Webhook URLs belong in Kubernetes Secrets, encrypted in GitOps with SOPS/age. They must not appear in configuration files. SSH assets are mounted at `/run/secrets/eliware/ssh/`.
+`discordChannelId` is the Discord channel snowflake where Knit posts embeds. The bot token belongs in runtime/Kubernetes Secrets, encrypted in GitOps with SOPS/age; it must not appear in configuration files. SSH assets are mounted at `/run/secrets/eliware/ssh/`.
 
 Targets execute commands over SSH with strict host verification. `identity` and `knownHosts` may be `host-installed` or paths relative to the configured path. Modern targets are SSH-only.
 
@@ -50,7 +50,8 @@ New configurations must use YAML and SSH targets. Local Compose requires `KNIT_C
 | `GITHUB_WEBHOOK_SECRET` | GitHub signature secret |
 | `LOG_LEVEL` | Logger level |
 | `KNIT_CONFIG_PATH` | Mounted configuration directory |
-| `KNIT_DISCORD_WEBHOOK_SECRET_PATH` | Mounted Discord webhook Secret directory |
+| `DISCORD_TOKEN` | Discord bot token, supplied from a runtime Secret |
+| `DISCORD_CLIENT_ID` | Discord application/client ID |
 
 ## Development
 

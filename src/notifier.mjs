@@ -1,10 +1,21 @@
 import { log as logger } from '@eliware/common';
-import { DISCORD_LIMITS, sendMessage as realSendMessage, validateWebhookBody } from '@eliware/discord-webhook';
+let sharedDiscordClient;
+
+// Discord embed limits from the Discord API. Keep these local because the
+// application client package does not expose webhook validation constants.
+export const DISCORD_EMBED_DESCRIPTION_LIMIT = 4096;
+export const DISCORD_EMBED_TOTAL_LIMIT = 6000;
+export const DISCORD_EMBED_FIELD_VALUE_LIMIT = 1024;
+
+export function setDiscordClient(client) {
+  sharedDiscordClient = client;
+}
+
+export function clearDiscordClient(client) {
+  if (!client || sharedDiscordClient === client) sharedDiscordClient = undefined;
+}
 
 // Discord limits: https://discord.com/developers/docs/resources/message#embed-limits
-export const DISCORD_EMBED_DESCRIPTION_LIMIT = DISCORD_LIMITS.description;
-export const DISCORD_EMBED_TOTAL_LIMIT = DISCORD_LIMITS.totalEmbedText;
-export const DISCORD_EMBED_FIELD_VALUE_LIMIT = DISCORD_LIMITS.fieldValue;
 
 /** Keep the most useful part of oversized output: the tail contains the final error. */
 export function tail(value, limit, marker = '\n... [truncated; showing log tail] ...\n') {
@@ -37,20 +48,19 @@ export function limitEmbed(embed) {
 }
 
 /**
- * Sends a notification to a Discord webhook.
+ * Sends a notification to a Discord channel.
  * @param {Object} params
- * @param {string} params.notifyUrl - The Discord webhook URL.
+ * @param {string} params.channelId - The Discord channel snowflake.
  * @param {Object} params.post - The webhook payload.
  * @param {string} params.log - The log output.
  * @param {boolean} params.hasError - Whether an error occurred.
  * @param {string} [params.event] - GitHub event name.
  * @param {Object} [params.embed] - Optional pre-built embed.
- * @param {Function} [params.sendMessageFn] - Optional sendMessage function for testing/mocking.
+ * @param {Object} [params.discordClient] - Optional Discord client for testing/injection.
  */
-export async function send({ notifyUrl, post, event = 'push', embed: providedEmbed, logOutput, hasError, log = logger, sendMessageFn = realSendMessage }) {
-  if (!notifyUrl) return;
-  const notification = typeof notifyUrl === 'string' ? { url: notifyUrl } : notifyUrl;
-  const { url, ...sendOptions } = notification;
+export async function send({ channelId, post, event = 'push', embed: providedEmbed, logOutput, hasError, log = logger, discordClient = sharedDiscordClient }) {
+  if (!channelId) return;
+  if (!discordClient) throw new Error('Discord client is not connected');
   const embed = providedEmbed
     ? { ...providedEmbed, fields: providedEmbed.fields?.map(field => ({ ...field })) }
     : await createEmbed({ post, event, logOutput, hasError });
@@ -61,17 +71,13 @@ export async function send({ notifyUrl, post, event = 'push', embed: providedEmb
     embed.title = `\u2705 ${embed.title}`;
   }
   limitEmbed(embed);
-  const body = {
-    embeds: [embed],
-    username: 'Knit',
-    avatar_url: 'https://knit.eliware.org/assets/github.png'
-  };
-  validateWebhookBody(body);
-  log.info('[Notifier] Sending message to Discord webhook');
+  log.info('[Notifier] Sending message to Discord channel', { channelId });
   try {
-    await sendMessageFn({ url, body, ...sendOptions });
+    const channel = await discordClient.channels.fetch(channelId);
+    if (!channel || typeof channel.send !== 'function') throw new Error(`Discord channel is not sendable: ${channelId}`);
+    await channel.send({ embeds: [embed] });
   } catch (error) {
-    log.error?.('[Notifier] Discord webhook send failed', { error, event, repository: post.repository?.full_name });
+    log.error?.('[Notifier] Discord channel send failed', { error, event, channelId, repository: post.repository?.full_name });
     throw error;
   }
 }

@@ -2,7 +2,7 @@ import { jest } from '@jest/globals';
 import { createRegistry, createGenericHandler, createDefaultRegistry } from '../src/eventHandlers.mjs';
 
 const post = { id: 1 };
-const target = { repo: { notify: 'url' } };
+const target = { repo: { discordChannelId: '123456789012345678' } };
 const log = { info: jest.fn() };
 
 describe('eventHandlers', () => {
@@ -57,7 +57,7 @@ describe('eventHandlers', () => {
     const send = jest.fn().mockResolvedValue(undefined);
     const handler = createGenericHandler({ Notifier: { send }, eventName: 'fixed_event' });
     await expect(handler({ event: 'ping', post, target, log })).resolves.toBe(true);
-    expect(send).toHaveBeenCalledWith({ notifyUrl: 'url', post, event: 'fixed_event', logOutput: '', hasError: false, log });
+    expect(send).toHaveBeenCalledWith({ channelId: '123456789012345678', post, event: 'fixed_event', logOutput: '', hasError: false, log });
   });
 
   test('generic handler uses event when fixed event is empty', async () => {
@@ -81,7 +81,7 @@ describe('eventHandlers', () => {
     expect(registry.has('unknown')).toBe(true);
     expect(registry.size()).toBe(7);
     await expect(registry.dispatch({ event: 'issues', post: { action: 'opened' }, target })).resolves.toBe(true);
-    expect(send).toHaveBeenCalledWith(expect.objectContaining({ event: 'issues', notifyUrl: 'url' }));
+    expect(send).toHaveBeenCalledWith(expect.objectContaining({ event: 'issues', channelId: '123456789012345678' }));
     await expect(registry.dispatch({ event: 'unknown', post, target: {} })).resolves.toBe(true);
   });
 });

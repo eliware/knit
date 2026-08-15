@@ -6,13 +6,12 @@ import fsSync from 'node:fs';
 import os from 'node:os';
 import pathNode from 'node:path';
 import * as Notifier from './notifier.mjs';
-import { defaultSecretResolver } from './secretResolver.mjs';
 
 /* istanbul ignore next -- SSH transport branches require live remote integration fixtures. */
-export function createSshRepo({ config, execFile: injectedExecFile, fsModule = fsSync, log = logger, sendNotification, secretResolver = defaultSecretResolver, configPath = process.env.KNIT_CONFIG_PATH || pathNode.resolve('repos'), tmpdir = os.tmpdir() } = {}, legacyExecFile) {
+export function createSshRepo({ config, execFile: injectedExecFile, fsModule = fsSync, log = logger, sendNotification, configPath = process.env.KNIT_CONFIG_PATH || pathNode.resolve('repos'), tmpdir = os.tmpdir() } = {}, legacyExecFile) {
   const execFile = injectedExecFile || legacyExecFile || realExecFile;
-  const notify = config.notifyKey ? secretResolver.resolve(config.notifyKey) : (config.notify || null);
-  const notifyFn = sendNotification || (args => notify ? Notifier.send({ notifyUrl: notify, post: args.body, ...args }) : undefined);
+  const discordChannelId = config.discordChannelId || null;
+  const notifyFn = sendNotification || (args => discordChannelId ? Notifier.send({ channelId: discordChannelId, post: args.body, ...args }) : undefined);
   const execution = config.execution || { stopOnError: true };
   const quote = value => `'${String(value).replace(/'/g, `'"'"'`)}'`;
   const resolveRef = ref => !ref || ref === 'host-installed' ? null : pathNode.isAbsolute(ref) ? ref : pathNode.join(configPath, ref);
@@ -28,7 +27,7 @@ export function createSshRepo({ config, execFile: injectedExecFile, fsModule = f
       execFile('ssh', args, {}, (error, stdout = '', stderr = '') => { if (keyFile) { try { fsModule.unlinkSync(keyFile); } catch {} } if (error) Object.assign(error, { stdout, stderr }); if (error) reject(error); else resolve({ stdout, stderr }); });
     } catch (error) { if (keyFile) try { fsModule.unlinkSync(keyFile); } catch {} reject(error); }
   });
-  return { notify, targets: config.targets, async update({ body, log: requestLog = log }) {
+  return { discordChannelId, targets: config.targets, async update({ body, log: requestLog = log }) {
     if (!body || !Array.isArray(body.commits)) { requestLog.error('[Repo] body validation failed'); return false; }
     if (body.ref?.startsWith('refs/tags/')) { await notifyFn?.({ repo: this, body, logOutput: '', hasError: false, log: requestLog }); return true; }
     let output = ''; let failed = false; const git = config.git?.url && config.git?.ref ? `git fetch --prune ${quote(config.git.url)} ${quote(config.git.ref)} && git reset --hard FETCH_HEAD` : 'git pull --ff-only';

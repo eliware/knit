@@ -2,29 +2,32 @@ import { jest } from '@jest/globals';
 // Tests for src/notifier.mjs
 import * as notifier from '../src/notifier.mjs';
 
+const channelId = '123456789012345678';
+const makeClient = send => ({ channels: { fetch: jest.fn().mockResolvedValue({ send }) } });
+
 describe('notifier.mjs', () => {
   const log = { info: jest.fn(), error: jest.fn() };
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should not send if notifyUrl is missing', async () => {
+  it('should not send if channelId is missing', async () => {
     const sendMessageFn = jest.fn();
-    await notifier.send({ notifyUrl: '', post: {}, logOutput: '', hasError: false, log, sendMessageFn });
+    await notifier.send({ channelId: '', post: {}, logOutput: '', hasError: false, log, discordClient: makeClient(sendMessageFn) });
     expect(sendMessageFn).not.toHaveBeenCalled();
   });
 
   it('should send error embed if hasError is true', async () => {
     const post = { ref: 'refs/tags/v1.0.0', repository: { full_name: 'foo/bar', html_url: 'url' }, pusher: { name: 'bob' } };
     const sendMessageFn = jest.fn();
-    await notifier.send({ notifyUrl: 'url', post, logOutput: '', hasError: true, log, sendMessageFn });
+    await notifier.send({ channelId, post, logOutput: '', hasError: true, log, discordClient: makeClient(sendMessageFn) });
     expect(sendMessageFn).toHaveBeenCalled();
   });
 
   it('should send success embed if hasError is false', async () => {
     const post = { ref: 'refs/tags/v1.0.0', repository: { full_name: 'foo/bar', html_url: 'url' }, pusher: { name: 'bob' } };
     const sendMessageFn = jest.fn();
-    await notifier.send({ notifyUrl: 'url', post, logOutput: '', hasError: false, log, sendMessageFn });
+    await notifier.send({ channelId, post, logOutput: '', hasError: false, log, discordClient: makeClient(sendMessageFn) });
     expect(sendMessageFn).toHaveBeenCalled();
   });
 
@@ -94,41 +97,38 @@ describe('notifier.mjs', () => {
 
 });
 
-  it('send uses provided embed, defaults event, logs, and passes webhook metadata', async () => {
+  it('send uses provided embed, defaults event, and sends to the channel', async () => {
     const embed = { title: 'Deployment' };
     const log = { info: jest.fn(), error: jest.fn() };
     const sendMessageFn = jest.fn();
-    await notifier.send({ notifyUrl: 'hook', post: {}, embed, hasError: false, log, sendMessageFn });
-    expect(log.info).toHaveBeenCalledWith('[Notifier] Sending message to Discord webhook');
-    expect(sendMessageFn).toHaveBeenCalledWith({
-      url: 'hook',
-      body: { embeds: [{ title: '✅ Deployment' }], username: 'Knit', avatar_url: 'https://knit.eliware.org/assets/github.png' },
-    });
+    const discordClient = makeClient(sendMessageFn);
+    await notifier.send({ channelId, post: {}, embed, hasError: false, log, discordClient });
+    expect(log.info).toHaveBeenCalledWith('[Notifier] Sending message to Discord channel', { channelId });
+    expect(sendMessageFn).toHaveBeenCalledWith({ embeds: [{ title: '✅ Deployment' }] });
   });
 
   it('send prefixes provided error embeds and awaits sender', async () => {
     const embed = { title: 'Failure' };
     const log = { info: jest.fn(), error: jest.fn() };
     const sendMessageFn = jest.fn(() => Promise.resolve());
-    await notifier.send({ notifyUrl: 'hook', post: {}, embed, hasError: true, log, sendMessageFn });
+    await notifier.send({ channelId, post: {}, embed, hasError: true, log, discordClient: makeClient(sendMessageFn) });
     expect(embed).toEqual({ title: 'Failure' });
   });
 
 
-  it('supports webhook options without mutating provided embeds', async () => {
+  it('does not mutate provided embeds', async () => {
     const embed = { title: 'Deployment', fields: [{ name: 'log', value: 'ok' }] };
     const sendMessageFn = jest.fn();
-    await notifier.send({ notifyUrl: { url: 'hook', maxRetries: 1, timeoutMs: 5000, wait: true, threadId: '42' }, post: { repository: { full_name: 'foo/bar' } }, embed, hasError: false, log: { info: jest.fn() }, sendMessageFn });
+    await notifier.send({ channelId, post: { repository: { full_name: 'foo/bar' } }, embed, hasError: false, log: { info: jest.fn() }, discordClient: makeClient(sendMessageFn) });
     expect(embed).toEqual({ title: 'Deployment', fields: [{ name: 'log', value: 'ok' }] });
-    expect(sendMessageFn).toHaveBeenCalledWith(expect.objectContaining({ url: 'hook', maxRetries: 1, timeoutMs: 5000, wait: true, threadId: '42' }));
+    expect(sendMessageFn).toHaveBeenCalledWith(expect.objectContaining({ embeds: expect.any(Array) }));
   });
 
   it('logs and rethrows Discord send failures with context', async () => {
     const error = new Error('discord down');
-    const sendMessageFn = jest.fn().mockRejectedValue(error);
     const log = { info: jest.fn(), error: jest.fn() };
-    await expect(notifier.send({ notifyUrl: 'hook', post: { repository: { full_name: 'foo/bar' } }, log, sendMessageFn })).rejects.toBe(error);
-    expect(log.error).toHaveBeenCalledWith('[Notifier] Discord webhook send failed', { error, event: 'push', repository: 'foo/bar' });
+    await expect(notifier.send({ channelId, post: { repository: { full_name: 'foo/bar' } }, log, discordClient: makeClient(jest.fn().mockRejectedValue(error)) })).rejects.toBe(error);
+    expect(log.error).toHaveBeenCalledWith('[Notifier] Discord channel send failed', { error, event: 'push', channelId, repository: 'foo/bar' });
   });
 
   it('builds tag embed with fallback repository data and no author extras', async () => {
@@ -173,7 +173,7 @@ describe('notifier.mjs', () => {
   });
 
 it('covers send parameter defaults on an early return', async () => {
-  await notifier.send({ notifyUrl: '', post: {} });
+  await notifier.send({ channelId: '', post: {} });
 });
 
 it('uses repository URL when a tag name is empty', async () => {

@@ -12,7 +12,7 @@ test('uses resolved SSH identity and known-host files, quoting remote paths, and
   const execFile = jest.fn((bin, args, options, callback) => callback(null, 'out', 'err'));
   const notify = jest.fn();
   const repo = createSshRepo({
-    config: { notify: 'url', targets: [{ host: 'host', user: 'user', workingDirectory: "/tmp/a'b", identity: 'key', knownHosts: 'known', pre: [], post: [] }], git: { url: "https://example.test/a'b", ref: 'main' } },
+    config: { discordChannelId: '123456789012345678', targets: [{ host: 'host', user: 'user', workingDirectory: "/tmp/a'b", identity: 'key', knownHosts: 'known', pre: [], post: [] }], git: { url: "https://example.test/a'b", ref: 'main' } },
     configPath: '/cfg', tmpdir: '/tmp', fsModule, execFile, sendNotification: notify,
   });
   await expect(repo.update({ body: { commits: [] } })).resolves.toBe(true);
@@ -66,9 +66,7 @@ test('continues after target failure when stopOnError is disabled and handles in
   expect(execFile.mock.calls.length).toBeGreaterThan(1);
 });
 
-test('resolves SSH notification webhook from notifyKey', () => {
- const resolver = {resolve: jest.fn(() => 'https://discord.test/webhook')};
- const repo = createSshRepo({config: {notifyKey: 'eliware__example', targets: [{host: 'h', user: 'u', workingDirectory: '/x'}]}, secretResolver: resolver, execFile: jest.fn()});
- expect(repo.notify).toBe('https://discord.test/webhook');
- expect(resolver.resolve).toHaveBeenCalledWith('eliware__example');
+test('exposes configured Discord channel ID', () => {
+ const repo = createSshRepo({config: {discordChannelId: '123456789012345678', targets: [{host: 'h', user: 'u', workingDirectory: '/x'}]}, execFile: jest.fn()});
+ expect(repo.discordChannelId).toBe('123456789012345678');
 });
