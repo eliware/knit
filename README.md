@@ -32,11 +32,11 @@ execution:
   stopOnError: true
 ```
 
-`discordChannelId` is the Discord channel snowflake where Knit posts embeds. The bot token belongs in runtime/Kubernetes Secrets, encrypted in GitOps with SOPS/age; it must not appear in configuration files. SSH assets are mounted at `/run/secrets/eliware/ssh/`.
+`discordChannelId` is the Discord channel snowflake where Knit posts embeds. Repository configuration is intentionally plaintext YAML and contains no credentials. The bot token and SSH assets remain runtime secrets; SSH assets are mounted at `/run/secrets/eliware/ssh/`.
 
 Targets execute commands over SSH with strict host verification. `identity` and `knownHosts` may be `host-installed` or paths relative to the configured path. Modern targets are SSH-only.
 
-New configurations must use YAML and SSH targets. Local Compose requires `KNIT_CONFIG_PATH` and `KNIT_DISCORD_WEBHOOK_SECRET_HOST_PATH` directories; systemd requires equivalent mounted/provisioned paths.
+New configurations must use YAML and SSH targets. Local Compose requires only `KNIT_CONFIG_PATH`; systemd requires an equivalent mounted/provisioned config path.
 
 ## Knit self-deployment and organization fallback
 

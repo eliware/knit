@@ -4,12 +4,11 @@ import { validate, isModern } from '../src/configValidator.mjs';
 const base = { repository: 'owner/repo', git: { url: 'git@github.com:owner/repo.git', ref: 'main' }, targets: [{ host: 'dev.example', user: 'root', workingDirectory: '/srv/repo', pre: [], post: [] }], execution: { mode: 'sequential', stopOnError: true } };
 
 test('accepts a complete modern SSH config', () => expect(validate({config: base})).toBe(true));
-test('accepts notifyKey', () => expect(validate({config: {...base, notifyKey: 'owner__repo'}})).toBe(true));
 test('accepts a Discord channel snowflake', () => expect(validate({config: {...base, discordChannelId: '123456789012345678'}})).toBe(true));
+test('rejects obsolete notifyKey', () => expect(validate({config: {...base, notifyKey: 'owner__repo'}, log: {error: jest.fn()}})).toBe(false));
 test.each(['123', 'not-a-channel', true])('rejects invalid Discord channel IDs: %j', discordChannelId => expect(validate({config: {...base, discordChannelId}, log: {error: jest.fn()}})).toBe(false));
 test('rejects invalid configs', () => expect(validate({config: {}, log: {error: jest.fn()}})).toBe(false));
 test('rejects local targets', () => expect(validate({config: {...base, targets: [{type: 'local', workingDirectory: '/tmp'}]}, log: {error: jest.fn()}})).toBe(false));
-test('rejects unsafe notifyKey', () => expect(validate({config: {...base, notifyKey: '../secret'}, log: {error: jest.fn()}})).toBe(false));
 test('isModern detects modern configs', () => { expect(isModern(base)).toBe(true); expect(isModern(null)).toBe(false); });
 test.each([
   {identity: ''},

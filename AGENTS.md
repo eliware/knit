@@ -16,14 +16,14 @@ Knit (`@eliware/knit`) is a GitHub webhook handler and SSH deployment automation
 - `POST /` receives signed GitHub webhooks; `GET /health` returns status and version.
 - Repository configs are YAML files mounted at `KNIT_CONFIG_PATH`; Kubernetes uses `<owner>__<repo>.yaml` filenames.
 - Modern configs deploy sequentially to SSH targets (`host`, `user`, `workingDirectory`, optional `identity`/`knownHosts`).
-- `notifyKey` resolves a webhook URL from the mounted Secret path `KNIT_DISCORD_WEBHOOK_SECRET_PATH`; SSH assets are mounted under `/run/secrets/eliware/ssh/`.
+- `discordChannelId` selects the Discord channel for notifications; SSH assets are mounted under `/run/secrets/eliware/ssh/`.
 - Organization-level events use `eliware/knit` as the notification fallback.
 - `eliware/knit` may SSH-deploy `/opt/knit` after pushes; it does not self-restart. New Knit code requires an image release and Argo CD rollout.
 - SSH uses strict host verification. Never weaken verification or commit secrets.
 
 ## Configuration
 
-Use `.env.example` as the template. Important variables: `PORT`, `GITHUB_WEBHOOK_SECRET`, `LOG_LEVEL`, `KNIT_CONFIG_PATH`, and `KNIT_DISCORD_WEBHOOK_SECRET_PATH`.
+Use `.env.example` as the template. Important variables: `PORT`, `GITHUB_WEBHOOK_SECRET`, `LOG_LEVEL`, and `KNIT_CONFIG_PATH`.
 
 ## Development rules
 
@@ -34,7 +34,7 @@ Use `.env.example` as the template. Important variables: `PORT`, `GITHUB_WEBHOOK
 
 ## Notifications
 
-`notifyKey` selects a file containing the Discord webhook URL. Webhook values belong in runtime/Kubernetes Secrets and must never be logged or committed plaintext.
+Repository configs contain channel IDs, not notification credentials. Only the Discord bot token and SSH assets belong in runtime/Kubernetes Secrets.
 
 ## Container and restart workflow
 

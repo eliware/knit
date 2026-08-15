@@ -8,10 +8,8 @@ services:
         format: raw
     environment:
       KNIT_CONFIG_PATH: /etc/knit/config
-      KNIT_DISCORD_WEBHOOK_SECRET_PATH: /run/secrets/discord-webhooks
     volumes:
       - ${KNIT_CONFIG_PATH:-./repos}:/etc/knit/config:ro
-      - ${KNIT_DISCORD_WEBHOOK_SECRET_HOST_PATH:-./secrets/discord-webhooks}:/run/secrets/discord-webhooks:ro
     restart: unless-stopped
     stop_grace_period: 30s
     init: true
