@@ -47,3 +47,7 @@ Repository configs contain channel IDs, not notification credentials. Only the D
 ## Documentation checks
 
 For documentation-only changes, verify links/paths against the repository and inspect `git diff --check`. Do not modify `RELEASE_NOTES.md` unless specifically requested.
+- Do not over-engineer simple tasks.
+- Do not guess when confused.
+- Do not make random, pointless changes.
+- Check your own work before saying you're done.
