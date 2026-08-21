@@ -17,6 +17,20 @@ describe('notifier.mjs', () => {
     expect(sendMessageFn).not.toHaveBeenCalled();
   });
 
+  it('should reject when the shared Discord client is not connected', async () => {
+    notifier.clearDiscordClient();
+    await expect(notifier.send({ channelId, post: {} })).rejects.toThrow('Discord client is not connected');
+  });
+
+  it('should clear only the registered Discord client', () => {
+    const client = makeClient(jest.fn());
+    const otherClient = makeClient(jest.fn());
+    notifier.setDiscordClient(client);
+    notifier.clearDiscordClient(otherClient);
+    notifier.clearDiscordClient(client);
+    notifier.clearDiscordClient();
+  });
+
   it('should send error embed if hasError is true', async () => {
     const post = { ref: 'refs/tags/v1.0.0', repository: { full_name: 'foo/bar', html_url: 'url' }, pusher: { name: 'bob' } };
     const sendMessageFn = jest.fn();
@@ -129,6 +143,16 @@ describe('notifier.mjs', () => {
     const log = { info: jest.fn(), error: jest.fn() };
     await expect(notifier.send({ channelId, post: { repository: { full_name: 'foo/bar' } }, log, discordClient: makeClient(jest.fn().mockRejectedValue(error)) })).rejects.toBe(error);
     expect(log.error).toHaveBeenCalledWith('[Notifier] Discord channel send failed', { error, event: 'push', channelId, repository: 'foo/bar' });
+  });
+
+  it.each([
+    ['a missing channel', undefined],
+    ['a non-sendable channel', {}],
+  ])('rejects when Discord returns %s', async (_label, channel) => {
+    const log = { info: jest.fn(), error: jest.fn() };
+    const discordClient = { channels: { fetch: jest.fn().mockResolvedValue(channel) } };
+    await expect(notifier.send({ channelId, post: {}, log, discordClient })).rejects.toThrow(`Discord channel is not sendable: ${channelId}`);
+    expect(log.error).toHaveBeenCalled();
   });
 
   it('builds tag embed with fallback repository data and no author extras', async () => {

@@ -43,6 +43,26 @@ describe('app.mjs', () => {
     }
   });
 
+  it('should serve the Knit landing page at GET /', async () => {
+    const app = await createApp({
+      webhookProcessorFactory: () => ({ process: jest.fn() }),
+      version: '9.9.9',
+      assetsPath: 'assets',
+      log: { info: jest.fn() }
+    });
+    const server = app.listen(0);
+
+    try {
+      const response = await request(server, { method: 'GET', path: '/' });
+      expect(response.statusCode).toBe(200);
+      expect(response.data).toContain('<title>Knit · GitHub deployment automation</title>');
+      expect(response.data).toContain('Running Knit 9.9.9');
+      expect(response.data).toContain('POST /');
+    } finally {
+      await new Promise(resolve => server.close(resolve));
+    }
+  });
+
   it('should apply middleware and process POST requests', async () => {
     const process = jest.fn((req, res) => res.status(202).send(req.rawBody));
     const log = { info: jest.fn() };

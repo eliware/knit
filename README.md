@@ -6,6 +6,7 @@ GitHub webhook handler and SSH deployment automation service.
 
 - Node.js >=26; ESM.
 - `POST /` receives signed GitHub webhooks.
+- `GET /` serves the Knit project landing page.
 - `GET /health` returns service status and version.
 - Repository configuration is YAML mounted at `KNIT_CONFIG_PATH` (default `./repos`).
 - YAML files use `<owner>__<repo>.yaml` naming in Kubernetes ConfigMaps.

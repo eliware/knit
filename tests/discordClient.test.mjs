@@ -17,6 +17,44 @@ test('leaves Discord disabled when credentials are absent', async () => {
   expect(log.warn).toHaveBeenCalled();
 });
 
+test('uses safe defaults when started without options', async () => {
+  const previousToken = process.env.DISCORD_TOKEN;
+  const previousClientId = process.env.DISCORD_CLIENT_ID;
+  delete process.env.DISCORD_TOKEN;
+  delete process.env.DISCORD_CLIENT_ID;
+  try {
+    await expect(startDiscordClient()).resolves.toBeNull();
+  } finally {
+    if (previousToken === undefined) delete process.env.DISCORD_TOKEN;
+    else process.env.DISCORD_TOKEN = previousToken;
+    if (previousClientId === undefined) delete process.env.DISCORD_CLIENT_ID;
+    else process.env.DISCORD_CLIENT_ID = previousClientId;
+  }
+});
+
+test('uses environment credentials and handles the default shutdown path', async () => {
+  const previousToken = process.env.DISCORD_TOKEN;
+  const previousClientId = process.env.DISCORD_CLIENT_ID;
+  const createDiscordFn = jest.fn().mockResolvedValue({ destroy: jest.fn().mockResolvedValue(undefined) });
+  process.env.DISCORD_TOKEN = 'environment-token';
+  process.env.DISCORD_CLIENT_ID = 'environment-client';
+  try {
+    const client = await startDiscordClient({ createDiscordFn, log: { info: jest.fn(), warn: jest.fn() } });
+    expect(client).toBeDefined();
+    await stopDiscordClient(client);
+    expect(client.destroy).toHaveBeenCalled();
+  } finally {
+    if (previousToken === undefined) delete process.env.DISCORD_TOKEN;
+    else process.env.DISCORD_TOKEN = previousToken;
+    if (previousClientId === undefined) delete process.env.DISCORD_CLIENT_ID;
+    else process.env.DISCORD_CLIENT_ID = previousClientId;
+  }
+});
+
 test('requires both Discord credentials', async () => {
   await expect(startDiscordClient({ token: 'token', clientId: '' })).rejects.toThrow('Both DISCORD_TOKEN and DISCORD_CLIENT_ID are required');
+});
+
+test('stops cleanly without a client', async () => {
+  await expect(stopDiscordClient()).resolves.toBeUndefined();
 });
