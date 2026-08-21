@@ -1,5 +1,22 @@
 # Release Notes
 
+## 1.1.12 — August 21, 2026
+
+### Changed
+
+- Replaced Discord webhook notifications with direct Discord bot channel messages using `@eliware/discord` and configured channel snowflakes.
+- Migrated repository notification configuration to plaintext YAML; runtime secrets remain limited to Discord credentials, GitHub webhook signing, and SSH assets.
+- Added a Knit landing page at `GET /` while preserving signed GitHub webhooks at `POST /`.
+- Added complete edge-case coverage for Discord startup, shutdown, channel lookup, and notification failures.
+- Updated `inquirer`, `js-yaml`, and `oxlint` to their latest compatible versions.
+
+### Verification
+
+- Jest: **170 tests passed**; coverage **100% statements, branches, functions, and lines**.
+- Oxlint: **0 warnings/errors**.
+- Production dependency audit: **0 vulnerabilities**.
+- Local `/health` and `GET /` smoke checks passed.
+
 ## 1.1.11 — August 10, 2026
 
 ### Changed

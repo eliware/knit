@@ -8,6 +8,7 @@
         "start": "node knit.mjs",
         "test": "npx --node-options=\"--experimental-vm-modules --no-warnings\" jest --detectOpenHandles --silent --coverage",
         "lint": "npx oxlint .",
+        "audit": "npm audit --omit=dev --audit-level=moderate",
         "test:gaps": "npm test 2>&1 | grep '|' | grep -vF '|     100 |      100 |     100 |     100 |'"
     },
     "repository": {
@@ -36,7 +37,7 @@
     "homepage": "https://github.com/eliware/knit#readme",
     "devDependencies": {
         "jest": "^30.0.4",
-        "oxlint": "^1.76.0"
+        "oxlint": "^1.79.0"
     },
     "jest": {
         "testEnvironment": "node",
@@ -55,8 +56,8 @@
         "body-parser": "^2.3.0",
         "dotenv": "^17.2.0",
         "express": "^5.1.0",
-        "inquirer": "^14.0.2",
-        "js-yaml": "^5.2.3"
+        "inquirer": "^14.1.0",
+        "js-yaml": "^5.3.0"
     },
     "engines": {
         "node": ">=26"
