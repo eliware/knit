@@ -1,5 +1,17 @@
 # Release Notes
 
+## 1.1.13 — August 22, 2026
+
+### Changed
+
+- Stopped checking mounted configuration file metadata for live changes; Knit now uses the process-lifetime config cache.
+- Documented GitOps content-hashed ConfigMap rollouts as the configuration reload mechanism.
+
+### Verification
+
+- Config-loader tests: **8 tests passed**.
+- Strict preflight: Jest 100x4 coverage, Oxlint, and production dependency audit passed.
+
 ## 1.1.12 — August 21, 2026
 
 ### Changed
