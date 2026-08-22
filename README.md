@@ -10,6 +10,7 @@ GitHub webhook handler and SSH deployment automation service.
 - `GET /health` returns service status and version.
 - Repository configuration is YAML mounted at `KNIT_CONFIG_PATH` (default `./repos`).
 - YAML files use `<owner>__<repo>.yaml` naming in Kubernetes ConfigMaps.
+- Configuration is loaded once per process; GitOps content-hashed ConfigMaps trigger a pod rollout for changes.
 
 ## Configuration
 
@@ -34,6 +35,8 @@ execution:
 ```
 
 `discordChannelId` is the Discord channel snowflake where Knit posts embeds. Repository configuration is intentionally plaintext YAML and contains no credentials. The bot token and SSH assets remain runtime secrets; SSH assets are mounted at `/run/secrets/eliware/ssh/`.
+
+Kubernetes uses a content-hashed ConfigMap for repository configuration. Updating a config through GitOps changes the ConfigMap name and the Deployment reference, causing Kubernetes to restart Knit with the new configuration. Knit does not monitor mounted files for changes while running.
 
 Targets execute commands over SSH with strict host verification. `identity` and `knownHosts` may be `host-installed` or paths relative to the configured path. Modern targets are SSH-only.
 
