@@ -2,15 +2,13 @@ import { jest } from '@jest/globals';
 import { createConfigLoader } from '../src/configLoader.mjs';
 
 const yamlConfig = `repository: o/r
-git:
-  url: https://example.test/repo.git
-  ref: main
 targets:
   - host: h
     user: u
     workingDirectory: /x
-    pre: []
-    post: []
+    commands:
+      - git pull --ff-only
+      - npm test
 execution:
   mode: sequential
   stopOnError: true

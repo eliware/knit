@@ -40,7 +40,7 @@ execution:
 
 Kubernetes uses a content-hashed ConfigMap for repository configuration. Updating a config through GitOps changes the ConfigMap name and the Deployment reference, causing Kubernetes to restart Knit with the new configuration. Knit does not monitor mounted files for changes while running.
 
-Targets execute commands over SSH with strict host verification. If `commands` is present, Knit executes that list exactly, in order, and does not add implicit Git commands. This lets each repository define its own deployment contract. For backward compatibility, targets without `commands` use `pre`, configured Git synchronization, and `post`. `identity` and `knownHosts` may be `host-installed` or paths relative to the configured path. Modern targets are SSH-only.
+Targets execute commands over SSH with strict host verification. `commands` is required and Knit executes that list in order. Knit automatically merges stderr into stdout (`2>&1`) for every command, so configs should not repeat that suffix. This lets each repository define its own deployment contract. `identity` and `knownHosts` may be `host-installed` or paths relative to the configured path. Modern targets are SSH-only.
 
 New configurations must use YAML and SSH targets. Local Compose requires only `KNIT_CONFIG_PATH`; systemd requires an equivalent mounted/provisioned config path.
 

@@ -1,14 +1,14 @@
 import { jest } from '@jest/globals';
 import path from 'node:path';
 import { createSshRepo } from '../src/repo.mjs';
-test('runs configured SSH commands in order with strict options and stops', async()=>{const calls=[]; const execFile=jest.fn((bin,args,opt,cb)=>{calls.push(args); cb(args.at(-1).includes('bad')?Object.assign(new Error('x'),{code:1}):null,'','err')}); const repo=createSshRepo({config:{notify:null,targets:[{host:'a',user:'u',workingDirectory:'/x',pre:['one'],post:['bad','later']}],execution:{stopOnError:true}},execFile}); expect(await repo.update({body:{commits:[]}})).toBe(false); expect(calls).toHaveLength(2); expect(calls[1]).toEqual(expect.arrayContaining(['-o','StrictHostKeyChecking=yes','-o','IdentitiesOnly=yes']));});
+test('runs configured SSH commands in order with strict options and stops', async()=>{const calls=[]; const execFile=jest.fn((bin,args,opt,cb)=>{calls.push(args); cb(args.at(-1).includes('bad')?Object.assign(new Error('x'),{code:1}):null,'','err')}); const repo=createSshRepo({config:{notify:null,targets:[{host:'a',user:'u',workingDirectory:'/x',commands:['one','bad','later']}],execution:{stopOnError:true}},execFile}); expect(await repo.update({body:{commits:[]}})).toBe(false); expect(calls).toHaveLength(2); expect(calls[0].at(-1)).toContain('one 2>&1'); expect(calls[1]).toEqual(expect.arrayContaining(['-o','StrictHostKeyChecking=yes','-o','IdentitiesOnly=yes']));});
 
 test('executes an explicit target command list without implicit Git commands', async () => {
   const commands = [];
   const execFile = jest.fn((bin, args, options, callback) => { commands.push(args.at(-1)); callback(null, '', ''); });
   const repo = createSshRepo({ config: { targets: [{ host: 'h', user: 'u', workingDirectory: '/opt/app', commands: ['git pull --ff-only', 'npm install', 'npm test'] }], git: { url: 'ignored', ref: 'main' } }, execFile });
   await expect(repo.update({ body: { commits: [] } })).resolves.toBe(true);
-  expect(commands.map(command => command.split(' && ').at(-1))).toEqual(['git pull --ff-only', 'npm install', 'npm test']);
+  expect(commands.map(command => command.split(' && ').at(-1))).toEqual(['git pull --ff-only 2>&1', 'npm install 2>&1', 'npm test 2>&1']);
   expect(commands.join('\n')).not.toContain('FETCH_HEAD');
 });
 
@@ -22,7 +22,7 @@ test('uses resolved SSH identity and known-host files, quoting remote paths, and
   const execFile = jest.fn((bin, args, options, callback) => callback(null, 'out', 'err'));
   const notify = jest.fn();
   const repo = createSshRepo({
-    config: { discordChannelId: '123456789012345678', targets: [{ host: 'host', user: 'user', workingDirectory: "/tmp/a'b", identity: 'key', knownHosts: 'known', pre: [], post: [] }], git: { url: "https://example.test/a'b", ref: 'main' } },
+    config: { discordChannelId: '123456789012345678', targets: [{ host: 'host', user: 'user', workingDirectory: "/tmp/a'b", identity: 'key', knownHosts: 'known', commands: ['echo ok'] }] },
     configPath: '/cfg', tmpdir: '/tmp', fsModule, execFile, sendNotification: notify,
   });
   await expect(repo.update({ body: { commits: [] } })).resolves.toBe(true);
@@ -34,20 +34,11 @@ test('uses resolved SSH identity and known-host files, quoting remote paths, and
   expect(notify).toHaveBeenCalledWith(expect.objectContaining({ hasError: false }));
 });
 
-test('updates the origin remote-tracking ref before resetting configured branches', async () => {
-  const commands = [];
-  const execFile = jest.fn((bin, args, options, callback) => { commands.push(args.at(-1)); callback(null, '', ''); });
-  const repo = createSshRepo({ config: { targets: [{ host: 'h', user: 'u', workingDirectory: '/x' }], git: { url: 'origin-url', ref: 'main' } }, execFile });
-  await expect(repo.update({ body: { commits: [] } })).resolves.toBe(true);
-  expect(commands.at(-1)).toContain("git fetch --prune 'origin-url' 'main':'refs/remotes/origin/main' && git reset --hard 'origin/main'");
-  expect(commands.at(-1)).not.toContain('FETCH_HEAD');
-});
-
 test('preserves absolute SSH reference paths', async () => {
   const fsModule = { readFileSync: jest.fn(() => 'PRIVATE KEY'), writeFileSync: jest.fn(), unlinkSync: jest.fn() };
   const execFile = jest.fn((bin, args, options, callback) => callback(null, '', ''));
   const repo = createSshRepo({
-    config: { targets: [{ host: 'h', user: 'u', workingDirectory: '/x', identity: '/run/secrets/id_rsa', knownHosts: '/run/secrets/known_hosts' }] },
+    config: { targets: [{ host: 'h', user: 'u', workingDirectory: '/x', identity: '/run/secrets/id_rsa', knownHosts: '/run/secrets/known_hosts', commands: ['echo ok'] }] },
     configPath: '/etc/knit/config', tmpdir: '/tmp', fsModule, execFile,
   });
   await expect(repo.update({ body: { commits: [] } })).resolves.toBe(true);
@@ -57,7 +48,7 @@ test('preserves absolute SSH reference paths', async () => {
 
 test('supports host-installed references and legacy execFile argument', async () => {
   const execFile = jest.fn((bin, args, options, callback) => callback(null, '', ''));
-  const repo = createSshRepo({ config: { targets: [{ host: 'h', user: 'u', workingDirectory: '/x', identity: 'host-installed', knownHosts: 'host-installed' }] } }, execFile);
+  const repo = createSshRepo({ config: { targets: [{ host: 'h', user: 'u', workingDirectory: '/x', identity: 'host-installed', knownHosts: 'host-installed', commands: ['echo ok'] }] } }, execFile);
   await expect(repo.update({ body: { commits: [] } })).resolves.toBe(true);
   expect(execFile).toHaveBeenCalled();
   expect(execFile.mock.calls[0][1]).not.toEqual(expect.arrayContaining(['-i']));
@@ -66,18 +57,18 @@ test('supports host-installed references and legacy execFile argument', async ()
 test('handles SSH callback errors and synchronous setup errors', async () => {
   const callbackError = Object.assign(new Error('ssh'), { code: 7 });
   const execFile = jest.fn((bin, args, options, callback) => callback(callbackError, 'stdout', 'stderr'));
-  const repo = createSshRepo({ config: { targets: [{ host: 'h', user: 'u', workingDirectory: '/x' }] }, execFile });
+  const repo = createSshRepo({ config: { targets: [{ host: 'h', user: 'u', workingDirectory: '/x', commands: ['echo ok'] }] }, execFile });
   await expect(repo.update({ body: { commits: [] } })).resolves.toBe(false);
 
   const fsModule = { readFileSync: jest.fn(() => { throw new Error('read'); }), unlinkSync: jest.fn() };
-  const broken = createSshRepo({ config: { targets: [{ host: 'h', user: 'u', workingDirectory: '/x', identity: 'key' }] }, fsModule, execFile: jest.fn() });
+  const broken = createSshRepo({ config: { targets: [{ host: 'h', user: 'u', workingDirectory: '/x', identity: 'key', commands: ['echo ok'] }] }, fsModule, execFile: jest.fn() });
   await expect(broken.update({ body: { commits: [] } })).resolves.toBe(false);
 });
 
 test('continues after target failure when stopOnError is disabled and handles invalid bodies/tags', async () => {
   const execFile = jest.fn((bin, args, options, callback) => callback(args.at(-1).includes('fail') ? Object.assign(new Error('x'), { code: 2 }) : null, '', 'bad'));
   const notify = jest.fn();
-  const repo = createSshRepo({ config: { targets: [{ host: 'h', user: 'u', workingDirectory: '/x', pre: ['fail'] }, { host: 'h2', user: 'u', workingDirectory: '/y' }], execution: { stopOnError: false } }, execFile, sendNotification: notify });
+  const repo = createSshRepo({ config: { targets: [{ host: 'h', user: 'u', workingDirectory: '/x', commands: ['fail'] }, { host: 'h2', user: 'u', workingDirectory: '/y', commands: ['echo ok'] }], execution: { stopOnError: false } }, execFile, sendNotification: notify });
   await expect(repo.update({ body: {} })).resolves.toBe(false);
   await expect(repo.update({ body: { ref: 'refs/tags/v1', commits: [] } })).resolves.toBe(true);
   expect(notify).toHaveBeenCalledWith(expect.objectContaining({ hasError: false }));
@@ -86,6 +77,6 @@ test('continues after target failure when stopOnError is disabled and handles in
 });
 
 test('exposes configured Discord channel ID', () => {
- const repo = createSshRepo({config: {discordChannelId: '123456789012345678', targets: [{host: 'h', user: 'u', workingDirectory: '/x'}]}, execFile: jest.fn()});
+ const repo = createSshRepo({config: {discordChannelId: '123456789012345678', targets: [{host: 'h', user: 'u', workingDirectory: '/x', commands: ['echo ok']}]}, execFile: jest.fn()});
  expect(repo.discordChannelId).toBe('123456789012345678');
 });

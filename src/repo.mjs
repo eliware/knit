@@ -22,7 +22,7 @@ export function createSshRepo({ config, execFile: injectedExecFile, fsModule = f
     try {
       const identity = target.identity;
       if (identity && identity !== 'host-installed') { keyFile = pathNode.join(tmpdir, `knit-key-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`); fsModule.writeFileSync(keyFile, fsModule.readFileSync(resolveRef(identity)), { mode: 0o600 }); args.push('-i', keyFile); }
-      const remote = `cd -- ${quote(target.workingDirectory)} && ${command}`;
+      const remote = `cd -- ${quote(target.workingDirectory)} && ${command} 2>&1`;
       args.push(`${target.user}@${target.host}`, remote);
       execFile('ssh', args, {}, (error, stdout = '', stderr = '') => { if (keyFile) { try { fsModule.unlinkSync(keyFile); } catch {} } if (error) Object.assign(error, { stdout, stderr }); if (error) reject(error); else resolve({ stdout, stderr }); });
     } catch (error) { if (keyFile) try { fsModule.unlinkSync(keyFile); } catch {} reject(error); }
@@ -31,12 +31,7 @@ export function createSshRepo({ config, execFile: injectedExecFile, fsModule = f
     if (!body || !Array.isArray(body.commits)) { requestLog.error('[Repo] body validation failed'); return false; }
     if (body.ref?.startsWith('refs/tags/')) { await notifyFn?.({ repo: this, body, logOutput: '', hasError: false, log: requestLog }); return true; }
     let output = ''; let failed = false;
-    const configuredRef = config.git?.ref;
-    const trackingRef = configuredRef?.replace(/^refs\/heads\//, '');
-    const git = config.git?.url && trackingRef
-      ? `git fetch --prune ${quote(config.git.url)} ${quote(configuredRef)}:${quote(`refs/remotes/origin/${trackingRef}`)} && git reset --hard ${quote(`origin/${trackingRef}`)}`
-      : 'git pull --ff-only';
-    for (const target of config.targets) { const configuredCommands = target.commands ?? [...(target.pre || []), ...(target.post || [])]; const commands = configuredCommands.length ? configuredCommands : [git]; for (const command of commands) { requestLog.info(`[Repo] Running SSH command: ${command}`); try { const result = await run(target, command); output += formatCommandOutput({ cmd: command, ...result, exitCode: 0 }); } catch (error) { output += formatCommandOutput({ cmd: command, stdout: error.stdout, stderr: error.stderr, exitCode: error.code || 1 }); requestLog.error(`[Repo] SSH command failed: ${command}`, error); failed = true; break; } } if (failed && execution.stopOnError) break; }
+    for (const target of config.targets) { for (const command of target.commands) { requestLog.info(`[Repo] Running SSH command: ${command}`); try { const result = await run(target, command); output += formatCommandOutput({ cmd: command, ...result, exitCode: 0 }); } catch (error) { output += formatCommandOutput({ cmd: command, stdout: error.stdout, stderr: error.stderr, exitCode: error.code || 1 }); requestLog.error(`[Repo] SSH command failed: ${command}`, error); failed = true; break; } } if (failed && execution.stopOnError) break; }
     await notifyFn?.({ repo: this, body, logOutput: output, hasError: failed, log: requestLog });
     return !failed;
   } };

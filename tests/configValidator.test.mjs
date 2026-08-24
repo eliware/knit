@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 import { validate, isModern } from '../src/configValidator.mjs';
 
-const base = { repository: 'owner/repo', git: { url: 'git@github.com:owner/repo.git', ref: 'main' }, targets: [{ host: 'dev.example', user: 'root', workingDirectory: '/srv/repo', pre: [], post: [] }], execution: { mode: 'sequential', stopOnError: true } };
+const base = { repository: 'owner/repo', targets: [{ host: 'dev.example', user: 'root', workingDirectory: '/srv/repo', commands: ['git pull --ff-only'] }], execution: { mode: 'sequential', stopOnError: true } };
 
 test('accepts a complete modern SSH config', () => expect(validate({config: base})).toBe(true));
 test('accepts a Discord channel snowflake', () => expect(validate({config: {...base, discordChannelId: '123456789012345678'}})).toBe(true));
@@ -13,8 +13,7 @@ test('isModern detects modern configs', () => { expect(isModern(base)).toBe(true
 test.each([
   {identity: ''},
   {knownHosts: ''},
-  {pre: ['ok', 1]},
-  {post: ['ok', null]},
+  {commands: []},
   {commands: ['ok', 1]},
   {host: ''},
   {user: ''},
@@ -24,4 +23,4 @@ test.each([null, 'bad'])('rejects non-object SSH target: %j', target => expect(v
 test('accepts SSH identity and knownHosts paths', () => expect(validate({config: {...base, targets: [{...base.targets[0], identity: 'ssh/id_rsa', knownHosts: 'ssh/known_hosts'}]}})).toBe(true));
 test('rejects truthy non-object target', () => expect(validate({config: {...base, targets: [1]}, log: {error: jest.fn()}})).toBe(false));
 test.each([false, true, 'target'])('rejects primitive target forms: %j', target => expect(validate({config: {...base, targets: [target]}, log: {error: jest.fn()}})).toBe(false));
-test('accepts minimal SSH target defaults', () => expect(validate({config: {...base, targets: [{host: 'h', user: 'u', workingDirectory: '/tmp'}]}})).toBe(true));
+test('accepts minimal SSH target defaults', () => expect(validate({config: {...base, targets: [{host: 'h', user: 'u', workingDirectory: '/tmp', commands: ['echo ok']}]}})).toBe(true));
