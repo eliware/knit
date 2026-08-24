@@ -6,11 +6,10 @@
     "main": "knit.mjs",
     "scripts": {
         "start": "node knit.mjs",
-        "test": "npx --node-options=\"--experimental-vm-modules --no-warnings\" jest --detectOpenHandles --silent --coverage",
-        "lint": "npx oxlint . --deny-warnings",
+        "test": "eliware-test",
+        "lint": "eliware-test --lint",
         "audit": "node scripts/audit.mjs",
-        "pack": "npm pack --dry-run",
-        "test:gaps": "node scripts/check-coverage.mjs"
+        "pack": "npm pack --dry-run"
     },
     "repository": {
         "type": "git",
@@ -36,10 +35,6 @@
         "url": "https://github.com/eliware/knit/issues"
     },
     "homepage": "https://github.com/eliware/knit#readme",
-    "devDependencies": {
-        "jest": "^30.0.4",
-        "oxlint": "^1.79.0"
-    },
     "jest": {
         "testEnvironment": "node",
         "testMatch": [
@@ -72,5 +67,8 @@
         "src",
         "README.md",
         "LICENSE"
-    ]
+    ],
+    "devDependencies": {
+        "@eliware/test": "^1.0.3"
+    }
 }

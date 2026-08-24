@@ -68,4 +68,8 @@ npm run lint
 npm start
 ```
 
+`npm test` uses `@eliware/test` for the baseline Jest coverage and Oxlint
+checks. It requires 100×4 coverage and zero lint warnings; project-specific
+integration, smoke, regression, or end-to-end checks remain separate.
+
 Development now takes place on the Windows workstation under `C:\Users\russe\src\knit`; the former OVH `dev` VM is a legacy deployment target. Kubernetes releases use immutable container images and Argo CD GitOps. New Knit code is delivered by releasing an image, not by runtime self-updating.
