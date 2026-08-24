@@ -27,8 +27,10 @@ targets:
     host: dev.example
     user: root
     workingDirectory: /opt/repo
-    pre: []
-    post: []
+    commands:
+      - git pull --ff-only
+      - npm install
+      - npm test
 execution:
   mode: sequential
   stopOnError: true
@@ -38,13 +40,13 @@ execution:
 
 Kubernetes uses a content-hashed ConfigMap for repository configuration. Updating a config through GitOps changes the ConfigMap name and the Deployment reference, causing Kubernetes to restart Knit with the new configuration. Knit does not monitor mounted files for changes while running.
 
-Targets execute commands over SSH with strict host verification. `identity` and `knownHosts` may be `host-installed` or paths relative to the configured path. Modern targets are SSH-only.
+Targets execute commands over SSH with strict host verification. If `commands` is present, Knit executes that list exactly, in order, and does not add implicit Git commands. This lets each repository define its own deployment contract. For backward compatibility, targets without `commands` use `pre`, configured Git synchronization, and `post`. `identity` and `knownHosts` may be `host-installed` or paths relative to the configured path. Modern targets are SSH-only.
 
 New configurations must use YAML and SSH targets. Local Compose requires only `KNIT_CONFIG_PATH`; systemd requires an equivalent mounted/provisioned config path.
 
 ## Knit self-deployment and organization fallback
 
-`eliware/knit` is configured as the fallback target for organization-level GitHub events. Its push deployment runs `git pull`, `npm install`, and `npm test` on `dev.purinton.us:/opt/knit`, then sends the result to Discord. Successful deployments do not restart the process; release a new image and let Argo CD roll it out for Knit code changes.
+`eliware/knit` is configured as the fallback target for organization-level GitHub events. Its legacy push deployment may run `git pull`, `npm install`, and `npm test` on the production development host, then send the result to Discord. Successful source updates do not restart the process; release a new immutable image and let Argo CD roll it out for Knit code changes.
 
 ## Environment
 
@@ -66,4 +68,4 @@ npm run lint
 npm start
 ```
 
-Kubernetes releases use immutable container images and Argo CD GitOps. Knit can receive its own repository webhook and SSH-deploy `/opt/knit`; new Knit code is delivered by releasing an image, not by runtime self-updating.
+Development now takes place on the Windows workstation under `C:\Users\russe\src\knit`; the former OVH `dev` VM is a legacy deployment target. Kubernetes releases use immutable container images and Argo CD GitOps. New Knit code is delivered by releasing an image, not by runtime self-updating.

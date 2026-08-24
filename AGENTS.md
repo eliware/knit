@@ -1,4 +1,4 @@
-# AGENTS.md (/opt/knit)
+# AGENTS.md (Knit)
 
 Knit (`@eliware/knit`) is a GitHub webhook handler and SSH deployment automation service. It validates signatures, routes repository and organization events, deploys configured repositories over SSH, and sends Discord notifications. It runs on `dev`, publicly routed at `https://knit.eliware.org`.
 
@@ -18,7 +18,7 @@ Knit (`@eliware/knit`) is a GitHub webhook handler and SSH deployment automation
 - Modern configs deploy sequentially to SSH targets (`host`, `user`, `workingDirectory`, optional `identity`/`knownHosts`).
 - `discordChannelId` selects the Discord channel for notifications; SSH assets are mounted under `/run/secrets/eliware/ssh/`.
 - Organization-level events use `eliware/knit` as the notification fallback.
-- `eliware/knit` may SSH-deploy `/opt/knit` after pushes; it does not self-restart. New Knit code requires an image release and Argo CD rollout.
+- The Windows workstation is the development control point. The former OVH `dev` VM is a legacy deployment target. New Knit code requires an image release and Argo CD rollout; source push deployment does not self-restart the production process.
 - SSH uses strict host verification. Never weaken verification or commit secrets.
 
 ## Configuration

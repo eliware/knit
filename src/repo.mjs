@@ -30,8 +30,13 @@ export function createSshRepo({ config, execFile: injectedExecFile, fsModule = f
   return { discordChannelId, targets: config.targets, async update({ body, log: requestLog = log }) {
     if (!body || !Array.isArray(body.commits)) { requestLog.error('[Repo] body validation failed'); return false; }
     if (body.ref?.startsWith('refs/tags/')) { await notifyFn?.({ repo: this, body, logOutput: '', hasError: false, log: requestLog }); return true; }
-    let output = ''; let failed = false; const git = config.git?.url && config.git?.ref ? `git fetch --prune ${quote(config.git.url)} ${quote(config.git.ref)} && git reset --hard FETCH_HEAD` : 'git pull --ff-only';
-    for (const target of config.targets) { for (const command of [...(target.pre || []), git, ...(target.post || [])]) { requestLog.info(`[Repo] Running SSH command: ${command}`); try { const result = await run(target, command); output += formatCommandOutput({ cmd: command, ...result, exitCode: 0 }); } catch (error) { output += formatCommandOutput({ cmd: command, stdout: error.stdout, stderr: error.stderr, exitCode: error.code || 1 }); requestLog.error(`[Repo] SSH command failed: ${command}`, error); failed = true; break; } } if (failed && execution.stopOnError) break; }
+    let output = ''; let failed = false;
+    const configuredRef = config.git?.ref;
+    const trackingRef = configuredRef?.replace(/^refs\/heads\//, '');
+    const git = config.git?.url && trackingRef
+      ? `git fetch --prune ${quote(config.git.url)} ${quote(configuredRef)}:${quote(`refs/remotes/origin/${trackingRef}`)} && git reset --hard ${quote(`origin/${trackingRef}`)}`
+      : 'git pull --ff-only';
+    for (const target of config.targets) { const configuredCommands = target.commands ?? [...(target.pre || []), ...(target.post || [])]; const commands = configuredCommands.length ? configuredCommands : [git]; for (const command of commands) { requestLog.info(`[Repo] Running SSH command: ${command}`); try { const result = await run(target, command); output += formatCommandOutput({ cmd: command, ...result, exitCode: 0 }); } catch (error) { output += formatCommandOutput({ cmd: command, stdout: error.stdout, stderr: error.stderr, exitCode: error.code || 1 }); requestLog.error(`[Repo] SSH command failed: ${command}`, error); failed = true; break; } } if (failed && execution.stopOnError) break; }
     await notifyFn?.({ repo: this, body, logOutput: output, hasError: failed, log: requestLog });
     return !failed;
   } };

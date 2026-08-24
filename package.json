@@ -7,9 +7,10 @@
     "scripts": {
         "start": "node knit.mjs",
         "test": "npx --node-options=\"--experimental-vm-modules --no-warnings\" jest --detectOpenHandles --silent --coverage",
-        "lint": "npx oxlint .",
-        "audit": "npm audit --omit=dev --audit-level=moderate",
-        "test:gaps": "npm test 2>&1 | grep '|' | grep -vF '|     100 |      100 |     100 |     100 |'"
+        "lint": "npx oxlint . --deny-warnings",
+        "audit": "node scripts/audit.mjs",
+        "pack": "npm pack --dry-run",
+        "test:gaps": "node scripts/check-coverage.mjs"
     },
     "repository": {
         "type": "git",
@@ -48,6 +49,10 @@
         ],
         "setupFilesAfterEnv": [
             "<rootDir>/tests/setup.mjs"
+        ],
+        "coverageReporters": [
+            "text",
+            "json-summary"
         ]
     },
     "dependencies": {

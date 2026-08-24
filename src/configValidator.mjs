@@ -10,6 +10,7 @@ export function validate({ config, log = logger }) {
     if (typeof t !== 'object') return false;
     if (!string(t.workingDirectory) || !string(t.host) || !string(t.user)) return false;
     if (!commands(t.pre || []) || !commands(t.post || [])) return false;
+    if ('commands' in t && !commands(t.commands)) return false;
     if ('identity' in t && !string(t.identity)) return false;
     if ('knownHosts' in t && !string(t.knownHosts)) return false;
     return true;

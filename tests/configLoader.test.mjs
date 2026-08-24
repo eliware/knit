@@ -15,7 +15,8 @@ execution:
   mode: sequential
   stopOnError: true
 `;
-function fsMock(files) { return { existsSync: jest.fn(p => p in files), readFileSync: jest.fn(p => files[p]), statSync: jest.fn() }; }
+function mockKey(file) { return file.replaceAll(/\\/g, '/').replace(/^[A-Za-z]:/, ''); }
+function fsMock(files) { return { existsSync: jest.fn(p => mockKey(p) in files), readFileSync: jest.fn(p => files[mockKey(p)]), statSync: jest.fn() }; }
 
 test('returns null when no YAML config exists', async () => expect(await createConfigLoader({fsModule: fsMock({}), configPath: '/c'}).load('o/r')).toBeNull());
 test('loads and caches YAML using repository filename mapping', async () => { const fs=fsMock({'/c/o__r.yaml': yamlConfig}); const loader=createConfigLoader({fsModule: fs, configPath: '/c'}); expect(await loader.load('o/r')).toMatchObject({repository: 'o/r'}); await loader.load('o/r'); expect(fs.readFileSync).toHaveBeenCalledTimes(1); });

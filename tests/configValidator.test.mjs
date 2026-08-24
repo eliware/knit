@@ -15,6 +15,7 @@ test.each([
   {knownHosts: ''},
   {pre: ['ok', 1]},
   {post: ['ok', null]},
+  {commands: ['ok', 1]},
   {host: ''},
   {user: ''},
   {workingDirectory: ''},
