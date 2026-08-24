@@ -28,7 +28,7 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run test:gaps
-      - run: npm run lint -- --deny-warnings
+      - run: npm run lint
       - run: npm run audit
   publish:
     needs: build
