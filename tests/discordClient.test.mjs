@@ -52,6 +52,13 @@ test('uses environment credentials and handles the default shutdown path', async
   }
 });
 
+test('loads guild ID from the injected target loader', async () => {
+  const client = { shutdown: jest.fn() };
+  const createDiscordFn = jest.fn().mockResolvedValue(client);
+  await expect(startDiscordClient({ createDiscordFn, token: 'token', clientId: 'client', targetLoader: { load: () => ({ guildId: 'guild' }) }, log: { info: jest.fn(), warn: jest.fn() } })).resolves.toBe(client);
+  await stopDiscordClient(client);
+});
+
 test('requires both Discord credentials', async () => {
   await expect(startDiscordClient({ token: 'token', clientId: '' })).rejects.toThrow('Both DISCORD_TOKEN and DISCORD_CLIENT_ID are required');
 });

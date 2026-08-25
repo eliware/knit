@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import { createChannelResolver } from '../src/discordChannels.mjs';
+import { channelName, createChannelResolver } from '../src/discordChannels.mjs';
 
 function clientWith(channels = []) {
   const created = [];
@@ -32,10 +32,16 @@ test('creates public and private repository channels', async () => {
 
 test('normalizes repository names for Discord', async () => {
   const { client, created } = clientWith();
-  const { channelName } = await import('../src/discordChannels.mjs');
   expect(channelName('eliware/eliware.org')).toBe('eliware-org');
+  expect(channelName('eliware/!!!')).toBe('repository');
+  expect(() => channelName()).toThrow();
   await createChannelResolver({ client, guildId: 'guild' })({ repository: 'eliware/eliware.org' });
   expect(created[0].options.name).toBe('eliware-org');
+});
+
+test('synchronizes a channel without overwrite support', async () => {
+  const { client } = clientWith([{ id: 'channel', name: 'plain', type: 5 }]);
+  await expect(createChannelResolver({ client, guildId: 'guild' })({ repository: 'eliware/plain' })).resolves.toBe('channel');
 });
 
 test('requires a valid repository and Discord client', () => {

@@ -12,7 +12,7 @@ function blobSha(content) {
 async function fetchFile({ repository, path, commit, token, fetchFn, required }) {
   const url = `${API_ROOT}/${repository}/contents/${path}?ref=${commit}`;
   for (let attempt = 1; attempt <= RETRIES; attempt++) {
-    const response = await fetchFn(url, { headers: { Accept: 'application/vnd.github.raw+json', ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
+    const response = await fetchFn(url, { headers: { Accept: 'application/vnd.github+json', ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
     if (response.ok) {
       const file = await response.json();
       if (file.path !== path || file.type !== 'file' || typeof file.content !== 'string') throw new Error(`Invalid GitHub Contents response for ${path}`);

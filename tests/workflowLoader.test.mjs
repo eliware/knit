@@ -36,3 +36,15 @@ test('retries transient GitHub failures and rejects bad workflow responses', asy
   const bad = jest.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ path: 'wrong', type: 'file', content: '' }) });
   await expect(loadWorkflow({ repository: 'eliware/app', commit, fetchFn: bad })).rejects.toThrow('Invalid GitHub Contents response');
 });
+
+test('rejects unavailable fetch, non-transient errors, SHA mismatches, and invalid package metadata', async () => {
+  await expect(loadWorkflow({ repository: 'eliware/app', commit, fetchFn: null })).rejects.toThrow('Fetch is unavailable');
+  await expect(loadWorkflow({ repository: 'eliware/app', commit, fetchFn: jest.fn().mockResolvedValue({ ok: false, status: 403 }) })).rejects.toThrow('HTTP 403');
+  const mismatch = jest.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({ path: '.knit/deploy.yaml', type: 'file', content: Buffer.from(files['.knit/deploy.yaml']).toString('base64'), sha: 'bad' }) });
+  await expect(loadWorkflow({ repository: 'eliware/app', commit, fetchFn: mismatch })).rejects.toThrow('SHA mismatch');
+  const invalidContent = '{bad';
+  const invalidBody = Buffer.from(invalidContent);
+  const invalidSha = createHash('sha1').update(`blob ${invalidBody.length}\0`).update(invalidBody).digest('hex');
+  const invalidPackage = jest.fn(url => url.includes('package.json') ? { ok: true, status: 200, json: async () => ({ path: 'package.json', type: 'file', content: invalidBody.toString('base64'), sha: invalidSha }) } : response('.knit/deploy.yaml'));
+  await expect(loadWorkflow({ repository: 'eliware/app', commit, fetchFn: invalidPackage })).rejects.toThrow('Invalid package.json');
+});

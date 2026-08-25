@@ -13,6 +13,7 @@ export async function startDiscordClient({
   token = process.env.DISCORD_TOKEN,
   clientId = process.env.DISCORD_CLIENT_ID,
   guildId,
+  targetLoader = defaultTargetLoader,
   log = logger,
 } = {}) {
   if (!token && !clientId) {
@@ -31,7 +32,7 @@ export async function startDiscordClient({
     log,
   });
   Notifier.setDiscordClient(client);
-  const configuredGuildId = guildId || defaultTargetLoader.load().guildId;
+  const configuredGuildId = guildId || targetLoader.load().guildId;
   Notifier.setChannelResolver(createChannelResolver({ client, guildId: configuredGuildId, log }));
   log.info('[Discord] Client connected for channel notifications');
   return client;

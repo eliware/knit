@@ -45,6 +45,22 @@ describe('notifier.mjs', () => {
     expect(sendMessageFn).toHaveBeenCalled();
   });
 
+  it('cross-posts v tag announcements when Discord returns a message', async () => {
+    const crosspost = jest.fn().mockResolvedValue(undefined);
+    const sendMessageFn = jest.fn().mockResolvedValue({ crosspost });
+    await notifier.send({ channelId, post: { ref: 'refs/tags/v2.1.1', repository: { full_name: 'foo/bar' } }, log, discordClient: makeClient(sendMessageFn) });
+    expect(crosspost).toHaveBeenCalled();
+  });
+
+  it('resolves a repository channel when no channel ID is supplied', async () => {
+    const channel = { send: jest.fn().mockResolvedValue(undefined) };
+    const client = { channels: { fetch: jest.fn().mockResolvedValue(channel) } };
+    notifier.setChannelResolver(jest.fn().mockResolvedValue(channelId));
+    await notifier.send({ post: { repository: { full_name: 'foo/bar' } }, log, discordClient: client });
+    expect(client.channels.fetch).toHaveBeenCalledWith(channelId);
+    notifier.clearDiscordClient();
+  });
+
   it('createEmbed: should return an embed for tag', async () => {
     const post = { ref: 'refs/tags/v1.0.0', repository: { full_name: 'foo/bar', html_url: 'url' }, pusher: { name: 'bob' } };
     const embed = await notifier.createEmbed({ post, logOutput: '', hasError: false });

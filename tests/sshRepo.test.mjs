@@ -56,17 +56,27 @@ test('handles invalid bodies, tags, connection errors, and continue-on-error', a
   expect(notify).toHaveBeenCalled();
 });
 
+test('uses the shared notifier for tag notifications', async () => {
+  const repo = createSshRepo({ config: { deployments: [] }, targets: {} });
+  const notifier = await import('../src/notifier.mjs');
+  const client = { channels: { fetch: jest.fn().mockResolvedValue({ send: jest.fn().mockResolvedValue(undefined) }) } };
+  notifier.setDiscordClient(client);
+  notifier.setChannelResolver(jest.fn().mockResolvedValue('channel'));
+  await expect(repo.update({ body: { ref: 'refs/tags/v1', commits: [], repository: { full_name: 'o/r' } } })).resolves.toBe(true);
+  notifier.clearDiscordClient();
+});
+
 test('loads, validates, and authorizes a repository workflow', async () => {
   const targetLoader = { load: jest.fn().mockReturnValue({ targets: { dev: target } }) };
-  const workflowLoader = jest.fn().mockResolvedValue({ workflow: { version: 1, deployments: [deployment()] } });
+  const workflowLoader = jest.fn().mockResolvedValue({ workflow: { version: 1, on: { push: { deployments: [deployment()] }, tags: { 'v*': { deployments: [deployment()] } } } } });
   await expect(get({ name: 'eliware/app', body: { after: 'a'.repeat(40) }, targetLoader, workflowLoader })).resolves.toBeDefined();
   expect(workflowLoader).toHaveBeenCalledWith({ repository: 'eliware/app', commit: 'a'.repeat(40) });
 });
 
 test('rejects malformed and unknown-target workflows', async () => {
   const targetLoader = { load: () => ({ targets: { dev: target } }) };
-  await expect(get({ name: 'eliware/app', body: { after: 'a'.repeat(40) }, targetLoader, workflowLoader: async () => ({ workflow: { version: 1, deployments: [] } }) })).resolves.toBeNull();
-  await expect(get({ name: 'eliware/app', body: { after: 'a'.repeat(40) }, targetLoader, workflowLoader: async () => ({ workflow: { version: 1, deployments: [deployment({ target: 'missing' })] } }) })).resolves.toBeNull();
+  await expect(get({ name: 'eliware/app', body: { after: 'a'.repeat(40) }, targetLoader, workflowLoader: async () => ({ workflow: { version: 1, on: { push: { deployments: [] }, tags: { 'v*': { deployments: [deployment()] } } } } }) })).resolves.toBeNull();
+  await expect(get({ name: 'eliware/app', body: { after: 'a'.repeat(40) }, targetLoader, workflowLoader: async () => ({ workflow: { version: 1, on: { push: { deployments: [deployment({ target: 'missing' })] }, tags: { 'v*': { deployments: [deployment()] } } } } }) })).resolves.toBeNull();
 });
 
 test('supports the default notification path when no notifier is supplied', async () => {
@@ -76,6 +86,14 @@ test('supports the default notification path when no notifier is supplied', asyn
 
 test('rejects unauthorized repository workflows', async () => {
   const targetLoader = { load: () => ({ targets: { nas: { ...target, allowedRepositories: ['eliware/other'] } } }) };
-  const workflowLoader = async () => ({ workflow: { version: 1, deployments: [deployment({ target: 'nas' })] } });
+  const workflowLoader = async () => ({ workflow: { version: 1, on: { push: { deployments: [deployment({ target: 'nas' })] }, tags: { 'v*': { deployments: [deployment()] } } } } });
   await expect(get({ name: 'eliware/app', body: { after: 'a'.repeat(40) }, targetLoader, workflowLoader })).resolves.toBeNull();
+});
+
+test('returns a notification-only repository for non-push events and ignores unmatched tags', async () => {
+  const targetLoader = { load: () => ({ targets: {} }) };
+  await expect(get({ name: 'eliware/app', event: 'issues', body: {}, targetLoader })).resolves.toBeDefined();
+  await expect(get({ name: 'eliware/app', event: 'issues', body: {}, targetLoader: { load: () => ({}) } })).resolves.toBeDefined();
+  const workflow = { version: 1, on: { push: { deployments: [deployment()] }, tags: { 'v*': { deployments: [deployment()] } } } };
+  await expect(get({ name: 'eliware/app', body: { after: 'a'.repeat(40), ref: 'refs/tags/beta' }, targetLoader: { load: () => ({ targets: { dev: target } }) }, workflowLoader: async () => ({ workflow }) })).resolves.toBeNull();
 });
