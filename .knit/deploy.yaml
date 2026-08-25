@@ -1,0 +1,13 @@
+version: 1
+on:
+  push:
+    deployments:
+      - target: dev
+        cwd: /opt/knit
+        commands:
+          - git pull --ff-only
+          - npm ci
+          - npm test
+          - npm run lint
+          - npm audit --omit=dev --audit-level=moderate
+          - npm run pack
