@@ -3,12 +3,14 @@ import 'dotenv/config';
 import { log, registerHandlers, registerSignals } from '@eliware/common';
 import { createApp, startApp } from './src/app.mjs';
 import { startDiscordClient, stopDiscordClient } from './src/discordClient.mjs';
+import { defaultLoader } from './src/configLoader.mjs';
 
 const errorHandlers = registerHandlers({ log });
 registerSignals({ log });
 
 export async function main() {
   log.info('knit service starting...');
+  if (!await defaultLoader.validateAll()) throw new Error('Knit configuration validation failed');
   const discordClient = await startDiscordClient({ log });
   const app = await createApp({ log });
   const server = startApp({ appInstance: app, log });

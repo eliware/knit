@@ -40,9 +40,13 @@ execution:
 
 Kubernetes uses a content-hashed ConfigMap for repository configuration. Updating a config through GitOps changes the ConfigMap name and the Deployment reference, causing Kubernetes to restart Knit with the new configuration. Knit does not monitor mounted files for changes while running.
 
-Targets execute commands over SSH with strict host verification. `commands` is required and Knit executes that list in order. Knit automatically merges stderr into stdout (`2>&1`) for every command, so configs should not repeat that suffix. This lets each repository define its own deployment contract. `identity` and `knownHosts` may be `host-installed` or paths relative to the configured path. Modern targets are SSH-only.
+Targets execute commands over SSH with strict host verification through `@eliware/ssh-client`. `commands` is required and Knit executes that list in order. `identity`, `knownHosts`, and optional `hostCa` may be `host-installed` or paths relative to the configured path; absolute paths such as `/run/secrets/eliware/ssh/id_rsa` are also supported. CA-signed host certificates are trusted through an `@cert-authority` record in `known_hosts` or a mounted `hostCa` public-key file. Modern targets are SSH-only.
 
 New configurations must use YAML and SSH targets. Local Compose requires only `KNIT_CONFIG_PATH`; systemd requires an equivalent mounted/provisioned config path.
+
+## Operations
+
+Knit validates every YAML configuration before opening the Discord connection and loads repository configuration once per process. Configuration changes roll the pod through Kustomize's content-hashed ConfigMap. Roll back by reverting the GitOps config or immutable image pin and allowing Argo CD to sync; verify `/health`, pod readiness, and logs after recovery. The encrypted runtime Secret is owned and recovered through the GitOps secret-management process; never copy workstation private keys or decrypted secrets into this repository.
 
 ## Knit self-deployment and organization fallback
 

@@ -12,6 +12,7 @@ export function validate({ config, log = logger }) {
     if (!commands(t.commands) || 'pre' in t || 'post' in t) return false;
     if ('identity' in t && !string(t.identity)) return false;
     if ('knownHosts' in t && !string(t.knownHosts)) return false;
+    if ('hostCa' in t && !string(t.hostCa)) return false;
     return true;
   };
   const modern = config && typeof config === 'object' && /^\S+\/\S+$/.test(config.repository || '') && Array.isArray(config.targets) && config.targets.length > 0 && config.targets.every(target) && config.execution && config.execution.mode === 'sequential' && typeof config.execution.stopOnError === 'boolean';

@@ -9,11 +9,13 @@ describe('knit.mjs', () => {
   const registerSignals = jest.fn();
   const startDiscordClient = jest.fn().mockResolvedValue(null);
   const stopDiscordClient = jest.fn().mockResolvedValue(undefined);
+  const validateAll = jest.fn().mockResolvedValue(true);
 
   beforeAll(async () => {
     jest.unstable_mockModule('@eliware/common', () => ({ log, registerHandlers, registerSignals }));
     jest.unstable_mockModule('../src/app.mjs', () => ({ createApp, startApp }));
-    jest.unstable_mockModule('../src/discordClient.mjs', () => ({ startDiscordClient, stopDiscordClient }));
+  jest.unstable_mockModule('../src/discordClient.mjs', () => ({ startDiscordClient, stopDiscordClient }));
+    jest.unstable_mockModule('../src/configLoader.mjs', () => ({ defaultLoader: { validateAll } }));
     process.env.NODE_ENV = 'test';
     await import('../knit.mjs');
   });
@@ -56,6 +58,13 @@ describe('knit.mjs', () => {
     const error = new Error('boom');
     createApp.mockRejectedValue(error);
     await expect((await import('../knit.mjs')).main()).rejects.toBe(error);
+  });
+
+  test('main rejects invalid configuration before external startup', async () => {
+    validateAll.mockResolvedValueOnce(false);
+    startDiscordClient.mockClear();
+    await expect((await import('../knit.mjs')).main()).rejects.toThrow('Knit configuration validation failed');
+    expect(startDiscordClient).not.toHaveBeenCalled();
   });
 
   test('start logs failures and exits', async () => {

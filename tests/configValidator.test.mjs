@@ -13,6 +13,7 @@ test('isModern detects modern configs', () => { expect(isModern(base)).toBe(true
 test.each([
   {identity: ''},
   {knownHosts: ''},
+  {hostCa: ''},
   {commands: []},
   {commands: ['ok', 1]},
   {host: ''},
@@ -21,6 +22,7 @@ test.each([
 ])('rejects invalid SSH target: %j', field => expect(validate({config: {...base, targets: [{...base.targets[0], ...field}]}, log: {error: jest.fn()}})).toBe(false));
 test.each([null, 'bad'])('rejects non-object SSH target: %j', target => expect(validate({config: {...base, targets: [target]}, log: {error: jest.fn()}})).toBe(false));
 test('accepts SSH identity and knownHosts paths', () => expect(validate({config: {...base, targets: [{...base.targets[0], identity: 'ssh/id_rsa', knownHosts: 'ssh/known_hosts'}]}})).toBe(true));
+test('accepts a host CA path', () => expect(validate({config: {...base, targets: [{...base.targets[0], hostCa: 'ssh/host_ca.pub'}]}})).toBe(true));
 test('rejects truthy non-object target', () => expect(validate({config: {...base, targets: [1]}, log: {error: jest.fn()}})).toBe(false));
 test.each([false, true, 'target'])('rejects primitive target forms: %j', target => expect(validate({config: {...base, targets: [target]}, log: {error: jest.fn()}})).toBe(false));
 test('accepts minimal SSH target defaults', () => expect(validate({config: {...base, targets: [{host: 'h', user: 'u', workingDirectory: '/tmp', commands: ['echo ok']}]}})).toBe(true));

@@ -50,13 +50,14 @@
         ]
     },
     "dependencies": {
-        "@eliware/common": "^1.1.8",
+        "@eliware/common": "^2.0.0",
         "@eliware/discord": "^1.1.4",
+        "@eliware/ssh-client": "^2.0.0",
         "body-parser": "^2.3.0",
         "dotenv": "^17.2.0",
         "express": "^5.1.0",
         "inquirer": "^14.1.0",
-        "js-yaml": "^5.3.0"
+        "js-yaml": "^5.4.0"
     },
     "engines": {
         "node": ">=26"

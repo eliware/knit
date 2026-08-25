@@ -5,7 +5,7 @@ ENV NODE_ENV=production \
     PORT=3456
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends openssh-client ca-certificates \
+    && apt-get install -y --no-install-recommends ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json ./
