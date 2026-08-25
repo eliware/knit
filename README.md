@@ -38,13 +38,13 @@ on:
 
 Repository workflows are intentionally plaintext YAML and contain no credentials. The GitHub read token, Discord bot token, and SSH assets remain runtime secrets. Pushes and matching `v*` tags select separate actions; there is no fallback from a tag to the push action.
 
-The main target configuration contains one Discord `guildId`, not project channel IDs. Knit finds a text channel named after the repository, creating it on demand. New channels are public for public GitHub repositories and hide `@everyone` for private repositories.
+The main target configuration contains one Discord `guildId`, not project channel IDs. Knit finds an Announcement channel named after the repository, creating it on demand. New channels are public but read-only for public GitHub repositories and hide `@everyone` for private repositories. Repository descriptions and keywords from `package.json` are synchronized into the channel topic, and `v*` tag announcements are cross-posted.
 
 Kubernetes uses a content-hashed ConfigMap for repository configuration. Updating a config through GitOps changes the ConfigMap name and the Deployment reference, causing Kubernetes to restart Knit with the new configuration. Knit does not monitor mounted files for changes while running.
 
 Targets execute commands over SSH with strict host verification through `@eliware/ssh-client`. GitOps target profiles own connection details and may restrict repository access and working-directory roots. CA-signed host certificates are trusted through an `@cert-authority` record in `known_hosts` or a mounted `hostCa` public-key file.
 
-New configurations must use YAML and SSH targets. Local Compose requires only `KNIT_CONFIG_PATH`; systemd requires an equivalent mounted/provisioned config path.
+New configurations must use YAML and SSH targets. Local Compose requires the target inventory, Discord credentials, and read-only mounts for the SSH identity, strict `known_hosts`, and host CA; systemd requires equivalent mounted/provisioned configuration and secrets.
 
 ## Operations
 

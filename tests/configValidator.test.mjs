@@ -14,3 +14,4 @@ test('selects push and matching tag actions without tag fallback', () => {
   expect(selectWorkflowAction({ config, post: { ref: 'refs/tags/v1.0.0' } })).toBe(release);
   expect(selectWorkflowAction({ config, post: { ref: 'refs/tags/test' } })).toBeNull();
 });
+test('ignores tags when release actions are not configured', () => expect(selectWorkflowAction({ config: { on: { push: { deployments: [] } } }, post: { ref: 'refs/tags/v1.0.0' } })).toBeNull());

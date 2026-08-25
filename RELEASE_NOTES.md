@@ -1,5 +1,28 @@
 # Release Notes
 
+## 2.1.0 — August 25, 2026
+
+### Added
+
+- Added repository-owned `.knit/deploy.yaml` workflows with target-specific push actions and optional `v*` tag actions.
+- Added GitHub Contents API workflow loading pinned to the webhook commit, including package metadata for notifications.
+- Added automatic Discord Announcement channel creation and synchronization by repository name.
+- Added repository visibility synchronization, read-only channel permissions, package description/keyword topics, and release announcement cross-posting.
+- Added trusted GitOps target inventories with a shared Discord guild ID and strict SSH host CA support.
+
+### Changed
+
+- Removed central per-project deployment and Discord channel configuration.
+- Removed the temporary Git checkout requirement from workflow inspection.
+- Added local Compose mounts for production-like SSH testing.
+- Updated runtime dependencies and CI validation for the modern workflow.
+
+### Verification
+
+- Tests: **100% statements, branches, functions, and lines**.
+- Oxlint: **0 warnings/errors**.
+- Local container build, health check, signed webhook, real `dev` SSH deployment, and Discord notification smoke test passed.
+
 ## 1.1.13 — August 22, 2026
 
 ### Changed
