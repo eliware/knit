@@ -10,6 +10,9 @@ services:
       KNIT_CONFIG_PATH: /etc/knit/config
     volumes:
       - ${KNIT_CONFIG_PATH:-./repos}:/etc/knit/config:ro
+      - ${USERPROFILE}/.ssh/id_rsa:/run/secrets/eliware/ssh/id_rsa:ro
+      - ${USERPROFILE}/.ssh/known_hosts:/run/secrets/eliware/ssh/known_hosts:ro
+      - ${USERPROFILE}/.ssh/eliware_host_ca_ed25519.pub:/run/secrets/eliware/ssh/eliware_host_ca_ed25519.pub:ro
     restart: unless-stopped
     stop_grace_period: 30s
     init: true
