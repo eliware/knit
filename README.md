@@ -46,7 +46,7 @@ New configurations must use YAML and SSH targets. Local Compose requires only `K
 
 ## Knit self-deployment and organization fallback
 
-`eliware/knit` is configured as the fallback target for organization-level GitHub events. Its legacy push deployment may run `git pull`, `npm install`, and `npm test` on the production development host, then send the result to Discord. Successful source updates do not restart the process; release a new immutable image and let Argo CD roll it out for Knit code changes.
+`eliware/knit` is configured as the fallback target for organization-level GitHub events. Source pushes notify configured channels and execute only the commands declared by each repository configuration. Knit code changes are delivered as immutable container releases through GitOps; source push handling does not restart the running service.
 
 ## Environment
 

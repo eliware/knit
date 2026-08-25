@@ -8,7 +8,6 @@
         "start": "node knit.mjs",
         "test": "eliware-test",
         "lint": "eliware-test --lint",
-        "audit": "node scripts/audit.mjs",
         "pack": "npm pack --dry-run"
     },
     "repository": {
@@ -66,9 +65,10 @@
         "knit.mjs",
         "src",
         "README.md",
+        "RELEASE_NOTES.md",
         "LICENSE"
     ],
     "devDependencies": {
-        "@eliware/test": "^1.0.3"
+        "@eliware/test": "^2.0.0"
     }
 }

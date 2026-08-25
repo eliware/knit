@@ -188,4 +188,35 @@ This release expands Knit from push-focused deployment handling into a broader G
 
 - Added automatic pushback commits after successful post-update commands.
 - Pushback commits use the `Pushback YYYY-MM-DD HH:mm:ss` format and are pushed automatically.
-- Repository configurations use `npm install --silent` for live working-tree updates.
+- Historical release behavior: repository configurations used `npm install --silent` for live working-tree updates.
+
+## Unreleased
+
+- Standardized the test dependency on `@eliware/test` 2.x.
+- Added the standard audit and package dry-run CI gates.
+- Gated npm and GHCR publication on passing Ubuntu and Windows validation.
+- Scoped workflow permissions to the jobs that require them.
+- Included release notes in the published package files.
+## 2.0.0
+
+Major conventions and release-pipeline alignment:
+
+### Changed
+
+- Upgraded the baseline tooling to `@eliware/test` 2.x with 100×4 coverage
+  and zero-warning lint enforcement.
+- Standardized CI to run tests, lint, production audit, and package dry-run
+  checks on Ubuntu and Windows for pushes, pull requests, and `v*` tags.
+- Gated npm and GHCR publication on successful Ubuntu and Windows validation.
+- Scoped workflow permissions to the publishing jobs that require them.
+- Removed the obsolete standalone coverage-gap script and `.jest.result`
+  ignore.
+- Published release notes with the package and clarified command-driven SSH
+  deployment behavior in the README.
+
+### Verification
+
+- `npm test`: 100×4 coverage.
+- `npm run lint`: 0 warnings.
+- `npm audit --omit=dev --audit-level=moderate`: 0 vulnerabilities.
+- `npm run pack`: passed.
