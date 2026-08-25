@@ -41,10 +41,8 @@ export function createRegistry({ Notifier: NotifierMod = Notifier } = {}) {
  */
 export function createGenericHandler({ Notifier: NotifierMod = Notifier, eventName } = {}) {
   return async ({ event, post, target, log = logger }) => {
-    const channelId = target?.repo?.discordChannelId;
-    if (!channelId) return true;
+    if (!post?.repository?.full_name) return true;
     await NotifierMod.send({
-      channelId,
       post,
       event: eventName || event,
       logOutput: '',

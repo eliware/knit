@@ -5,8 +5,9 @@ test('starts and registers the Discord client with minimal intents', async () =>
   const client = { shutdown: jest.fn().mockResolvedValue(undefined) };
   const createDiscordFn = jest.fn().mockResolvedValue(client);
   const log = { info: jest.fn(), warn: jest.fn() };
-  await expect(startDiscordClient({ createDiscordFn, token: 'token', clientId: 'client', log })).resolves.toBe(client);
+  await expect(startDiscordClient({ createDiscordFn, token: 'token', clientId: 'client', guildId: 'guild', log })).resolves.toBe(client);
   expect(createDiscordFn).toHaveBeenCalledWith(expect.objectContaining({ token: 'token', clientId: 'client', intents: { Guilds: true }, log }));
+  expect(createDiscordFn.mock.calls[0][0].intents).toEqual({ Guilds: true });
   await stopDiscordClient(client);
   expect(client.shutdown).toHaveBeenCalled();
 });
@@ -39,7 +40,7 @@ test('uses environment credentials and handles the default shutdown path', async
   process.env.DISCORD_TOKEN = 'environment-token';
   process.env.DISCORD_CLIENT_ID = 'environment-client';
   try {
-    const client = await startDiscordClient({ createDiscordFn, log: { info: jest.fn(), warn: jest.fn() } });
+    const client = await startDiscordClient({ createDiscordFn, guildId: 'guild', log: { info: jest.fn(), warn: jest.fn() } });
     expect(client).toBeDefined();
     await stopDiscordClient(client);
     expect(client.destroy).toHaveBeenCalled();

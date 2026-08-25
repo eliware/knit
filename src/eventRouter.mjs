@@ -1,19 +1,15 @@
 import * as Repo from './repo.mjs';
-
-const FALLBACK_REPOSITORY = 'eliware/knit';
+import { defaultTargetLoader } from './targetLoader.mjs';
 
 export function repositoryName(post) {
   return post?.repository?.full_name || null;
 }
 
-export async function resolveEventTarget({ post, RepoMod = Repo, log = console } = {}) {
+export async function resolveEventTarget({ post, event = 'push', RepoMod = Repo, targetLoader = defaultTargetLoader, log = console } = {}) {
   const name = repositoryName(post);
   if (name) {
-    const repo = await RepoMod.get({ name, log });
+    const repo = await RepoMod.get({ name, body: post, event, targetLoader, log });
     return repo ? { kind: 'repository', name, repo, ignored: false } : { kind: 'repository', name, repo: null, ignored: true };
   }
-  const repo = await RepoMod.get({ name: FALLBACK_REPOSITORY, log });
-  return { kind: 'organization', name: FALLBACK_REPOSITORY, repo: repo || null, ignored: !repo };
+  return { kind: 'organization', name: null, repo: null, ignored: true };
 }
-
-export { FALLBACK_REPOSITORY };

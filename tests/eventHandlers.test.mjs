@@ -1,8 +1,8 @@
 import { jest } from '@jest/globals';
 import { createRegistry, createGenericHandler, createDefaultRegistry } from '../src/eventHandlers.mjs';
 
-const post = { id: 1 };
-const target = { repo: { discordChannelId: '123456789012345678' } };
+const post = { id: 1, repository: { full_name: 'eliware/app' } };
+const target = { repo: {} };
 const log = { info: jest.fn() };
 
 describe('eventHandlers', () => {
@@ -57,7 +57,7 @@ describe('eventHandlers', () => {
     const send = jest.fn().mockResolvedValue(undefined);
     const handler = createGenericHandler({ Notifier: { send }, eventName: 'fixed_event' });
     await expect(handler({ event: 'ping', post, target, log })).resolves.toBe(true);
-    expect(send).toHaveBeenCalledWith({ channelId: '123456789012345678', post, event: 'fixed_event', logOutput: '', hasError: false, log });
+    expect(send).toHaveBeenCalledWith({ post, event: 'fixed_event', logOutput: '', hasError: false, log });
   });
 
   test('generic handler uses event when fixed event is empty', async () => {
@@ -69,9 +69,10 @@ describe('eventHandlers', () => {
   test('generic handler succeeds without notification target', async () => {
     const send = jest.fn();
     const handler = createGenericHandler({ Notifier: { send } });
-    await expect(handler({ event: 'ping', post, target: {} })).resolves.toBe(true);
-    await expect(handler({ event: 'ping', post, target: null })).resolves.toBe(true);
-    await expect(handler({ event: 'ping', post })).resolves.toBe(true);
+    const postWithoutRepository = { id: 1 };
+    await expect(handler({ event: 'ping', post: postWithoutRepository, target: {} })).resolves.toBe(true);
+    await expect(handler({ event: 'ping', post: postWithoutRepository, target: null })).resolves.toBe(true);
+    await expect(handler({ event: 'ping', post: postWithoutRepository })).resolves.toBe(true);
     expect(send).not.toHaveBeenCalled();
   });
 
@@ -80,8 +81,8 @@ describe('eventHandlers', () => {
     const registry = createDefaultRegistry({ Notifier: { send } });
     expect(registry.has('unknown')).toBe(true);
     expect(registry.size()).toBe(7);
-    await expect(registry.dispatch({ event: 'issues', post: { action: 'opened' }, target })).resolves.toBe(true);
-    expect(send).toHaveBeenCalledWith(expect.objectContaining({ event: 'issues', channelId: '123456789012345678' }));
+    await expect(registry.dispatch({ event: 'issues', post: { action: 'opened', repository: { full_name: 'eliware/app' } }, target })).resolves.toBe(true);
+    expect(send).toHaveBeenCalledWith(expect.objectContaining({ event: 'issues' }));
     await expect(registry.dispatch({ event: 'unknown', post, target: {} })).resolves.toBe(true);
   });
 });

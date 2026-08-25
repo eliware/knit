@@ -21,15 +21,13 @@ export async function consume({ message, log = logger, Repo: RepoMod = Repo, Git
     log.error('[Consumer] GitHub validation failed');
     return false;
   }
-  const target = await RouterMod.resolveEventTarget({ post, RepoMod, log });
+  const routerOptions = { post, RepoMod, log };
+  if (RepoMod.targetLoader) routerOptions.targetLoader = RepoMod.targetLoader;
+  const target = await RouterMod.resolveEventTarget(routerOptions);
   if (target.ignored) {
     if (target.kind === 'repository') log.error('[Consumer] Repo not found:', target.name);
     else log.info('[Consumer] Event ignored: no configured target', target.name);
     return false;
-  }
-  if (!post.repository) {
-    log.info('[Consumer] Organization-level event routed to fallback repository', target.name);
-    return await HandlersMod.dispatch({ event, post, target, deliveryId: message.deliveryId, log });
   }
   if (event !== 'push') {
     log.info('[Consumer] Non-push event routed for specialized handling', event, target.name);

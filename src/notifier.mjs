@@ -1,5 +1,6 @@
 import { log as logger } from '@eliware/common';
 let sharedDiscordClient;
+let resolveRepositoryChannel;
 
 // Discord embed limits from the Discord API. Keep these local because the
 // application client package does not expose webhook validation constants.
@@ -11,8 +12,15 @@ export function setDiscordClient(client) {
   sharedDiscordClient = client;
 }
 
+export function setChannelResolver(resolver) {
+  resolveRepositoryChannel = resolver;
+}
+
 export function clearDiscordClient(client) {
-  if (!client || sharedDiscordClient === client) sharedDiscordClient = undefined;
+  if (!client || sharedDiscordClient === client) {
+    sharedDiscordClient = undefined;
+    resolveRepositoryChannel = undefined;
+  }
 }
 
 // Discord limits: https://discord.com/developers/docs/resources/message#embed-limits
@@ -58,7 +66,8 @@ export function limitEmbed(embed) {
  * @param {Object} [params.embed] - Optional pre-built embed.
  * @param {Object} [params.discordClient] - Optional Discord client for testing/injection.
  */
-export async function send({ channelId, post, event = 'push', embed: providedEmbed, logOutput, hasError, log = logger, discordClient = sharedDiscordClient }) {
+export async function send({ channelId, post = {}, event = 'push', embed: providedEmbed, logOutput, hasError, packageJson, log = logger, discordClient = sharedDiscordClient }) {
+  if (!channelId && resolveRepositoryChannel) channelId = await resolveRepositoryChannel({ repository: post.repository?.full_name, privateRepository: post.repository?.private === true, packageJson });
   if (!channelId) return;
   if (!discordClient) throw new Error('Discord client is not connected');
   const embed = providedEmbed
@@ -75,7 +84,11 @@ export async function send({ channelId, post, event = 'push', embed: providedEmb
   try {
     const channel = await discordClient.channels.fetch(channelId);
     if (!channel || typeof channel.send !== 'function') throw new Error(`Discord channel is not sendable: ${channelId}`);
-    await channel.send({ embeds: [embed] });
+    const message = await channel.send({ embeds: [embed] });
+    if (post.ref?.startsWith('refs/tags/v') && typeof message?.crosspost === 'function') {
+      await message.crosspost();
+      log.info('[Notifier] Cross-posted release announcement', { channelId, tag: post.ref.slice('refs/tags/'.length) });
+    }
   } catch (error) {
     log.error?.('[Notifier] Discord channel send failed', { error, event, channelId, repository: post.repository?.full_name });
     throw error;

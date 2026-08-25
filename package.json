@@ -51,7 +51,7 @@
     },
     "dependencies": {
         "@eliware/common": "^2.0.0",
-        "@eliware/discord": "^1.1.4",
+        "@eliware/discord": "^2.0.0",
         "@eliware/ssh-client": "^2.0.0",
         "body-parser": "^2.3.0",
         "dotenv": "^17.2.0",

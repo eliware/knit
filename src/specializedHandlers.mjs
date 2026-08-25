@@ -43,10 +43,8 @@ export function createEmbed({ event, post }) {
 
 export function createHandler({ event, Notifier: NotifierMod = Notifier } = {}) {
   return async ({ post, target, log = logger }) => {
-    const channelId = target?.repo?.discordChannelId;
-    if (!channelId) return true;
+    if (!post?.repository?.full_name) return true;
     await NotifierMod.send({
-      channelId,
       post,
       event,
       embed: createEmbed({ event, post }),

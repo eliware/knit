@@ -1,43 +1,63 @@
 import { log as logger } from '@eliware/common';
 import * as ConfigValidator from './configValidator.mjs';
-import { defaultLoader } from './configLoader.mjs';
 import { sshExec as realSshExec } from '@eliware/ssh-client';
-import path from 'node:path';
+import { loadWorkflow } from './workflowLoader.mjs';
+import { defaultTargetLoader } from './targetLoader.mjs';
 import * as Notifier from './notifier.mjs';
 
-export function createSshRepo({ config, sshExec: injectedSshExec, log = logger, sendNotification, configPath = process.env.KNIT_CONFIG_PATH || path.resolve('repos') } = {}) {
+export function createSshRepo({ config, targets, packageJson, sshExec: injectedSshExec, log = logger, sendNotification } = {}) {
   const sshExec = injectedSshExec || realSshExec;
-  const discordChannelId = config.discordChannelId || null;
-  const notifyFn = sendNotification || (args => discordChannelId ? Notifier.send({ channelId: discordChannelId, post: args.body, ...args }) : undefined);
-  const execution = config.execution || { stopOnError: true };
-  const resolveRef = ref => !ref || ref === 'host-installed' ? undefined : path.isAbsolute(ref) ? ref : path.join(configPath, ref);
-  const run = target => sshExec({ host: target.host, username: target.user, commands: target.commands, cwd: target.workingDirectory, privateKeyPath: resolveRef(target.identity), knownHostsPath: resolveRef(target.knownHosts), hostCaPath: resolveRef(target.hostCa) });
-  return { discordChannelId, targets: config.targets, async update({ body, log: requestLog = log }) {
+  const stopOnError = config.stopOnError ?? true;
+  const notifyFn = sendNotification;
+  return { targets: config.deployments, async update({ body, event = 'push', log: requestLog = log }) {
     if (!body || !Array.isArray(body.commits)) { requestLog.error('[Repo] body validation failed'); return false; }
-    if (body.ref?.startsWith('refs/tags/')) { await notifyFn?.({ repo: this, body, logOutput: '', hasError: false, log: requestLog }); return true; }
+    if (body.ref?.startsWith('refs/tags/')) {
+      if (notifyFn) await notifyFn({ repo: this, body, event, logOutput: '', hasError: false, log: requestLog });
+      else await Notifier.send({ post: body, packageJson, event, logOutput: '', hasError: false, log: requestLog });
+      return true;
+    }
     let output = ''; let failed = false;
-    for (const target of config.targets) {
+    for (const deployment of config.deployments) {
+      const target = targets[deployment.target];
+      if (!target) throw new Error(`Unknown deployment target: ${deployment.target}`);
+      if (target.allowedCwdRoot && !(deployment.cwd === target.allowedCwdRoot || deployment.cwd.startsWith(`${target.allowedCwdRoot}/`))) throw new Error(`Deployment cwd is outside target root: ${deployment.target}`);
       try {
-        const results = await run(target);
+        const results = await sshExec({ host: target.host, username: target.user, commands: deployment.commands, cwd: deployment.cwd, privateKeyPath: target.identity, knownHostsPath: target.knownHosts, hostCaPath: target.hostCa });
         for (const result of results) {
           output += formatCommandOutput({ cmd: result.command, stdout: result.result, stderr: '', exitCode: result.code });
           if (result.code !== 0) { requestLog.error(`[Repo] SSH command failed: ${result.command}`, result); failed = true; break; }
         }
       } catch (error) {
-        output += formatCommandOutput({ cmd: target.commands.at(-1), stdout: error.stdout, stderr: error.stderr, exitCode: error.code || 1 });
+        output += formatCommandOutput({ cmd: deployment.commands.at(-1), stdout: error.stdout, stderr: error.stderr, exitCode: error.code || 1 });
         requestLog.error('[Repo] SSH connection failed', error); failed = true;
       }
-      if (failed && execution.stopOnError) break;
+      if (failed && stopOnError) break;
     }
     await notifyFn?.({ repo: this, body, logOutput: output, hasError: failed, log: requestLog });
+    if (!notifyFn) await Notifier.send({ post: body, packageJson, event, logOutput: output, hasError: failed, log: requestLog });
     return !failed;
   } };
 }
 
-export async function get({ name, log = logger, loader = defaultLoader, loaderOptions } = {}) {
-  const config = await (loaderOptions ? loaderOptions.load(name) : loader.load(name));
-  if (!config || !ConfigValidator.validate({ config, log })) return null;
-  return createSshRepo({ config, log, ...loaderOptions });
+export async function get({ name, body, event = 'push', log = logger, targetLoader = defaultTargetLoader, workflowLoader = loadWorkflow } = {}) {
+  try {
+    const targets = targetLoader.load();
+    if (event !== 'push') return createSshRepo({ config: { deployments: [] }, targets: targets.targets || {}, log });
+    const commit = body?.after;
+    const { workflow, packageJson } = await workflowLoader({ repository: name, commit });
+    if (!ConfigValidator.validateWorkflow({ config: workflow, log })) throw new Error('Invalid repository workflow');
+    const action = ConfigValidator.selectWorkflowAction({ config: workflow, post: body });
+    if (!action) return null;
+    for (const deployment of action.deployments) {
+      const target = targets.targets?.[deployment.target];
+      if (!target) throw new Error(`Unknown deployment target: ${deployment.target}`);
+      if (target.allowedRepositories && !target.allowedRepositories.includes(name)) throw new Error(`Repository is not authorized for target: ${deployment.target}`);
+    }
+    return createSshRepo({ config: { ...action, stopOnError: action.stopOnError }, targets: targets.targets, packageJson, log });
+  } catch (error) {
+    log.error?.('[Repo] Workflow load failed', { name, error: error.message });
+    return null;
+  }
 }
 
 function formatCommandOutput({ cmd, stdout, stderr, exitCode }) {

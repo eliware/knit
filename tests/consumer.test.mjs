@@ -43,14 +43,12 @@ describe('consumer.mjs', () => {
     expect(log.info).toHaveBeenCalledWith('[Consumer] Event ignored: no configured target', 'eliware/knit');
   });
 
-  it('accepts an organization-level event routed to the fallback repository', async () => {
+  it('does not dispatch organization-level events to a fallback repository', async () => {
     message.parsed = {};
-    Router.resolveEventTarget.mockResolvedValue({ ignored: false, kind: 'organization', name: 'eliware/knit' });
-    Handlers.dispatch.mockResolvedValue(true);
+    Router.resolveEventTarget.mockResolvedValue({ ignored: true, kind: 'organization', name: null });
 
-    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(true);
-    expect(log.info).toHaveBeenCalledWith('[Consumer] Organization-level event routed to fallback repository', 'eliware/knit');
-    expect(Handlers.dispatch).toHaveBeenCalledWith(expect.objectContaining({ event: 'push', target: expect.objectContaining({ kind: 'organization' }) }));
+    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
+    expect(Handlers.dispatch).not.toHaveBeenCalled();
   });
 
   it('dispatches non-push events with the delivery id', async () => {
@@ -75,6 +73,13 @@ describe('consumer.mjs', () => {
   it('uses default repository and router modules when omitted', async () => {
     await expect(consume({ message, log, GitHub })).resolves.toBe(false);
     expect(log.error).toHaveBeenCalledWith('[Consumer] Repo not found:', 'foo');
+  });
+
+  it('passes an injected target loader to the default router', async () => {
+    const targetLoader = { load: jest.fn() };
+    const RepoWithTargets = { targetLoader, get: jest.fn().mockResolvedValue(null) };
+    await expect(consume({ message, log, GitHub, Repo: RepoWithTargets })).resolves.toBe(false);
+    expect(targetLoader.load).not.toHaveBeenCalled();
   });
 
   it('defaults an absent event to push', async () => {
