@@ -20,7 +20,8 @@ export function createSshRepo({ config, targets, packageJson, sshExec: injectedS
     for (const deployment of config.deployments) {
       const target = targets[deployment.target];
       if (!target) throw new Error(`Unknown deployment target: ${deployment.target}`);
-      if (target.allowedCwdRoot && !(deployment.cwd === target.allowedCwdRoot || deployment.cwd.startsWith(`${target.allowedCwdRoot}/`))) throw new Error(`Deployment cwd is outside target root: ${deployment.target}`);
+      const root = target.allowedCwdRoot?.replace(/\/+$/, '') || '';
+      if (root && !(deployment.cwd === root || root === '' || deployment.cwd.startsWith(`${root}/`))) throw new Error(`Deployment cwd is outside target root: ${deployment.target}`);
       try {
         const results = await sshExec({ host: target.host, username: target.user, commands: deployment.commands, cwd: deployment.cwd, privateKeyPath: target.identity, knownHostsPath: target.knownHosts, hostCaPath: target.hostCa });
         for (const result of results) {

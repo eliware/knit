@@ -42,6 +42,13 @@ test('rejects cwd outside the trusted target root', async () => {
   expect(sshExec).not.toHaveBeenCalled();
 });
 
+test('allows any absolute cwd when the trusted target root is filesystem root', async () => {
+  const sshExec = jest.fn().mockResolvedValue([]);
+  const repo = createSshRepo({ config: { deployments: [deployment({ cwd: '/opt/knit' })] }, targets: { dev: { ...target, allowedCwdRoot: '/' } }, sshExec });
+  await expect(repo.update({ body })).resolves.toBe(true);
+  expect(sshExec).toHaveBeenCalled();
+});
+
 test('handles invalid bodies, tags, connection errors, and continue-on-error', async () => {
   const sshExec = jest.fn()
     .mockRejectedValueOnce(Object.assign(new Error('offline'), { stdout: 'out', stderr: 'err' }))

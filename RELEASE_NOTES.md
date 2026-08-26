@@ -1,5 +1,17 @@
 # Release Notes
 
+## 2.1.1 — August 25, 2026
+
+### Fixed
+
+- Fixed deployments targeting filesystem root (`/`) being incorrectly rejected as outside the trusted target root.
+- Added regression coverage for root-scoped target cwd validation.
+
+### Verification
+
+- Tests: **100% statements, branches, functions, and lines**.
+- Oxlint: **0 warnings/errors**.
+
 ## 2.1.0 — August 25, 2026
 
 ### Added
