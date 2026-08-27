@@ -40,7 +40,7 @@ export async function consume({ message, log = logger, Repo: RepoMod = Repo, Git
   if (event !== 'push') {
     log.info('[Consumer] Non-push event routed for specialized handling', event, target.name);
     const result = await HandlersMod.dispatch({ event, post, target, deliveryId: message.deliveryId, log });
-    presence?.update(`${result ? 'completed' : 'failed'} ${repository}`);
+    presence?.update(`${result ? '✅ completed' : '❌ failed'} ${repository}`);
     presence?.end();
     return result;
   }

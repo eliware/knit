@@ -1,5 +1,6 @@
 import { jest } from '@jest/globals';
 import { consume } from '../src/consumer.mjs';
+import { setPresenceManager } from '../src/presenceManager.mjs';
 
 describe('consumer.mjs', () => {
   const log = { error: jest.fn(), info: jest.fn() };
@@ -16,6 +17,7 @@ describe('consumer.mjs', () => {
     Router = { resolveEventTarget: jest.fn() };
     Handlers = { dispatch: jest.fn() };
     message = { raw: '{}', parsed: { repository: { full_name: 'foo' } }, event: 'push', deliveryId: 'delivery-1' };
+    setPresenceManager(null);
   });
 
   it('returns false and logs when GitHub validation fails', async () => {
@@ -52,6 +54,8 @@ describe('consumer.mjs', () => {
   });
 
   it('dispatches non-push events with the delivery id', async () => {
+    const presence = { begin: jest.fn(), update: jest.fn(), end: jest.fn() };
+    setPresenceManager(presence);
     message.event = 'issues';
     Router.resolveEventTarget.mockResolvedValue({ ignored: false, repo: { update: jest.fn() }, name: 'foo' });
     Handlers.dispatch.mockResolvedValue(true);
@@ -59,6 +63,18 @@ describe('consumer.mjs', () => {
     await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(true);
     expect(log.info).toHaveBeenCalledWith('[Consumer] Non-push event routed for specialized handling', 'issues', 'foo');
     expect(Handlers.dispatch).toHaveBeenCalledWith({ event: 'issues', post: message.parsed, target: expect.any(Object), deliveryId: 'delivery-1', log });
+    expect(presence.update).toHaveBeenCalledWith('✅ completed foo');
+  });
+
+  it('reports failed non-push handlers through presence', async () => {
+    const presence = { begin: jest.fn(), update: jest.fn(), end: jest.fn() };
+    setPresenceManager(presence);
+    message.event = 'issues';
+    Router.resolveEventTarget.mockResolvedValue({ ignored: false, repo: {}, name: 'foo' });
+    Handlers.dispatch.mockResolvedValue(false);
+    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
+    expect(presence.update).toHaveBeenCalledWith('❌ failed foo');
+    expect(presence.end).toHaveBeenCalled();
   });
 
   it.each([false, true])('returns update result and logs appropriately when push update is %s', async (updated) => {

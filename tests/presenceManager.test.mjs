@@ -50,3 +50,20 @@ test('ignores idle completion while another task is active and handles presence 
   await new Promise(resolve => setImmediate(resolve));
   expect(warn).toHaveBeenCalled();
 });
+
+test('supports missing Discord client, duplicate updates, and timers without unref', async () => {
+  const clearTimeoutFn = jest.fn();
+  let timer;
+  const manager = createPresenceManager({ version: '2.2.0', setTimeoutFn: callback => { timer = callback; return {}; }, clearTimeoutFn });
+  manager.start();
+  manager.update('ignored while idle');
+  manager.begin('same');
+  manager.begin('still same work');
+  manager.update('same');
+  manager.end();
+  manager.end();
+  timer();
+  manager.stop();
+  await new Promise(resolve => setImmediate(resolve));
+  expect(clearTimeoutFn).toHaveBeenCalled();
+});
