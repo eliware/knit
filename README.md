@@ -58,7 +58,7 @@ Each SSH command receives the triggering webhook metadata as environment variabl
 | `KNIT_EVENT` | GitHub event name |
 | `KNIT_DELIVERY_ID` | Webhook delivery correlation ID |
 
-Workflows may set `timeoutMs` on a deployment, from 1 through 300000 milliseconds, to bound each remote command. Values are passed through SSH environment requests; Knit does not interpolate arbitrary environment variables into command strings or place secrets in these metadata variables. Commands should enforce their own cleanup and must not print secrets. Output is truncated for Discord limits; secret redaction remains the responsibility of the command and runtime configuration.
+Workflows may set `timeoutMs` on a deployment, from 1 through 300000 milliseconds, to bound each remote command. Metadata values are passed through SSH environment requests and safely exported in the remote shell so they work even when `sshd` does not accept arbitrary `AcceptEnv` values. Knit does not interpolate arbitrary environment variables or secrets into command strings. Commands should enforce their own cleanup and must not print secrets. Output is truncated for Discord limits; secret redaction remains the responsibility of the command and runtime configuration.
 
 New configurations must use YAML and SSH targets. Local Compose requires the target inventory, Discord credentials, and read-only mounts for the SSH identity, strict `known_hosts`, and host CA; systemd requires equivalent mounted/provisioned configuration and secrets.
 

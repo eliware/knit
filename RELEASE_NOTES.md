@@ -1,5 +1,19 @@
 # Release Notes
 
+## 2.3.2 — August 27, 2026
+
+### Fixed
+
+- Ensured webhook metadata variables are available inside remote deployment shells even when the target SSH daemon does not accept arbitrary `AcceptEnv` variables.
+- Safely shell-quoted the validated metadata exports to prevent injection while preserving the existing SSH environment-request compatibility path.
+- Added container-level and regression coverage for metadata propagation.
+
+### Verification
+
+- Tests: **100% statements, branches, functions, and lines**.
+- Oxlint: **0 warnings/errors**.
+- Local container metadata smoke test: **passed**.
+
 ## 2.3.1 — August 27, 2026
 
 ### Fixed

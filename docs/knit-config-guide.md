@@ -71,7 +71,7 @@ Prefer a committed script for complex logic. Use `set -eu`, quote variables, ins
 
 ## Webhook metadata
 
-Every SSH command receives these environment variables. They are passed as SSH environment values, not interpolated into command strings:
+Every SSH command receives these environment variables. Knit passes them as SSH environment values and also safely exports them in the remote shell because target `sshd` configurations may reject arbitrary `AcceptEnv` values. No arbitrary environment variables or secrets are interpolated:
 
 | Variable | Meaning |
 |---|---|
