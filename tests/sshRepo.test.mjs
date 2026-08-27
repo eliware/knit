@@ -11,7 +11,7 @@ test('executes repository workflow against the named trusted target', async () =
   const sshExec = jest.fn().mockResolvedValue([{ command: 'one', result: 'out\n', code: 0 }, { command: 'two', result: '', code: 0 }]);
   const repo = createSshRepo({ config: { deployments: [deployment()] }, targets: { dev: target }, sshExec });
   await expect(repo.update({ body })).resolves.toBe(true);
-  expect(sshExec).toHaveBeenCalledWith(expect.objectContaining({ host: 'host', username: 'user', cwd: '/opt/app', commands: ['one', 'two'], privateKeyPath: '/key', knownHostsPath: '/known', hostCaPath: '/ca' }));
+  expect(sshExec).toHaveBeenCalledWith(expect.objectContaining({ host: 'host', username: 'user', cwd: '/opt/app', commands: [expect.stringContaining('; one'), expect.stringContaining('; two')], privateKeyPath: '/key', knownHostsPath: '/known', hostCaPath: '/ca' }));
 });
 
 test('passes webhook metadata as SSH environment without interpolating commands', async () => {
@@ -39,7 +39,7 @@ test('uses different command sets and directories per target', async () => {
   const sshExec = jest.fn().mockResolvedValue([]);
   const repo = createSshRepo({ config: { deployments: [deployment(), deployment({ target: 'nas', cwd: '/srv/app', commands: ['deploy'] })] }, targets: { dev: target, nas: { ...target, host: 'nas' } }, sshExec });
   await expect(repo.update({ body })).resolves.toBe(true);
-  expect(sshExec).toHaveBeenNthCalledWith(2, expect.objectContaining({ host: 'nas', cwd: '/srv/app', commands: ['deploy'] }));
+  expect(sshExec).toHaveBeenNthCalledWith(2, expect.objectContaining({ host: 'nas', cwd: '/srv/app', commands: [expect.stringContaining('; deploy')] }));
 });
 
 test('reports command failures and stops by default', async () => {

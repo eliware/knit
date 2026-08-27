@@ -4,7 +4,7 @@ import { sshExec as realSshExec } from '@eliware/ssh-client';
 import { loadWorkflow } from './workflowLoader.mjs';
 import { defaultTargetLoader } from './targetLoader.mjs';
 import * as Notifier from './notifier/index.mjs';
-import { createWebhookEnvironment } from './webhookEnvironment.mjs';
+import { createWebhookEnvironment, withWebhookEnvironment } from './webhookEnvironment.mjs';
 import { getPresenceManager } from './presenceManager.mjs';
 
 export function createSshRepo({ config, targets, packageJson, sshExec: injectedSshExec, log = logger, sendNotification } = {}) {
@@ -28,7 +28,8 @@ export function createSshRepo({ config, targets, packageJson, sshExec: injectedS
       const root = target.allowedCwdRoot?.replace(/\/+$/, '') || '';
       if (root && !(deployment.cwd === root || root === '' || deployment.cwd.startsWith(`${root}/`))) throw new Error(`Deployment cwd is outside target root: ${deployment.target}`);
       try {
-        const results = await sshExec({ host: target.host, username: target.user, commands: deployment.commands, cwd: deployment.cwd, privateKeyPath: target.identity, knownHostsPath: target.knownHosts, hostCaPath: target.hostCa, env: createWebhookEnvironment({ body, event, deliveryId }), commandTimeout: deployment.timeoutMs });
+        const environment = createWebhookEnvironment({ body, event, deliveryId });
+        const results = await sshExec({ host: target.host, username: target.user, commands: deployment.commands.map(command => withWebhookEnvironment(command, environment)), cwd: deployment.cwd, privateKeyPath: target.identity, knownHostsPath: target.knownHosts, hostCaPath: target.hostCa, env: environment, commandTimeout: deployment.timeoutMs });
         for (const result of results) {
           output += formatCommandOutput({ cmd: result.command, stdout: result.result, stderr: '', exitCode: result.code });
           if (result.code !== 0) { requestLog.error(`[Repo] SSH command failed: ${result.command}`, result); failed = true; break; }
