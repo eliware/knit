@@ -3,6 +3,8 @@ import { log as logger, path } from '@eliware/common';
 import * as Notifier from './notifier/index.mjs';
 import { createChannelResolver } from './discordChannels.mjs';
 import { defaultTargetLoader } from './targetLoader.mjs';
+import { createPresenceManager, setPresenceManager } from './presenceManager.mjs';
+import { fs } from '@eliware/common';
 
 /**
  * Starts the shared Discord client used for channel notifications.
@@ -24,6 +26,7 @@ export async function startDiscordClient({
   // Knit only fetches channels and sends messages; it does not consume gateway
   // message, member, presence, reaction, typing, or scheduled-event events.
   const intents = { Guilds: true };
+  const packageJson = JSON.parse(fs.readFileSync(path(import.meta, '..', 'package.json'), 'utf8'));
   const client = await createDiscordFn({
     token,
     clientId,
@@ -31,6 +34,9 @@ export async function startDiscordClient({
     intents,
     log,
   });
+  const presenceManager = createPresenceManager({ client, version: packageJson.version, log });
+  setPresenceManager(presenceManager);
+  presenceManager.start();
   Notifier.setDiscordClient(client);
   const configuredGuildId = guildId || targetLoader.load().guildId;
   Notifier.setChannelResolver(createChannelResolver({ client, guildId: configuredGuildId, log }));
@@ -40,6 +46,7 @@ export async function startDiscordClient({
 
 export async function stopDiscordClient(client) {
   if (!client) return;
+  setPresenceManager(null);
   Notifier.clearDiscordClient(client);
   await client.shutdown?.();
   if (!client.shutdown && typeof client.destroy === 'function') await client.destroy();

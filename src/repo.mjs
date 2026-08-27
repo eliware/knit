@@ -5,6 +5,7 @@ import { loadWorkflow } from './workflowLoader.mjs';
 import { defaultTargetLoader } from './targetLoader.mjs';
 import * as Notifier from './notifier/index.mjs';
 import { createWebhookEnvironment } from './webhookEnvironment.mjs';
+import { getPresenceManager } from './presenceManager.mjs';
 
 export function createSshRepo({ config, targets, packageJson, sshExec: injectedSshExec, log = logger, sendNotification } = {}) {
   const sshExec = injectedSshExec || realSshExec;
@@ -18,12 +19,15 @@ export function createSshRepo({ config, targets, packageJson, sshExec: injectedS
       return true;
     }
     let output = ''; let failed = false;
+    const presence = getPresenceManager();
+    presence?.update(`🚀 deploying ${body.repository?.full_name || 'repository'}`);
     for (const deployment of config.deployments) {
       const target = targets[deployment.target];
       if (!target) throw new Error(`Unknown deployment target: ${deployment.target}`);
       const root = target.allowedCwdRoot?.replace(/\/+$/, '') || '';
       if (root && !(deployment.cwd === root || root === '' || deployment.cwd.startsWith(`${root}/`))) throw new Error(`Deployment cwd is outside target root: ${deployment.target}`);
       try {
+        presence?.update(`⚙️ running ${deployment.target}`);
         const results = await sshExec({ host: target.host, username: target.user, commands: deployment.commands, cwd: deployment.cwd, privateKeyPath: target.identity, knownHostsPath: target.knownHosts, hostCaPath: target.hostCa, env: createWebhookEnvironment({ body, event, deliveryId }), commandTimeout: deployment.timeoutMs });
         for (const result of results) {
           output += formatCommandOutput({ cmd: result.command, stdout: result.result, stderr: '', exitCode: result.code });
@@ -35,6 +39,8 @@ export function createSshRepo({ config, targets, packageJson, sshExec: injectedS
       }
       if (failed && stopOnError) break;
     }
+    presence?.update(failed ? `❌ failed ${body.repository?.full_name || 'repository'}` : `✅ completed ${body.repository?.full_name || 'repository'}`);
+    presence?.end();
     await notifyFn?.({ repo: this, body, logOutput: output, hasError: failed, log: requestLog });
     if (!notifyFn) await Notifier.send({ post: body, packageJson, event, logOutput: output, hasError: failed, log: requestLog });
     return !failed;
@@ -47,6 +53,7 @@ export async function get({ name, body, event = 'push', log = logger, targetLoad
     if (event !== 'push') return createSshRepo({ config: { deployments: [] }, targets: targets.targets || {}, log });
     const commit = body?.after;
     const { workflow, packageJson } = await workflowLoader({ repository: name, commit });
+    getPresenceManager()?.update(`📄 workflow loaded ${name}`);
     if (!ConfigValidator.validateWorkflow({ config: workflow, log })) throw new Error('Invalid repository workflow');
     const action = ConfigValidator.selectWorkflowAction({ config: workflow, post: body });
     if (!action) return null;
