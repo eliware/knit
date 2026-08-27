@@ -1,5 +1,27 @@
 # Release Notes
 
+## 2.2.0 — August 27, 2026
+
+### Added
+
+- Added safe webhook metadata environment variables for deployment commands, including the exact triggering commit SHA, repository, ref, event, and delivery ID.
+- Added bounded per-deployment command timeouts up to five minutes, preserving existing failure and retry behavior.
+- Added an AI-agent-oriented configuration guide covering workflow authoring, validation scripts, target tools, metadata, timeouts, and safety.
+
+### Changed
+
+- Isolated webhook environment construction into a dedicated module.
+- Organized notifier implementation and tests under dedicated subfolders without changing the public notifier API.
+- Documented the command metadata and timeout workflow interface.
+- Refreshed package metadata and dependency versions, and recorded the approved native dependency install scripts.
+
+### Verification
+
+- Tests: **100% statements, branches, functions, and lines**.
+- Oxlint: **0 warnings/errors**.
+- Dependency audit: **0 vulnerabilities**.
+- Package dry-run: **`@eliware/knit@2.2.0`**.
+
 ## 2.1.1 — August 25, 2026
 
 ### Fixed

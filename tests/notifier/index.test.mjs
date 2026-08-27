@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
-// Tests for src/notifier.mjs
-import * as notifier from '../src/notifier.mjs';
+// Tests for src/notifier/index.mjs
+import * as notifier from '../../src/notifier/index.mjs';
 
 const channelId = '123456789012345678';
 const makeClient = send => ({ channels: { fetch: jest.fn().mockResolvedValue({ send }) } });

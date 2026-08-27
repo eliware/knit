@@ -3,13 +3,14 @@ import * as ConfigValidator from './configValidator.mjs';
 import { sshExec as realSshExec } from '@eliware/ssh-client';
 import { loadWorkflow } from './workflowLoader.mjs';
 import { defaultTargetLoader } from './targetLoader.mjs';
-import * as Notifier from './notifier.mjs';
+import * as Notifier from './notifier/index.mjs';
+import { createWebhookEnvironment } from './webhookEnvironment.mjs';
 
 export function createSshRepo({ config, targets, packageJson, sshExec: injectedSshExec, log = logger, sendNotification } = {}) {
   const sshExec = injectedSshExec || realSshExec;
   const stopOnError = config.stopOnError ?? true;
   const notifyFn = sendNotification;
-  return { targets: config.deployments, async update({ body, event = 'push', log: requestLog = log }) {
+  return { targets: config.deployments, async update({ body, event = 'push', deliveryId = null, log: requestLog = log }) {
     if (!body || !Array.isArray(body.commits)) { requestLog.error('[Repo] body validation failed'); return false; }
     if (body.ref?.startsWith('refs/tags/')) {
       if (notifyFn) await notifyFn({ repo: this, body, event, logOutput: '', hasError: false, log: requestLog });
@@ -23,7 +24,7 @@ export function createSshRepo({ config, targets, packageJson, sshExec: injectedS
       const root = target.allowedCwdRoot?.replace(/\/+$/, '') || '';
       if (root && !(deployment.cwd === root || root === '' || deployment.cwd.startsWith(`${root}/`))) throw new Error(`Deployment cwd is outside target root: ${deployment.target}`);
       try {
-        const results = await sshExec({ host: target.host, username: target.user, commands: deployment.commands, cwd: deployment.cwd, privateKeyPath: target.identity, knownHostsPath: target.knownHosts, hostCaPath: target.hostCa });
+        const results = await sshExec({ host: target.host, username: target.user, commands: deployment.commands, cwd: deployment.cwd, privateKeyPath: target.identity, knownHostsPath: target.knownHosts, hostCaPath: target.hostCa, env: createWebhookEnvironment({ body, event, deliveryId }), commandTimeout: deployment.timeoutMs });
         for (const result of results) {
           output += formatCommandOutput({ cmd: result.command, stdout: result.result, stderr: '', exitCode: result.code });
           if (result.code !== 0) { requestLog.error(`[Repo] SSH command failed: ${result.command}`, result); failed = true; break; }

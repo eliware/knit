@@ -1,6 +1,6 @@
 import { createDiscord } from '@eliware/discord';
 import { log as logger, path } from '@eliware/common';
-import * as Notifier from './notifier.mjs';
+import * as Notifier from './notifier/index.mjs';
 import { createChannelResolver } from './discordChannels.mjs';
 import { defaultTargetLoader } from './targetLoader.mjs';
 

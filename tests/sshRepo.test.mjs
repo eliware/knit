@@ -12,6 +12,27 @@ test('executes repository workflow against the named trusted target', async () =
   expect(sshExec).toHaveBeenCalledWith(expect.objectContaining({ host: 'host', username: 'user', cwd: '/opt/app', commands: ['one', 'two'], privateKeyPath: '/key', knownHostsPath: '/known', hostCaPath: '/ca' }));
 });
 
+test('passes webhook metadata as SSH environment without interpolating commands', async () => {
+  const sshExec = jest.fn().mockResolvedValue([]);
+  const repo = createSshRepo({ config: { deployments: [deployment({ timeoutMs: 300000 })] }, targets: { dev: target }, sshExec });
+  await repo.update({ body: { ...body, after: 'a'.repeat(40), ref: 'refs/heads/main', repository: { full_name: 'eliware/app' } }, event: 'push', deliveryId: 'delivery-1' });
+  expect(sshExec).toHaveBeenCalledWith(expect.objectContaining({ commandTimeout: 300000, env: { KNIT_COMMIT_SHA: 'a'.repeat(40), KNIT_REPOSITORY: 'eliware/app', KNIT_REF: 'refs/heads/main', KNIT_EVENT: 'push', KNIT_DELIVERY_ID: 'delivery-1' } }));
+});
+
+test('uses deterministic empty metadata for absent optional event fields', async () => {
+  const sshExec = jest.fn().mockResolvedValue([]);
+  const repo = createSshRepo({ config: { deployments: [deployment()] }, targets: { dev: target }, sshExec });
+  await repo.update({ body, event: null, deliveryId: null });
+  expect(sshExec.mock.calls[0][0].env).toEqual({ KNIT_COMMIT_SHA: '', KNIT_REPOSITORY: '', KNIT_REF: '', KNIT_EVENT: '', KNIT_DELIVERY_ID: '' });
+});
+
+test('does not pass malformed commit metadata to remote commands', async () => {
+  const sshExec = jest.fn().mockResolvedValue([]);
+  const repo = createSshRepo({ config: { deployments: [deployment()] }, targets: { dev: target }, sshExec });
+  await repo.update({ body: { ...body, after: 'not-a-sha' } });
+  expect(sshExec.mock.calls[0][0].env.KNIT_COMMIT_SHA).toBe('');
+});
+
 test('uses different command sets and directories per target', async () => {
   const sshExec = jest.fn().mockResolvedValue([]);
   const repo = createSshRepo({ config: { deployments: [deployment(), deployment({ target: 'nas', cwd: '/srv/app', commands: ['deploy'] })] }, targets: { dev: target, nas: { ...target, host: 'nas' } }, sshExec });
@@ -65,7 +86,7 @@ test('handles invalid bodies, tags, connection errors, and continue-on-error', a
 
 test('uses the shared notifier for tag notifications', async () => {
   const repo = createSshRepo({ config: { deployments: [] }, targets: {} });
-  const notifier = await import('../src/notifier.mjs');
+  const notifier = await import('../src/notifier/index.mjs');
   const client = { channels: { fetch: jest.fn().mockResolvedValue({ send: jest.fn().mockResolvedValue(undefined) }) } };
   notifier.setDiscordClient(client);
   notifier.setChannelResolver(jest.fn().mockResolvedValue('channel'));

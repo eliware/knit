@@ -1,5 +1,5 @@
 import { log as logger } from '@eliware/common';
-import * as Notifier from './notifier.mjs';
+import * as Notifier from './notifier/index.mjs';
 
 const COLORS = {
   release: 0x9B59B6,

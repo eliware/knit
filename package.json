@@ -1,8 +1,8 @@
 {
     "name": "@eliware/knit",
     "type": "module",
-    "version": "2.1.1",
-    "description": "GitHub webhook handler and deployment automation tool. Listens for GitHub webhook events, validates signatures, updates repositories, runs deployment commands, and sends notifications.",
+    "version": "2.2.0",
+    "description": "GitHub webhook handler and SSH deployment automation service with Discord notifications and metadata-aware validation workflows.",
     "main": "knit.mjs",
     "scripts": {
         "start": "node knit.mjs",
@@ -21,6 +21,10 @@
         "github",
         "deployment",
         "automation",
+        "ssh",
+        "kubernetes",
+        "argo-cd",
+        "validation",
         "discord",
         "ci",
         "cd",
@@ -56,8 +60,8 @@
         "body-parser": "^2.3.0",
         "dotenv": "^17.2.0",
         "express": "^5.1.0",
-        "inquirer": "^14.1.0",
-        "js-yaml": "^5.4.0"
+        "inquirer": "^14.2.0",
+        "js-yaml": "^5.4.1"
     },
     "engines": {
         "node": ">=26"
@@ -71,5 +75,10 @@
     ],
     "devDependencies": {
         "@eliware/test": "^2.0.0"
+    },
+    "allowScripts": {
+        "unrs-resolver@1.12.2": true,
+        "cpu-features@0.0.10": true,
+        "ssh2@1.17.0": true
     }
 }

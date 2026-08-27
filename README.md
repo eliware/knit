@@ -14,6 +14,8 @@ GitHub webhook handler and SSH deployment automation service.
 
 ## Configuration
 
+For a complete agent-oriented tutorial, see [the Knit configuration guide](docs/knit-config-guide.md).
+
 Repository workflow configuration uses target-specific command sets:
 
 ```yaml
@@ -44,6 +46,18 @@ Kubernetes uses a content-hashed ConfigMap for repository configuration. Updatin
 
 Targets execute commands over SSH with strict host verification through `@eliware/ssh-client`. GitOps target profiles own connection details and may restrict repository access and working-directory roots. CA-signed host certificates are trusted through an `@cert-authority` record in `known_hosts` or a mounted `hostCa` public-key file.
 
+Each SSH command receives the triggering webhook metadata as environment variables:
+
+| Variable | Value |
+|---|---|
+| `KNIT_COMMIT_SHA` | Exact webhook `after` SHA, or empty when absent/malformed |
+| `KNIT_REPOSITORY` | Full repository name, such as `eliware/gitops-k8s` |
+| `KNIT_REF` | Webhook ref, such as `refs/heads/main` |
+| `KNIT_EVENT` | GitHub event name |
+| `KNIT_DELIVERY_ID` | Webhook delivery correlation ID |
+
+Workflows may set `timeoutMs` on a deployment, from 1 through 300000 milliseconds, to bound each remote command. Values are passed through SSH environment requests; Knit does not interpolate arbitrary environment variables into command strings or place secrets in these metadata variables. Commands should enforce their own cleanup and must not print secrets. Output is truncated for Discord limits; secret redaction remains the responsibility of the command and runtime configuration.
+
 New configurations must use YAML and SSH targets. Local Compose requires the target inventory, Discord credentials, and read-only mounts for the SSH identity, strict `known_hosts`, and host CA; systemd requires equivalent mounted/provisioned configuration and secrets.
 
 ## Operations
@@ -62,6 +76,9 @@ Organization-level events are ignored unless they include a repository. Reposito
 | `GITHUB_WEBHOOK_SECRET` | GitHub signature secret |
 | `LOG_LEVEL` | Logger level |
 | `KNIT_CONFIG_PATH` | Mounted configuration directory |
+| `KNIT_TARGETS_PATH` | Optional explicit path to the trusted target inventory; otherwise `KNIT_CONFIG_PATH/targets.yaml` |
+| `NODE_ENV` | Runtime mode; use `test` only for test execution |
+| `GITHUB_READ_TOKEN` | GitHub Contents API token for private repository workflow files |
 | `DISCORD_TOKEN` | Discord bot token, supplied from a runtime Secret |
 | `DISCORD_CLIENT_ID` | Discord application/client ID |
 
@@ -78,4 +95,4 @@ npm start
 checks. It requires 100×4 coverage and zero lint warnings; project-specific
 integration, smoke, regression, or end-to-end checks remain separate.
 
-Development now takes place on the Windows workstation under `C:\Users\russe\src\knit`; the former OVH `dev` VM is a legacy deployment target. Kubernetes releases use immutable container images and Argo CD GitOps. New Knit code is delivered by releasing an image, not by runtime self-updating.
+Development now takes place on the Windows workstation under `C:\Users\russe\src\knit`; the former OVH `dev` VM is a legacy deployment target. Kubernetes releases use immutable container images and Argo CD GitOps. New Knit code is delivered by releasing an image, not by runtime self-updating. The notifier implementation is organized under `src/notifier/`, and webhook command-environment construction is isolated in `src/webhookEnvironment.mjs`.
