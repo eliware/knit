@@ -48,16 +48,13 @@ Tags do not fall back to the push action. A matching tag action is selected only
 
 ## Discord activity during runs
 
-Knit displays `🧶 knit v<version>` while idle. For an active webhook it may show these progress activities:
+Knit displays `🧶 knit v<version>` while idle. For an active webhook it shows:
 
-- `📨 received <repository>`
-- `🧭 routing <repository>`
-- `📄 workflow loaded <repository>`
-- `🚀 deploying <repository>`
-- `⚙️ running <target>`
-- `✅ completed <repository>` or `❌ failed <repository>`
+- `⏳ knitting <repository>` while processing
+- `✅ <repository> success` after successful completion
+- `❌ <repository> failure` when validation, routing, deployment, or notification handling fails
 
-Presence updates are best-effort. Knit sends them immediately when permitted, but uses a token bucket matching Discord's five updates per 20 seconds gateway limit and discards excess updates. The version activity is restored after ten minutes with no active work. Workflow scripts must not depend on any particular presence transition; deployment results and Discord notifications remain authoritative.
+Presence updates are throttled to Discord's five updates per 20 seconds presence limit. Knit waits for capacity rather than discarding the webhook start or terminal result. The version activity is restored after ten minutes with no active work. Workflow scripts must not depend on presence transitions; deployment results and Discord notifications remain authoritative.
 
 ## Command execution
 

@@ -1,5 +1,20 @@
 # Release Notes
 
+## 2.3.1 — August 27, 2026
+
+### Fixed
+
+- Simplified deployment presence to a clear `⏳` start state and terminal `✅`/`❌` result.
+- Reserved presence updates for failures across validation, routing, workflow loading, command execution, and tag handling.
+- Changed presence throttling to wait for Discord capacity instead of dropping required start or terminal updates.
+- Corrected documentation and tests to match the final presence lifecycle.
+
+### Verification
+
+- Tests: **100% statements, branches, functions, and lines**.
+- Oxlint: **0 warnings/errors**.
+- Dependency audit: **0 vulnerabilities**.
+
 ## 2.3.0 — August 27, 2026
 
 ### Added

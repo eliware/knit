@@ -7,7 +7,7 @@ const target = { host: 'host', user: 'user', identity: '/key', knownHosts: '/kno
 const body = { commits: [{ id: 'commit' }] };
 
 test('executes repository workflow against the named trusted target', async () => {
-  setPresenceManager({ update: jest.fn(), end: jest.fn() });
+  setPresenceManager({ update: jest.fn(), terminal: jest.fn(), end: jest.fn() });
   const sshExec = jest.fn().mockResolvedValue([{ command: 'one', result: 'out\n', code: 0 }, { command: 'two', result: '', code: 0 }]);
   const repo = createSshRepo({ config: { deployments: [deployment()] }, targets: { dev: target }, sshExec });
   await expect(repo.update({ body })).resolves.toBe(true);

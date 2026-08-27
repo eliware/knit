@@ -14,7 +14,11 @@ export function createPresenceManager({ client, version, now = () => Date.now(),
   async function send(presence) {
     const current = now();
     while (updates[0] <= current - WINDOW_MS) updates.shift();
-    if (updates.length >= MAX_UPDATES || JSON.stringify(presence) === JSON.stringify(lastPresence)) return false;
+    if (JSON.stringify(presence) === JSON.stringify(lastPresence)) return true;
+    if (updates.length >= MAX_UPDATES) {
+      await new Promise(resolve => setTimeoutFn(resolve, WINDOW_MS - (current - updates[0])));
+      return send(presence);
+    }
     updates.push(current);
     lastPresence = presence;
     try {
@@ -33,13 +37,14 @@ export function createPresenceManager({ client, version, now = () => Date.now(),
   }
 
   return {
-    start() { void send(versionPresence()); },
+    start() { return send(versionPresence()); },
     begin(text = 'busy') {
       busy += 1;
       clearTimeoutFn(idleTimer);
-      void send(busyPresence(text));
+      return send(busyPresence(`⏳ knitting ${text}`));
     },
-    update(text) { if (busy) void send(busyPresence(text)); },
+    update(text) { if (busy) return send(busyPresence(text)); return Promise.resolve(false); },
+    terminal(text, failed = false) { if (busy) return send(busyPresence(`${failed ? '❌' : '✅'} ${text}`)); return Promise.resolve(false); },
     end() {
       busy = Math.max(0, busy - 1);
       if (!busy) scheduleIdle();

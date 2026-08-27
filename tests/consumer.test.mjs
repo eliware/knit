@@ -54,7 +54,7 @@ describe('consumer.mjs', () => {
   });
 
   it('dispatches non-push events with the delivery id', async () => {
-    const presence = { begin: jest.fn(), update: jest.fn(), end: jest.fn() };
+    const presence = { begin: jest.fn(), update: jest.fn(), terminal: jest.fn(), end: jest.fn() };
     setPresenceManager(presence);
     message.event = 'issues';
     Router.resolveEventTarget.mockResolvedValue({ ignored: false, repo: { update: jest.fn() }, name: 'foo' });
@@ -63,17 +63,17 @@ describe('consumer.mjs', () => {
     await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(true);
     expect(log.info).toHaveBeenCalledWith('[Consumer] Non-push event routed for specialized handling', 'issues', 'foo');
     expect(Handlers.dispatch).toHaveBeenCalledWith({ event: 'issues', post: message.parsed, target: expect.any(Object), deliveryId: 'delivery-1', log });
-    expect(presence.update).toHaveBeenCalledWith('✅ completed foo');
+    expect(presence.terminal).toHaveBeenCalledWith('completed foo', false);
   });
 
   it('reports failed non-push handlers through presence', async () => {
-    const presence = { begin: jest.fn(), update: jest.fn(), end: jest.fn() };
+    const presence = { begin: jest.fn(), update: jest.fn(), terminal: jest.fn(), end: jest.fn() };
     setPresenceManager(presence);
     message.event = 'issues';
     Router.resolveEventTarget.mockResolvedValue({ ignored: false, repo: {}, name: 'foo' });
     Handlers.dispatch.mockResolvedValue(false);
     await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
-    expect(presence.update).toHaveBeenCalledWith('❌ failed foo');
+    expect(presence.terminal).toHaveBeenCalledWith('failed foo', true);
     expect(presence.end).toHaveBeenCalled();
   });
 

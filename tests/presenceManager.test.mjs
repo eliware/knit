@@ -6,22 +6,31 @@ test('starts with version presence and updates busy state', async () => {
   const manager = createPresenceManager({ client: { user: { setPresence } }, version: '2.2.0' });
   manager.start();
   manager.begin('deploying eliware/knit');
+  await manager.begin('deploying eliware/knit');
   await new Promise(resolve => setImmediate(resolve));
   expect(setPresence).toHaveBeenNthCalledWith(1, expect.objectContaining({ activities: [{ name: '🧶 knit v2.2.0', type: 4 }] }));
-  expect(setPresence).toHaveBeenNthCalledWith(2, expect.objectContaining({ activities: [{ name: 'deploying eliware/knit', type: 4 }] }));
+  expect(setPresence).toHaveBeenNthCalledWith(2, expect.objectContaining({ activities: [{ name: '⏳ knitting deploying eliware/knit', type: 4 }] }));
 });
 
-test('drops updates after the Discord gateway bucket is full', async () => {
+test('waits for the Discord gateway bucket instead of dropping updates', async () => {
   const setPresence = jest.fn().mockResolvedValue(undefined);
   let time = 0;
-  const manager = createPresenceManager({ client: { user: { setPresence } }, version: '2.2.0', now: () => time });
-  for (let i = 0; i < 6; i += 1) { manager.begin(`job ${i}`); manager.end(); }
-  await new Promise(resolve => setImmediate(resolve));
-  expect(setPresence).toHaveBeenCalledTimes(5);
-  time = 20_001;
-  manager.begin('after window');
-  await new Promise(resolve => setImmediate(resolve));
+  const manager = createPresenceManager({ client: { user: { setPresence } }, version: '2.2.0', now: () => time, setTimeoutFn: (resolve, delay) => { time += delay; resolve(); return {}; } });
+  for (let i = 0; i < 6; i += 1) await manager.begin(`job ${i}`);
   expect(setPresence).toHaveBeenCalledTimes(6);
+});
+
+test('reserves a final update for terminal failures', async () => {
+  const setPresence = jest.fn().mockResolvedValue(undefined);
+  const manager = createPresenceManager({ client: { user: { setPresence } }, version: '2.2.0' });
+  manager.terminal('ignored while idle');
+  manager.begin('received');
+  manager.update('routing');
+  manager.update('loading');
+  manager.update('running');
+  await manager.terminal('failed repository', true);
+  await new Promise(resolve => setImmediate(resolve));
+  expect(setPresence).toHaveBeenLastCalledWith(expect.objectContaining({ activities: [{ name: '❌ failed repository', type: 4 }] }));
 });
 
 test('returns to the version activity after the idle timer', async () => {
@@ -56,9 +65,11 @@ test('supports missing Discord client, duplicate updates, and timers without unr
   let timer;
   const manager = createPresenceManager({ version: '2.2.0', setTimeoutFn: callback => { timer = callback; return {}; }, clearTimeoutFn });
   manager.start();
+  await manager.terminal('ignored while idle');
   manager.update('ignored while idle');
   manager.begin('same');
   manager.begin('still same work');
+  await manager.terminal('completed');
   manager.update('same');
   manager.end();
   manager.end();

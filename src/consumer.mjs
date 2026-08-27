@@ -20,37 +20,37 @@ export async function consume({ message, log = logger, Repo: RepoMod = Repo, Git
   const event = message.event || 'push';
   const presence = getPresenceManager();
   const repository = post?.repository?.full_name || 'webhook';
-  presence?.begin(`📨 received ${repository}`);
+  await presence?.begin(repository);
   if (!GitHubMod.validate({ post, event, log })) {
     log.error('[Consumer] GitHub validation failed');
+    presence?.terminal(`failed ${repository}`, true);
     presence?.end();
     return false;
   }
-  presence?.update(`🧭 routing ${repository}`);
   const routerOptions = { post, RepoMod, log };
   if (RepoMod.targetLoader) routerOptions.targetLoader = RepoMod.targetLoader;
   const target = await RouterMod.resolveEventTarget(routerOptions);
   if (target.ignored) {
     if (target.kind === 'repository') log.error('[Consumer] Repo not found:', target.name);
     else log.info('[Consumer] Event ignored: no configured target', target.name);
+    await presence?.terminal(`${repository} failure`, true);
     presence?.end();
     return false;
   }
-  presence?.update(`📄 loading ${repository}`);
   if (event !== 'push') {
     log.info('[Consumer] Non-push event routed for specialized handling', event, target.name);
     const result = await HandlersMod.dispatch({ event, post, target, deliveryId: message.deliveryId, log });
-    presence?.update(`${result ? '✅ completed' : '❌ failed'} ${repository}`);
+    await presence?.terminal(`${result ? 'completed' : 'failed'} ${repository}`, !result);
     presence?.end();
     return result;
   }
   const updated = await target.repo.update({ body: post, event, deliveryId: message.deliveryId, log });
   if (!updated) {
-    presence?.update(`❌ failed ${repository}`);
+    await presence?.terminal(`${repository} failure`, true);
     log.error('[Consumer] Repo update failed');
     return false;
   }
-  presence?.update(`✅ completed ${repository}`);
+  await presence?.terminal(`${repository} success`);
   log.info('[Consumer] Repo updated successfully');
   return true;
 }
