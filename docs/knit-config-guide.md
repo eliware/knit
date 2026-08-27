@@ -46,6 +46,19 @@ on:
 
 Tags do not fall back to the push action. A matching tag action is selected only for the supported `v*` patterns.
 
+## Discord activity during runs
+
+Knit displays `🧶 knit v<version>` while idle. For an active webhook it may show these progress activities:
+
+- `📨 received <repository>`
+- `🧭 routing <repository>`
+- `📄 workflow loaded <repository>`
+- `🚀 deploying <repository>`
+- `⚙️ running <target>`
+- `✅ completed <repository>` or `❌ failed <repository>`
+
+Presence updates are best-effort. Knit sends them immediately when permitted, but uses a token bucket matching Discord's five updates per 20 seconds gateway limit and discards excess updates. The version activity is restored after ten minutes with no active work. Workflow scripts must not depend on any particular presence transition; deployment results and Discord notifications remain authoritative.
+
 ## Command execution
 
 Knit sends the command list to `@eliware/ssh-client`. Each command is executed sequentially through the remote user's shell, with the deployment cwd prepended. Shell features such as pipes, redirection, command substitution, temporary files, and multiline syntax are available. Quote data supplied by a webhook or repository file before using it in shell commands.

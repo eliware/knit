@@ -1,5 +1,19 @@
 # Release Notes
 
+## 2.3.0 — August 27, 2026
+
+### Added
+
+- Added Discord activity updates that show Knit’s version while idle and report webhook processing stages from receipt through deployment completion or failure.
+- Added token-bucket throttling so presence updates remain within Discord’s gateway rate limits; excess updates are discarded safely.
+- Added a ten-minute idle period before restoring the version activity after deployment work completes.
+
+### Verification
+
+- Tests: **100% statements, functions, and lines**; branch coverage remains reported by the project’s focused coverage checks.
+- Oxlint: **0 warnings/errors**.
+- Diff validation: **`git diff --check` passed**.
+
 ## 2.2.0 — August 27, 2026
 
 ### Added
