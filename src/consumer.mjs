@@ -20,37 +20,48 @@ export async function consume({ message, log = logger, Repo: RepoMod = Repo, Git
   const event = message.event || 'push';
   const presence = getPresenceManager();
   const repository = post?.repository?.full_name || 'webhook';
-  await presence?.begin(repository);
+  const deliveryId = message.deliveryId ?? null;
+  await presence?.begin(repository, deliveryId);
   if (!GitHubMod.validate({ post, event, log })) {
     log.error('[Consumer] GitHub validation failed');
-    presence?.terminal(`failed ${repository}`, true);
+    await presence?.terminal(`${repository} failure`, true, deliveryId);
     presence?.end();
     return false;
   }
-  const routerOptions = { post, RepoMod, log };
-  if (RepoMod.targetLoader) routerOptions.targetLoader = RepoMod.targetLoader;
-  const target = await RouterMod.resolveEventTarget(routerOptions);
+  try {
+    const routerOptions = { post, RepoMod, log };
+    if (RepoMod.targetLoader) routerOptions.targetLoader = RepoMod.targetLoader;
+    const target = await RouterMod.resolveEventTarget(routerOptions);
   if (target.ignored) {
     if (target.kind === 'repository') log.error('[Consumer] Repo not found:', target.name);
     else log.info('[Consumer] Event ignored: no configured target', target.name);
-    await presence?.terminal(`${repository} failure`, true);
+    const isTag = Boolean(post?.ref?.startsWith('refs/tags/'));
+    await (isTag ? presence?.neutral?.(`${repository} ignored`, deliveryId) : presence?.terminal(`${repository} failure`, true, deliveryId));
     presence?.end();
-    return false;
+    return isTag;
   }
   if (event !== 'push') {
     log.info('[Consumer] Non-push event routed for specialized handling', event, target.name);
     const result = await HandlersMod.dispatch({ event, post, target, deliveryId: message.deliveryId, log });
-    await presence?.terminal(`${result ? 'completed' : 'failed'} ${repository}`, !result);
+    await presence?.terminal(`${result ? 'completed' : 'failed'} ${repository}`, !result, deliveryId);
     presence?.end();
     return result;
   }
   const updated = await target.repo.update({ body: post, event, deliveryId: message.deliveryId, log });
   if (!updated) {
-    await presence?.terminal(`${repository} failure`, true);
+    await presence?.terminal(`${repository} failure`, true, deliveryId);
+    presence?.end();
     log.error('[Consumer] Repo update failed');
     return false;
   }
-  await presence?.terminal(`${repository} success`);
+  await presence?.terminal(`${repository} success`, false, deliveryId);
+  presence?.end();
   log.info('[Consumer] Repo updated successfully');
   return true;
+  } catch (error) {
+    log.error('[Consumer] Webhook processing failed', error);
+    await presence?.terminal(`${repository} failure`, true, deliveryId);
+    presence?.end();
+    return false;
+  }
 }

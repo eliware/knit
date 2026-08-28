@@ -6,6 +6,7 @@ export function createPresenceManager({ client, version, now = () => Date.now(),
   const updates = [];
   let idleTimer;
   let busy = 0;
+  let activeDelivery;
   let lastPresence;
 
   const versionPresence = () => ({ activities: [{ name: `🧶 knit v${version}`, type: 4 }], status: 'online' });
@@ -38,16 +39,29 @@ export function createPresenceManager({ client, version, now = () => Date.now(),
 
   return {
     start() { return send(versionPresence()); },
-    begin(text = 'busy') {
+    begin(text = 'busy', deliveryId = null) {
       busy += 1;
+      activeDelivery = deliveryId ?? activeDelivery;
       clearTimeoutFn(idleTimer);
       return send(busyPresence(`⏳ knitting ${text}`));
     },
     update(text) { if (busy) return send(busyPresence(text)); return Promise.resolve(false); },
-    terminal(text, failed = false) { if (busy) return send(busyPresence(`${failed ? '❌' : '✅'} ${text}`)); return Promise.resolve(false); },
+    terminal(text, failed = false, deliveryId = null) {
+      if (deliveryId != null && activeDelivery != null && deliveryId !== activeDelivery) return Promise.resolve(false);
+      if (busy) return send(busyPresence(`${failed ? '❌' : '✅'} ${text}`));
+      return Promise.resolve(false);
+    },
+    neutral(text, deliveryId = null) {
+      if (deliveryId != null && activeDelivery != null && deliveryId !== activeDelivery) return Promise.resolve(false);
+      if (busy) return send(busyPresence(`ℹ️ ${text}`));
+      return Promise.resolve(false);
+    },
     end() {
       busy = Math.max(0, busy - 1);
-      if (!busy) scheduleIdle();
+      if (!busy) {
+        activeDelivery = undefined;
+        scheduleIdle();
+      }
     },
     stop() { clearTimeoutFn(idleTimer); },
   };

@@ -45,6 +45,25 @@ describe('consumer.mjs', () => {
     expect(log.info).toHaveBeenCalledWith('[Consumer] Event ignored: no configured target', 'eliware/knit');
   });
 
+  it('marks an unmatched tag delivery as neutral instead of failure', async () => {
+    const presence = { begin: jest.fn(), neutral: jest.fn(), terminal: jest.fn(), end: jest.fn() };
+    setPresenceManager(presence);
+    message.parsed.ref = 'refs/tags/v1.0.0';
+    Router.resolveEventTarget.mockResolvedValue({ ignored: true, kind: 'repository', name: 'foo' });
+    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(true);
+    expect(presence.neutral).toHaveBeenCalledWith('foo ignored', 'delivery-1');
+    expect(presence.terminal).not.toHaveBeenCalled();
+  });
+
+  it('reports unexpected processing errors as terminal failures', async () => {
+    const presence = { begin: jest.fn(), terminal: jest.fn(), end: jest.fn() };
+    setPresenceManager(presence);
+    Router.resolveEventTarget.mockRejectedValue(new Error('routing failed'));
+    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
+    expect(presence.terminal).toHaveBeenCalledWith('foo failure', true, 'delivery-1');
+    expect(presence.end).toHaveBeenCalled();
+  });
+
   it('does not dispatch organization-level events to a fallback repository', async () => {
     message.parsed = {};
     Router.resolveEventTarget.mockResolvedValue({ ignored: true, kind: 'organization', name: null });
@@ -63,7 +82,7 @@ describe('consumer.mjs', () => {
     await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(true);
     expect(log.info).toHaveBeenCalledWith('[Consumer] Non-push event routed for specialized handling', 'issues', 'foo');
     expect(Handlers.dispatch).toHaveBeenCalledWith({ event: 'issues', post: message.parsed, target: expect.any(Object), deliveryId: 'delivery-1', log });
-    expect(presence.terminal).toHaveBeenCalledWith('completed foo', false);
+    expect(presence.terminal).toHaveBeenCalledWith('completed foo', false, 'delivery-1');
   });
 
   it('reports failed non-push handlers through presence', async () => {
@@ -73,7 +92,7 @@ describe('consumer.mjs', () => {
     Router.resolveEventTarget.mockResolvedValue({ ignored: false, repo: {}, name: 'foo' });
     Handlers.dispatch.mockResolvedValue(false);
     await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
-    expect(presence.terminal).toHaveBeenCalledWith('failed foo', true);
+    expect(presence.terminal).toHaveBeenCalledWith('failed foo', true, 'delivery-1');
     expect(presence.end).toHaveBeenCalled();
   });
 
@@ -105,6 +124,15 @@ describe('consumer.mjs', () => {
 
     await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(true);
     expect(GitHub.validate).toHaveBeenCalledWith({ post: message.parsed, event: 'push', log });
+  });
+
+  it('supports deliveries without a delivery id', async () => {
+    delete message.deliveryId;
+    const presence = { begin: jest.fn(), terminal: jest.fn(), end: jest.fn() };
+    setPresenceManager(presence);
+    Router.resolveEventTarget.mockResolvedValue({ ignored: true, kind: 'repository', name: 'foo' });
+    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
+    expect(presence.begin).toHaveBeenCalledWith('foo', null);
   });
 
   it('uses the default logger when no logger is provided', async () => {

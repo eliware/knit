@@ -5,7 +5,6 @@ import { loadWorkflow } from './workflowLoader.mjs';
 import { defaultTargetLoader } from './targetLoader.mjs';
 import * as Notifier from './notifier/index.mjs';
 import { createWebhookEnvironment, withWebhookEnvironment } from './webhookEnvironment.mjs';
-import { getPresenceManager } from './presenceManager.mjs';
 
 export function createSshRepo({ config, targets, packageJson, sshExec: injectedSshExec, log = logger, sendNotification } = {}) {
   const sshExec = injectedSshExec || realSshExec;
@@ -16,12 +15,9 @@ export function createSshRepo({ config, targets, packageJson, sshExec: injectedS
     if (body.ref?.startsWith('refs/tags/')) {
       if (notifyFn) await notifyFn({ repo: this, body, event, logOutput: '', hasError: false, log: requestLog });
       else await Notifier.send({ post: body, packageJson, event, logOutput: '', hasError: false, log: requestLog });
-      await getPresenceManager()?.terminal(`${body.repository?.full_name || 'repository'} success`);
-      getPresenceManager()?.end();
       return true;
     }
     let output = ''; let failed = false;
-    const presence = getPresenceManager();
     for (const deployment of config.deployments) {
       const target = targets[deployment.target];
       if (!target) throw new Error(`Unknown deployment target: ${deployment.target}`);
@@ -40,8 +36,6 @@ export function createSshRepo({ config, targets, packageJson, sshExec: injectedS
       }
       if (failed && stopOnError) break;
     }
-    await presence?.terminal(`${body.repository?.full_name || 'repository'} ${failed ? 'failure' : 'success'}`, failed);
-    presence?.end();
     await notifyFn?.({ repo: this, body, logOutput: output, hasError: failed, log: requestLog });
     if (!notifyFn) await Notifier.send({ post: body, packageJson, event, logOutput: output, hasError: failed, log: requestLog });
     return !failed;
