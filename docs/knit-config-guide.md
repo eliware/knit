@@ -53,8 +53,9 @@ Knit displays `🧶 knit v<version>` while idle. For an active webhook it shows:
 - `⏳ knitting <repository>` while processing
 - `✅ <repository> success` after successful completion
 - `❌ <repository> failure` when validation, routing, deployment, or notification handling fails
+- `ℹ️ <repository> ignored` when an unmatched tag is intentionally skipped
 
-Presence updates are throttled to Discord's five updates per 20 seconds presence limit. Knit waits for capacity rather than discarding the webhook start or terminal result. The version activity is restored after ten minutes with no active work. Workflow scripts must not depend on presence transitions; deployment results and Discord notifications remain authoritative.
+Presence updates are throttled to Discord's five updates per 20 seconds presence limit. Knit waits for capacity rather than discarding the webhook start or terminal result. Terminal updates are correlated to the active delivery, so a stale completion cannot replace a newer delivery's state. The version activity is restored after ten minutes with no active work. Workflow scripts must not depend on presence transitions; deployment results and Discord notifications remain authoritative.
 
 ## Command execution
 

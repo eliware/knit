@@ -1,8 +1,8 @@
 {
     "name": "@eliware/knit",
     "type": "module",
-    "version": "2.3.2",
-    "description": "GitHub webhook handler and SSH deployment automation service with Discord notifications and metadata-aware validation workflows.",
+    "version": "2.3.3",
+    "description": "GitHub webhook handler and SSH deployment automation service with Discord notifications, delivery-aware presence, and metadata-aware validation workflows.",
     "main": "knit.mjs",
     "scripts": {
         "start": "node knit.mjs",

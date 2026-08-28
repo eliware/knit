@@ -1,5 +1,18 @@
 # Release Notes
 
+## 2.3.3 — August 28, 2026
+
+### Fixed
+
+- Prevented unmatched tag deliveries from being reported as deployment failures and retried; they now receive a neutral ignored result.
+- Ensured validation, routing, deployment, and unexpected processing errors produce a terminal `❌` presence update and release the busy state.
+- Correlated terminal presence updates with their delivery so stale results cannot overwrite a newer webhook status.
+- Removed duplicate presence updates from the repository layer so each webhook has one authoritative lifecycle.
+
+### Tests
+
+- Added regression coverage for ignored tags, missing delivery IDs, unexpected processing errors, nested work, neutral states, and stale delivery results.
+
 ## 2.3.2 — August 27, 2026
 
 ### Fixed
