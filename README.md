@@ -24,7 +24,7 @@ on:
   push:
     deployments:
       - target: dev
-        cwd: /opt/repo
+        cwd: project-root
         commands:
           - git pull --ff-only
           - npm install
@@ -33,7 +33,7 @@ on:
     "v*":
       deployments:
         - target: dev
-          cwd: /opt/repo
+          cwd: project-root
           commands:
             - npm run release
 ```

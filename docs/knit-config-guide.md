@@ -18,7 +18,7 @@ on:
   push:
     deployments:
       - target: dev
-        cwd: /opt/example
+        cwd: project-root
         commands:
           - git pull --ff-only
           - npm ci
@@ -34,13 +34,13 @@ on:
   push:
     deployments:
       - target: dev
-        cwd: /opt/example
+        cwd: project-root
         commands: [.knit/ci.sh]
   tags:
     "v*":
       deployments:
         - target: dev
-          cwd: /opt/example
+          cwd: project-root
           commands: [.knit/release.sh]
 ```
 
@@ -108,7 +108,7 @@ Set `timeoutMs` on a deployment to bound each remote command:
 ```yaml
 deployments:
   - target: dev
-    cwd: /opt/example
+    cwd: project-root
     timeoutMs: 300000
     commands: [.knit/validate.sh]
 ```
