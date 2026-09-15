@@ -40,7 +40,7 @@ export function createRegistry({ Notifier: NotifierMod = Notifier } = {}) {
  * @returns {Function}
  */
 export function createGenericHandler({ Notifier: NotifierMod = Notifier, eventName } = {}) {
-  return async ({ event, post, target, log = logger }) => {
+  return async ({ event, post, _target, log = logger }) => {
     if (!post?.repository?.full_name) return true;
     await NotifierMod.send({
       post,

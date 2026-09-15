@@ -42,7 +42,7 @@ export function createEmbed({ event, post }) {
 }
 
 export function createHandler({ event, Notifier: NotifierMod = Notifier } = {}) {
-  return async ({ post, target, log = logger }) => {
+  return async ({ post, _target, log = logger }) => {
     if (!post?.repository?.full_name) return true;
     await NotifierMod.send({
       post,

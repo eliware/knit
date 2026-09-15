@@ -56,11 +56,11 @@
     "dependencies": {
         "@eliware/common": "^2.0.0",
         "@eliware/discord": "^2.0.0",
-        "@eliware/ssh-client": "^2.0.0",
+        "@eliware/ssh-client": "^2.1.0",
         "body-parser": "^2.3.0",
         "dotenv": "^17.2.0",
         "express": "^5.1.0",
-        "inquirer": "^14.2.0",
+        "inquirer": "^14.2.1",
         "js-yaml": "^5.4.1"
     },
     "engines": {
@@ -74,7 +74,7 @@
         "LICENSE"
     ],
     "devDependencies": {
-        "@eliware/test": "^2.0.0"
+        "@eliware/test": "^5.0.0"
     },
     "allowScripts": {
         "unrs-resolver@1.12.2": true,
