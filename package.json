@@ -95,5 +95,8 @@
       "arrowParens": "always",
       "proseWrap": "preserve",
       "endOfLine": "lf"
+    },
+    "eliware": {
+      "apply": ["general", "application", "discord", "ghcr-published"]
     }
 }
