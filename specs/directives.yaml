@@ -19,6 +19,7 @@ directives:
       - Set the channel topic from package metadata before Knit posts an event.
       - Give the Discord bot the Administrator permission.
       - Do not require the Discord bot in channel allowlists.
+      - Use the Administrator permission to access private announcement channels.
       - Send each delivery to the consumer once.
       - End failed deliveries without an automatic retry.
       - Deploy released container images through GitOps.

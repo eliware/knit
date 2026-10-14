@@ -46,7 +46,7 @@ describe("publish", () => {
     const log = { info: jest.fn() };
     const Consumer = { consume: jest.fn() };
     const immediate = jest.spyOn(global, "setImmediate").mockImplementation(() => {});
-    expect(publish({ ...payload, deliveryId: "same", log, ConsumerMod: Consumer })).toBeUndefined();
+    expect(publish({ ...payload, deliveryId: "same", log, ConsumerMod: Consumer })).toBe(true);
     expect(publish({ ...payload, deliveryId: "same", log, ConsumerMod: Consumer })).toBe(false);
     expect(log.info).toHaveBeenCalledWith("[Publisher] Duplicate delivery ignored", "same");
     immediate.mockRestore();
@@ -78,7 +78,7 @@ describe("publish", () => {
     const immediate = jest.spyOn(global, "setImmediate").mockImplementation(() => {});
     for (let i = 0; i <= 1000; i += 1)
       publish({ ...payload, deliveryId: `id-${i}`, log, ConsumerMod: Consumer });
-    expect(publish({ ...payload, deliveryId: "id-0", log, ConsumerMod: Consumer })).toBeUndefined();
+    expect(publish({ ...payload, deliveryId: "id-0", log, ConsumerMod: Consumer })).toBe(true);
     immediate.mockRestore();
   });
 });

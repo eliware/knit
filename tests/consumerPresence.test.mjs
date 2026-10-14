@@ -25,3 +25,20 @@ test("sends ignored tags to neutral presence", async () => {
   expect(presence.terminal).not.toHaveBeenCalled();
   expect(presence.end).toHaveBeenCalledTimes(1);
 });
+
+test("swallows a rejected async presence end", async () => {
+  const presence = {
+    terminal: jest.fn(),
+    end: jest.fn().mockRejectedValue(new Error("end failed")),
+  };
+  await expect(
+    finishConsumerPresence({ presence, text: "done", deliveryId: "delivery-1" }),
+  ).resolves.toBeUndefined();
+  expect(presence.end).toHaveBeenCalledWith("delivery-1");
+});
+
+test("accepts an absent presence manager", async () => {
+  await expect(
+    finishConsumerPresence({ text: "done", deliveryId: "delivery-1" }),
+  ).resolves.toBeUndefined();
+});

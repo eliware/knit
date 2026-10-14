@@ -13,7 +13,7 @@ export async function finishConsumerPresence({
     return;
   } finally {
     try {
-      presence?.end(deliveryId);
+      await presence?.end(deliveryId);
     } catch {}
   }
 }

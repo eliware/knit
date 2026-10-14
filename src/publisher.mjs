@@ -37,6 +37,7 @@ export function publish({
   recordPublisherMetric("queued");
   activeLog.info("[Publisher] Queuing payload for publish");
   setImmediate(() => processTasks(ConsumerMod));
+  return true;
 }
 
 export async function processTasks(ConsumerMod = Consumer) {
