@@ -2,8 +2,6 @@ import { channelName } from "./discordChannelMetadata.mjs";
 import { syncChannelPermissions } from "./discordChannelPermissions.mjs";
 import { provisionAnnouncementChannel } from "./discordChannelProvisioning.mjs";
 import { syncChannelTopic } from "./discordChannelTopic.mjs";
-export { channelName } from "./discordChannelMetadata.mjs";
-
 export function createChannelResolver({ client, guildId, log = console } = {}) {
   if (!client || !guildId) throw new Error("Discord client and guild ID are required");
   return async function resolveChannel({
