@@ -43,8 +43,8 @@ export function createPresenceLifecycle({
       return send(busyPresence(`ℹ️ ${text}`));
     },
     end(deliveryId = null) {
-      busy = Math.max(0, busy - 1);
-      deliveryCorrelation.end(deliveryId);
+      if (!deliveryCorrelation.end(deliveryId)) return;
+      busy -= 1;
       if (!busy) {
         deliveryCorrelation.reset();
         scheduleIdle();

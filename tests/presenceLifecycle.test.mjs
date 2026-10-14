@@ -74,3 +74,17 @@ test("tracks terminal updates for overlapping deliveries", async () => {
 
   expect(send).toHaveBeenLastCalledWith({ name: "✅ second done" });
 });
+
+test("does not end active work when a delivery ID does not match", async () => {
+  const { lifecycle, send } = makeLifecycle();
+  await lifecycle.begin("anonymous");
+  await lifecycle.begin("identified", "one");
+
+  lifecycle.end("unknown");
+  await expect(lifecycle.terminal("anonymous done", false, null)).resolves.toBe(true);
+  lifecycle.end("one");
+  await expect(lifecycle.terminal("anonymous still active", false, null)).resolves.toBe(true);
+  lifecycle.end();
+
+  expect(send).toHaveBeenLastCalledWith({ name: "✅ anonymous still active" });
+});

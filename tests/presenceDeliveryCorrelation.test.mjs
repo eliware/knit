@@ -30,3 +30,12 @@ test("keeps a delivery active until each matching task ends", () => {
   correlation.end("one");
   expect(correlation.matches("two")).toBe(false);
 });
+
+test("does not change active deliveries for an unmatched end", () => {
+  const correlation = createPresenceDeliveryCorrelation();
+  correlation.begin(null);
+  expect(correlation.end("unknown")).toBe(false);
+  expect(correlation.matches(null)).toBe(true);
+  expect(correlation.end(null)).toBe(true);
+  expect(correlation.end(null)).toBe(false);
+});

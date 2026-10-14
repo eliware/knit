@@ -11,12 +11,15 @@ export function createPresenceDeliveryCorrelation() {
     },
     end(deliveryId) {
       if (deliveryId == null) {
+        if (!anonymousDeliveries) return false;
         anonymousDeliveries = Math.max(0, anonymousDeliveries - 1);
-        return;
+        return true;
       }
       const count = activeDeliveries.get(deliveryId) || 0;
+      if (!count) return false;
       if (count <= 1) activeDeliveries.delete(deliveryId);
       else activeDeliveries.set(deliveryId, count - 1);
+      return true;
     },
     reset() {
       activeDeliveries.clear();
