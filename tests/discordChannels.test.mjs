@@ -19,7 +19,11 @@ function clientWith(channels = []) {
     roles: { everyone: { id: "everyone" } },
     channels: { fetch: jest.fn().mockResolvedValue({ find: (fn) => channels.find(fn) }), create },
   };
-  return { client: { guilds: { fetch: jest.fn().mockResolvedValue(guild) } }, guild, created };
+  return {
+    client: { user: { id: "bot" }, guilds: { fetch: jest.fn().mockResolvedValue(guild) } },
+    guild,
+    created,
+  };
 }
 
 test("checks the guild channel list and reuses the repo channel on each event", async () => {
@@ -61,10 +65,10 @@ test("creates public and private repository channels", async () => {
   expect(privateClient.created).toHaveLength(1);
 });
 
-test("creates a channel with the repository name and no hash suffix", async () => {
+test("uses the repository name without its owner or a hash suffix", async () => {
   const { client, created } = clientWith();
-  await createChannelResolver({ client, guildId: "guild" })({ repository: "eliware/eliware.org" });
-  expect(created[0].options.name).toBe("eliware-org");
+  await createChannelResolver({ client, guildId: "guild" })({ repository: "eliware/agentx-cli" });
+  expect(created[0].options.name).toBe("agentx-cli");
   expect(created[0].options.name).not.toMatch(/-[a-f0-9]{12}$/u);
 });
 

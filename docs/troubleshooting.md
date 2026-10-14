@@ -25,7 +25,7 @@ Knit rejects unsigned requests. It does not run commands for a rejected request.
 
 ## Knit ignores a delivery
 
-Confirm that the event has `repository.full_name`. Confirm that the repository has a target that allows its name. Confirm that the event type has a configured handler. Events without repository names do not run repository workflows.
+Confirm that the event has `repository.full_name`. Confirm that the repository has a target that allows its name. Confirm that the event type has a configured handler. Events without repository names do not run repository workflows. Knit uses the repository name after the owner slash for its channel name. Keep repository names unique in the eliware organization.
 
 ## Knit cannot read a repository workflow
 
@@ -42,11 +42,11 @@ Confirm that `.knit/deploy.yaml` exists at the webhook commit. Confirm that the 
 7. Run each command by hand with the same user and working directory.
 8. Return a nonzero exit code when a command detects a fault.
 
-Knit runs commands in order. The first nonzero result fails the deployment. By default, Knit stops before later deployments. Keep commands safe to repeat because GitHub may retry a delivery.
+Knit runs commands in order. The first nonzero result fails the deployment. By default, Knit stops before later deployments. Knit sends each delivery to the consumer once. A failed delivery ends without an automatic retry.
 
 ## Discord notices do not arrive
 
-Confirm that both Discord variables are set. Confirm that the bot joined the guild in `guildId`. Grant `View Channels`, `Manage Channels`, `Manage Roles`, and `Send Messages` permissions. Confirm that the bot can access the target channel. Knit requires the `Guilds` intent.
+Confirm that both Discord variables are set. Confirm that the bot joined the guild in `guildId`. Grant the bot the `Administrator` permission. The bot can access all channels. Do not add the bot to channel allowlists. Knit requires the `Guilds` intent.
 
 ## GitHub API limit or access fault
 

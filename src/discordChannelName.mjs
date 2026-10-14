@@ -1,6 +1,7 @@
 export function channelName(repository) {
   if (!/^[^/]+\/[^/]+$/.test(repository || ""))
     throw new Error("Repository is required to resolve a Discord channel");
+  // Use the repository basename. The eliware organization keeps these names unique.
   return (
     repository
       .split("/")

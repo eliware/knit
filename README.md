@@ -71,11 +71,13 @@ The `/help` command gives a short service summary. Knit requests only the Discor
 
 Knit handles repository `push` events. It sends special Discord notices for `release`, `workflow_run`, `pull_request`, `issues`, `deployment`, and `deployment_status` events. It sends a general notice for other repository events. It ignores events without a repository name.
 
-For each event, Knit checks the guild channel list for an announcement channel named after the repository. Knit reuses that channel or creates it without a hash suffix. Knit sets public or private access from repository visibility, updates the topic from package metadata, and posts the notice.
+For each event, Knit uses the repository name after the owner slash as the announcement channel name. The eliware organization keeps repository names unique. Knit checks the guild channel list and reuses a matching channel. If no channel matches, Knit creates one with that name and no suffix. Knit sets access from repository visibility, updates the topic from package metadata, and posts the notice.
+
+Knit returns HTTP 200 after it queues a valid signed webhook. Knit does not wait for event processing to finish.
 
 ## Intents and permissions
 
-Enable the `Guilds` intent. Grant the bot `View Channels`, `Manage Channels`, `Manage Roles`, and `Send Messages` permissions. Knit does not request message, member, presence, reaction, typing, or scheduled event intents.
+Enable the `Guilds` intent. Grant the bot the `Administrator` permission. The bot can access all channels. Do not add the bot to channel allowlists. Knit does not request message, member, presence, reaction, typing, or scheduled event intents.
 
 ## Support
 

@@ -20,8 +20,6 @@ export function publish({
   deliveryId = null,
   log,
   ConsumerMod = Consumer,
-  maxAttempts = 3,
-  retryDelayMs = 100,
 }) {
   const activeLog = log ?? logger;
   const task = {
@@ -30,8 +28,6 @@ export function publish({
     event,
     deliveryId,
     ...(log ? { log } : {}),
-    maxAttempts: Math.max(1, maxAttempts),
-    retryDelayMs,
   };
   if (!enqueuePublisherTask(task)) {
     recordPublisherMetric("duplicates");

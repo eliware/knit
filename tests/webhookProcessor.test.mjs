@@ -50,6 +50,25 @@ describe("webhookProcessor.mjs", () => {
     expect(res.sendStatus).toHaveBeenCalledWith(200);
   });
 
+  it("acknowledges a valid webhook without waiting for publish completion", async () => {
+    const publisher = { publish: jest.fn(() => new Promise(() => {})) };
+    SignatureValidator.validate.mockReturnValue(true);
+    await createWebhookProcessor({
+      log,
+      publisher,
+      SignatureValidatorMod: SignatureValidator,
+    }).process(
+      {
+        rawBody: "payload",
+        body: {},
+        headers: { "x-hub-signature-256": "sig" },
+      },
+      res,
+    );
+    expect(publisher.publish).toHaveBeenCalledTimes(1);
+    expect(res.sendStatus).toHaveBeenCalledWith(200);
+  });
+
   it("defaults missing event and delivery headers", async () => {
     const publisher = { publish: jest.fn() };
     SignatureValidator.validate.mockReturnValue(true);

@@ -70,7 +70,7 @@ on:
           - npm test
 ```
 
-Knit runs deployments in order. It runs commands in order. A nonzero command result fails that deployment. Knit stops after the first failed deployment by default. Use `stopOnError: false` at the action level to run later deployments after a failure. Keep commands safe to repeat because webhook delivery can retry.
+Knit runs deployments in order. It runs commands in order. A nonzero command result fails that deployment. Knit stops after the first failed deployment by default. Use `stopOnError: false` at the action level to run later deployments after a failure. Knit sends each delivery to the consumer once. A failed delivery ends without an automatic retry.
 
 Set `timeoutMs` to a value from `1` to `300000` milliseconds. The timeout applies to each remote command. Use a script with its own overall deadline for longer work.
 
@@ -100,7 +100,7 @@ Knit reads `.knit/deploy.yaml` at the webhook commit SHA. It also reads `package
 
 ## Discord setup
 
-Create a Discord application and bot. Invite the bot to the target guild. Copy the bot token and application ID into the runtime secret store. Set both `DISCORD_TOKEN` and `DISCORD_CLIENT_ID`. Grant `View Channels`, `Manage Channels`, `Manage Roles`, and `Send Messages` permissions. Enable the `Guilds` intent only.
+Create a Discord application and bot. Invite the bot to the target guild. Copy the bot token and application ID into the runtime secret store. Set both `DISCORD_TOKEN` and `DISCORD_CLIENT_ID`. Grant the bot the `Administrator` permission. The bot can access all channels. Do not add the bot to channel allowlists. Enable the `Guilds` intent only.
 
 Knit uses the required `guildId` from the target inventory. It does not read message content or member lists.
 

@@ -47,6 +47,8 @@ Set the GitHub webhook content type to `application/json`. Set the same secret i
 
 ## Event behavior
 
+Knit returns HTTP 200 after it queues a valid signed webhook. Knit does not wait for event processing to finish.
+
 Knit uses repository `push` events to run deployment commands. It reads `.knit/deploy.yaml` and `package.json` at the event commit. It sends specialized Discord notices for release, workflow, pull request, issue, and deployment events. It sends a general notice for other repository events. It ignores events without a repository name.
 
 Knit passes these values to every remote command:
@@ -63,7 +65,7 @@ Knit sends these values through SSH environment requests. Configure the SSH serv
 
 ## Discord command and activity
 
-Use `/help` to read the short service summary. Knit needs the `Guilds` intent. For each event, it checks the guild channel list for an announcement channel named after the repository. It reuses that channel or creates it with the repository name and no hash suffix. It sets public or private access from repository visibility. It sets the topic from package metadata before it posts the notice. Grant `View Channels`, `Manage Channels`, `Manage Roles`, and `Send Messages` permissions.
+Use `/help` to read the short service summary. Knit needs the `Guilds` intent. For each event, it uses the repository name after the owner slash as the channel name. The eliware organization keeps repository names unique. Knit checks the guild channel list and reuses a matching channel. If no channel matches, Knit creates one with that name and no suffix. It sets access from repository visibility. It sets the topic from package metadata before it posts the notice. Grant the bot the `Administrator` permission. The bot can access all channels. Do not add the bot to channel allowlists.
 
 The bot shows the Knit version when idle. It shows a repository name during work and a result after work. Knit limits activity updates to Discord's rate limit. Do not use activity changes as deployment status records.
 

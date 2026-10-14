@@ -7,8 +7,6 @@ const makeTask = (overrides = {}) => ({
   event: "push",
   deliveryId: "delivery",
   log: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
-  maxAttempts: 2,
-  retryDelayMs: 0,
   ...overrides,
 });
 const makeRecorder = () => {
@@ -16,18 +14,19 @@ const makeRecorder = () => {
   return { metrics, recordMetric: (name) => (metrics[name] += 1) };
 };
 
-test("retries a failed task and counts success", async () => {
+test("sends a successful task once", async () => {
   const task = makeTask();
   const ConsumerMod = {
-    consume: jest.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true),
+    consume: jest.fn().mockResolvedValue(true),
   };
   const { metrics, recordMetric } = makeRecorder();
   await processPublisherTask({ task, ConsumerMod, recordMetric });
-  expect(metrics).toEqual({ processed: 1, succeeded: 1, failed: 0, retried: 1 });
+  expect(ConsumerMod.consume).toHaveBeenCalledTimes(1);
+  expect(metrics).toEqual({ processed: 1, succeeded: 1, failed: 0, retried: 0 });
 });
 
-test("counts and logs a final task failure", async () => {
-  const task = makeTask({ maxAttempts: 1 });
+test("counts and logs a task failure", async () => {
+  const task = makeTask();
   const error = new Error("failure");
   const ConsumerMod = { consume: jest.fn().mockRejectedValue(error) };
   const { metrics, recordMetric } = makeRecorder();
@@ -36,16 +35,17 @@ test("counts and logs a final task failure", async () => {
   expect(task.log.error).toHaveBeenCalledWith("[Publisher] Error sending to Consumer:", error);
 });
 
-test("retries a false result and falls back to info without a warn method", async () => {
+test("fails once when the consumer returns false", async () => {
   const task = makeTask({ log: { info: jest.fn(), error: jest.fn() } });
   const ConsumerMod = {
-    consume: jest.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true),
+    consume: jest.fn().mockResolvedValue(false),
   };
   const { metrics, recordMetric } = makeRecorder();
   await processPublisherTask({ task, ConsumerMod, recordMetric });
-  expect(task.log.info).toHaveBeenCalledWith(
-    "[Publisher] Consumer failed; retrying",
-    expect.objectContaining({ attempt: 1, maxAttempts: 2 }),
+  expect(ConsumerMod.consume).toHaveBeenCalledTimes(1);
+  expect(task.log.error).toHaveBeenCalledWith(
+    "[Publisher] Error sending to Consumer:",
+    new Error("Consumer returned false"),
   );
-  expect(metrics).toEqual({ processed: 1, succeeded: 1, failed: 0, retried: 1 });
+  expect(metrics).toEqual({ processed: 1, succeeded: 0, failed: 1, retried: 0 });
 });

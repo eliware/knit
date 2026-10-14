@@ -38,8 +38,6 @@ describe("publish", () => {
       deliveryId: undefined,
       log: undefined,
       ConsumerMod: undefined,
-      maxAttempts: undefined,
-      retryDelayMs: undefined,
     });
     immediate.mockRestore();
   });
@@ -54,21 +52,24 @@ describe("publish", () => {
     immediate.mockRestore();
   });
 
-  it("accepts a failed delivery ID again after processing ends", async () => {
+  it("allows a failed delivery to be sent again as a new request", async () => {
     const immediate = jest.spyOn(global, "setImmediate").mockImplementation(() => {});
     const log = { info: jest.fn(), error: jest.fn() };
     const Consumer = {
       consume: jest.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true),
     };
 
-    publish({ ...payload, deliveryId: "retry", log, ConsumerMod: Consumer, maxAttempts: 1 });
+    publish({ ...payload, deliveryId: "retry", log, ConsumerMod: Consumer });
     await processTasks(Consumer);
-    publish({ ...payload, deliveryId: "retry", log, ConsumerMod: Consumer, maxAttempts: 1 });
+    expect(getPublisherMetrics()).toEqual(expect.objectContaining({ pending: 0, failed: 1 }));
+    publish({ ...payload, deliveryId: "retry", log, ConsumerMod: Consumer });
     await processTasks(Consumer);
     immediate.mockRestore();
 
     expect(Consumer.consume).toHaveBeenCalledTimes(2);
-    expect(getPublisherMetrics()).toEqual(expect.objectContaining({ succeeded: 1, failed: 1 }));
+    expect(getPublisherMetrics()).toEqual(
+      expect.objectContaining({ succeeded: 1, failed: 1, pending: 0 }),
+    );
   });
 
   it("evicts old delivery IDs", () => {
@@ -110,8 +111,8 @@ describe("processing", () => {
     };
     const log = { info: jest.fn(), error: jest.fn() };
     const immediate = jest.spyOn(global, "setImmediate").mockImplementation((fn) => fn());
-    publish({ ...payload, log, ConsumerMod: Consumer, maxAttempts: 0 });
-    publish({ ...payload, log, ConsumerMod: Consumer, maxAttempts: 1 });
+    publish({ ...payload, log, ConsumerMod: Consumer });
+    publish({ ...payload, log, ConsumerMod: Consumer });
     expect(getPublisherMetrics().processing).toBe(true);
     resolve(true);
     await Promise.resolve();
@@ -128,7 +129,7 @@ describe("processing", () => {
         throw new Error("logger failed");
       }),
     };
-    publish({ ...payload, deliveryId: "bad", log: brokenLog, maxAttempts: 1 });
+    publish({ ...payload, deliveryId: "bad", log: brokenLog });
     publish({ ...payload, deliveryId: "good", log: { info: jest.fn(), error: jest.fn() } });
     const Consumer = {
       consume: jest.fn(async ({ message }) => message.deliveryId === "good"),
