@@ -1,4 +1,5 @@
 const IDLE_MS = 10 * 60 * 1_000;
+import { createPresenceDeliveryCorrelation } from "./presenceDeliveryCorrelation.mjs";
 
 export function createPresenceLifecycle({
   send,
@@ -9,7 +10,7 @@ export function createPresenceLifecycle({
 }) {
   let idleTimer;
   let busy = 0;
-  let activeDelivery;
+  const deliveryCorrelation = createPresenceDeliveryCorrelation();
 
   function scheduleIdle() {
     clearTimeoutFn(idleTimer);
@@ -19,17 +20,13 @@ export function createPresenceLifecycle({
     idleTimer?.unref?.();
   }
 
-  function matchesDelivery(deliveryId) {
-    return deliveryId == null || activeDelivery == null || deliveryId === activeDelivery;
-  }
-
   return {
     start() {
       return send(versionPresence());
     },
     begin(text = "busy", deliveryId = null) {
       busy += 1;
-      activeDelivery = deliveryId ?? activeDelivery;
+      deliveryCorrelation.begin(deliveryId);
       clearTimeoutFn(idleTimer);
       return send(busyPresence(`⏳ knitting ${text}`));
     },
@@ -38,17 +35,17 @@ export function createPresenceLifecycle({
       return Promise.resolve(false);
     },
     terminal(text, failed = false, deliveryId = null) {
-      if (!matchesDelivery(deliveryId) || !busy) return Promise.resolve(false);
+      if (!deliveryCorrelation.matches(deliveryId) || !busy) return Promise.resolve(false);
       return send(busyPresence(`${failed ? "❌" : "✅"} ${text}`));
     },
     neutral(text, deliveryId = null) {
-      if (!matchesDelivery(deliveryId) || !busy) return Promise.resolve(false);
+      if (!deliveryCorrelation.matches(deliveryId) || !busy) return Promise.resolve(false);
       return send(busyPresence(`ℹ️ ${text}`));
     },
     end() {
       busy = Math.max(0, busy - 1);
       if (!busy) {
-        activeDelivery = undefined;
+        deliveryCorrelation.reset();
         scheduleIdle();
       }
     },

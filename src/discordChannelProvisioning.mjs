@@ -1,4 +1,4 @@
-import { createChannelPermissionOverwrites } from "./discordChannelPermissions.mjs";
+import { createChannelPermissionOverwrites } from "./discordChannelPermissionRules.mjs";
 
 const GUILD_ANNOUNCEMENT = 5;
 

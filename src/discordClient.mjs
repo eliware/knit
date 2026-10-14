@@ -1,10 +1,6 @@
 import { createDiscord } from "@eliware/discord";
 import { log as logger, path } from "@eliware/common";
-import * as Notifier from "./notifier/index.mjs";
-import { createChannelResolver } from "./discordChannels.mjs";
-import { defaultTargetLoader } from "./targetLoader.mjs";
-import { createPresenceManager, setPresenceManager } from "./presenceManager.mjs";
-import packageJson from "../package.json" with { type: "json" };
+import { registerDiscordServices, unregisterDiscordServices } from "./discordServices.mjs";
 
 /**
  * Starts the shared Discord client used for channel notifications.
@@ -15,7 +11,7 @@ export async function startDiscordClient({
   token = process.env.DISCORD_TOKEN,
   clientId = process.env.DISCORD_CLIENT_ID,
   guildId,
-  targetLoader = defaultTargetLoader,
+  targetLoader,
   log = logger,
 } = {}) {
   if (!token && !clientId) {
@@ -35,20 +31,14 @@ export async function startDiscordClient({
     intents,
     log,
   });
-  const presenceManager = createPresenceManager({ client, version: packageJson.version, log });
-  setPresenceManager(presenceManager);
-  presenceManager.start();
-  Notifier.setDiscordClient(client);
-  const configuredGuildId = guildId || targetLoader.load().guildId;
-  Notifier.setChannelResolver(createChannelResolver({ client, guildId: configuredGuildId, log }));
+  registerDiscordServices({ client, guildId, targetLoader, log });
   log.info("[Discord] Client connected for channel notifications");
   return client;
 }
 
 export async function stopDiscordClient(client) {
   if (!client) return;
-  setPresenceManager(null);
-  Notifier.clearDiscordClient(client);
+  unregisterDiscordServices({ client });
   await client.shutdown?.();
   if (!client.shutdown && typeof client.destroy === "function") await client.destroy();
 }

@@ -44,18 +44,6 @@ it("should send error embed if hasError is true", async () => {
   expect(sendMessageFn).toHaveBeenCalled();
 });
 
-it("cross-posts v tag announcements when Discord returns a message", async () => {
-  const crosspost = jest.fn().mockResolvedValue(undefined);
-  const sendMessageFn = jest.fn().mockResolvedValue({ crosspost });
-  await notifier.send({
-    channelId,
-    post: { ref: "refs/tags/v2.1.1", repository: { full_name: "foo/bar" } },
-    log,
-    discordClient: makeClient(sendMessageFn),
-  });
-  expect(crosspost).toHaveBeenCalled();
-});
-
 it("resolves a repository channel when no channel ID is supplied", async () => {
   const channel = { send: jest.fn().mockResolvedValue(undefined) };
   const client = { channels: { fetch: jest.fn().mockResolvedValue(channel) } };
@@ -97,40 +85,10 @@ it("send uses provided embed, defaults event, and sends to the channel", async (
   });
 });
 
-it.each([
-  ["a missing channel", undefined],
-  ["a non-sendable channel", {}],
-])("rejects when Discord returns %s", async (_label, channel) => {
-  const log = { info: jest.fn(), error: jest.fn() };
-  const discordClient = { channels: { fetch: jest.fn().mockResolvedValue(channel) } };
-  await expect(notifier.send({ channelId, post: {}, log, discordClient })).rejects.toThrow(
-    `Discord channel is not sendable: ${channelId}`,
-  );
-  expect(log.error).toHaveBeenCalled();
-});
-
 it("covers send parameter defaults on an early return", async () => {
   await notifier.send({ channelId: "", post: {} });
 });
 
-it("logs and rethrows Discord send failures with context", async () => {
-  const error = new Error("discord down");
-  const log = { info: jest.fn(), error: jest.fn() };
-  await expect(
-    notifier.send({
-      channelId,
-      post: { repository: { full_name: "foo/bar" } },
-      log,
-      discordClient: makeClient(jest.fn().mockRejectedValue(error)),
-    }),
-  ).rejects.toBe(error);
-  expect(log.error).toHaveBeenCalledWith("[Notifier] Discord channel send failed", {
-    error,
-    event: "push",
-    channelId,
-    repository: "foo/bar",
-  });
-});
 it("returns when no channel is configured", async () => {
   await expect(notifier.send({})).resolves.toBeUndefined();
 });

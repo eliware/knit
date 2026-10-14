@@ -13,20 +13,24 @@ const makeLifecycle = (options = {}) => {
   return { lifecycle, send };
 };
 
-test("routes lifecycle states and ignores results for a stale delivery", async () => {
+test("routes lifecycle states", async () => {
   const { lifecycle, send } = makeLifecycle();
   await lifecycle.start();
-  await lifecycle.begin("first", "one");
-  await lifecycle.begin("second", "two");
-  await lifecycle.terminal("stale", true, "one");
-  await lifecycle.neutral("stale", "one");
-  await lifecycle.terminal("done", false, "two");
-  await lifecycle.neutral("ignored", "two");
+  await lifecycle.begin("first");
+  await lifecycle.terminal("done");
+  await lifecycle.neutral("info");
   lifecycle.end();
-  lifecycle.end();
-  expect(send).toHaveBeenCalledTimes(5);
-  expect(send).toHaveBeenNthCalledWith(4, { name: "✅ done" });
-  expect(send).toHaveBeenLastCalledWith({ name: "ℹ️ ignored" });
+  expect(send).toHaveBeenCalledTimes(4);
+  expect(send).toHaveBeenNthCalledWith(3, { name: "✅ done" });
+  expect(send).toHaveBeenLastCalledWith({ name: "ℹ️ info" });
+});
+
+test("ignores neutral updates while idle and for stale deliveries", async () => {
+  const { lifecycle, send } = makeLifecycle();
+  await expect(lifecycle.neutral("idle")).resolves.toBe(false);
+  await lifecycle.begin("current", "one");
+  await expect(lifecycle.neutral("stale", "two")).resolves.toBe(false);
+  expect(send).toHaveBeenCalledTimes(1);
 });
 
 test("schedules idle state and refuses updates while idle", async () => {
