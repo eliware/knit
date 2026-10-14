@@ -7,7 +7,7 @@ export function createPresenceDeliveryCorrelation() {
       else activeDeliveries.set(deliveryId, (activeDeliveries.get(deliveryId) || 0) + 1);
     },
     matches(deliveryId) {
-      return deliveryId == null || activeDeliveries.size === 0 || activeDeliveries.has(deliveryId);
+      return deliveryId == null || activeDeliveries.has(deliveryId);
     },
     end(deliveryId) {
       if (deliveryId == null) {

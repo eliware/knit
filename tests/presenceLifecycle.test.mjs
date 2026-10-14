@@ -33,6 +33,13 @@ test("ignores neutral updates while idle and for stale deliveries", async () => 
   expect(send).toHaveBeenCalledTimes(1);
 });
 
+test("ignores stale delivery updates during anonymous work", async () => {
+  const { lifecycle, send } = makeLifecycle();
+  await lifecycle.begin("anonymous work");
+  await expect(lifecycle.terminal("stale", false, "completed-delivery")).resolves.toBe(false);
+  expect(send).toHaveBeenCalledTimes(1);
+});
+
 test("schedules idle state and refuses updates while idle", async () => {
   let timer;
   const clearTimeoutFn = jest.fn();
