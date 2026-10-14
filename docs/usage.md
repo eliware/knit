@@ -65,7 +65,7 @@ Knit sends these values through SSH environment requests. Configure the SSH serv
 
 ## Discord command and activity
 
-Use `/help` to read the short service summary. Knit needs the `Guilds` intent. For each event, it uses the repository name after the owner slash as the channel name. The eliware organization keeps repository names unique. Knit checks the guild channel list and reuses a matching channel. If no channel matches, Knit creates one with that name and no suffix. It sets access from repository visibility. It sets the topic from package metadata before it posts the notice. Grant the bot the `Administrator` permission. The bot can access all channels. Do not add the bot to channel allowlists.
+Use `/help` to read the short service summary. Knit needs the `Guilds` intent. For each event, it uses the repository name after the owner slash as the channel name. Knit encodes punctuation as `_xHEX_` so different names stay distinct. Knit does not add a hash or truncate a name. Names longer than 100 characters fail. Knit checks for a matching announcement channel. It creates one if no matching channel exists, including when another channel type has that name. It sets access from repository visibility. It sets the topic from package metadata before it posts the notice. Long descriptions do not remove topic keywords. Grant the bot the `Administrator` permission. The bot can access all channels. Do not add the bot to channel allowlists.
 
 The bot shows the Knit version when idle. It shows a repository name during work and a result after work. Knit limits activity updates to Discord's rate limit. Do not use activity changes as deployment status records.
 

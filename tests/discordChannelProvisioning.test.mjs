@@ -14,6 +14,23 @@ test("returns a matching announcement channel", async () => {
   expect(create).not.toHaveBeenCalled();
 });
 
+test("creates an announcement channel when a same-name text channel exists", async () => {
+  const create = jest.fn().mockResolvedValue({ id: "announcement" });
+  const guild = {
+    roles: { everyone: { id: "everyone" } },
+    channels: { fetch: jest.fn().mockResolvedValue([{ name: "app", type: 0 }]), create },
+  };
+  await expect(
+    provisionAnnouncementChannel({
+      guild,
+      name: "app",
+      privateRepository: false,
+      log: { info: jest.fn() },
+    }),
+  ).resolves.toEqual({ id: "announcement" });
+  expect(create).toHaveBeenCalledWith(expect.objectContaining({ name: "app", type: 5 }));
+});
+
 test("creates an announcement channel with repository access rules", async () => {
   const channel = { id: "new" };
   const create = jest.fn().mockResolvedValue(channel);
