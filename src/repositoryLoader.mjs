@@ -1,5 +1,6 @@
 import { log as logger } from "@eliware/common";
 import * as ConfigValidator from "./configValidator.mjs";
+import { selectWorkflowAction } from "./workflowActionSelector.mjs";
 import { loadWorkflow } from "./workflowLoader.mjs";
 import { defaultTargetLoader } from "./targetLoader.mjs";
 import { createSshRepo } from "./repo.mjs";
@@ -19,7 +20,7 @@ export async function get({
     const { workflow, packageJson } = await workflowLoader({ repository: name, commit });
     if (!ConfigValidator.validateWorkflow({ config: workflow, log }))
       throw new Error("Invalid repository workflow");
-    const action = ConfigValidator.selectWorkflowAction({ config: workflow, post: body });
+    const action = selectWorkflowAction({ config: workflow, post: body });
     if (!action) return null;
     for (const deployment of action.deployments) {
       const target = targets.targets?.[deployment.target];

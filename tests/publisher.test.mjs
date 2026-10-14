@@ -1,11 +1,7 @@
 import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
-import {
-  publish,
-  processTasks,
-  getPublisherMetrics,
-  _resetPublisherState,
-} from "../src/publisher.mjs";
+import { publish, processTasks } from "../src/publisher.mjs";
+import { getPublisherMetrics, _resetPublisherState } from "../src/publisherState.mjs";
 
 const payload = { raw: "raw", parsed: "parsed" };
 const wait = () => new Promise((resolve) => setImmediate(() => setTimeout(resolve, 5)));

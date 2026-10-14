@@ -1,4 +1,4 @@
-import { createChannelPermissionOverwrites } from "./discordChannelPermissionRules.mjs";
+import { createAnnouncementChannel } from "./discordChannelCreation.mjs";
 
 const GUILD_ANNOUNCEMENT = 5;
 
@@ -15,14 +15,5 @@ export async function provisionAnnouncementChannel({
   );
   if (existing) return existing;
 
-  const channel = await guild.channels.create({
-    name,
-    type: GUILD_ANNOUNCEMENT,
-    permissionOverwrites: createChannelPermissionOverwrites(
-      guild.roles.everyone.id,
-      privateRepository,
-    ),
-  });
-  log.info?.("[Discord] Created repository channel", { repository, private: privateRepository });
-  return channel;
+  return createAnnouncementChannel({ guild, name, privateRepository, repository, log });
 }

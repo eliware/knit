@@ -11,15 +11,18 @@ const makeTask = (overrides = {}) => ({
   retryDelayMs: 0,
   ...overrides,
 });
-const makeMetrics = () => ({ processed: 0, succeeded: 0, failed: 0, retried: 0 });
+const makeRecorder = () => {
+  const metrics = { processed: 0, succeeded: 0, failed: 0, retried: 0 };
+  return { metrics, recordMetric: (name) => (metrics[name] += 1) };
+};
 
 test("retries a failed task and counts success", async () => {
   const task = makeTask();
   const ConsumerMod = {
     consume: jest.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true),
   };
-  const metrics = makeMetrics();
-  await processPublisherTask({ task, ConsumerMod, metrics });
+  const { metrics, recordMetric } = makeRecorder();
+  await processPublisherTask({ task, ConsumerMod, recordMetric });
   expect(metrics).toEqual({ processed: 1, succeeded: 1, failed: 0, retried: 1 });
 });
 
@@ -27,8 +30,8 @@ test("counts and logs a final task failure", async () => {
   const task = makeTask({ maxAttempts: 1 });
   const error = new Error("failure");
   const ConsumerMod = { consume: jest.fn().mockRejectedValue(error) };
-  const metrics = makeMetrics();
-  await processPublisherTask({ task, ConsumerMod, metrics });
+  const { metrics, recordMetric } = makeRecorder();
+  await processPublisherTask({ task, ConsumerMod, recordMetric });
   expect(metrics).toEqual({ processed: 1, succeeded: 0, failed: 1, retried: 0 });
   expect(task.log.error).toHaveBeenCalledWith("[Publisher] Error sending to Consumer:", error);
 });
@@ -38,8 +41,8 @@ test("retries a false result and falls back to info without a warn method", asyn
   const ConsumerMod = {
     consume: jest.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true),
   };
-  const metrics = makeMetrics();
-  await processPublisherTask({ task, ConsumerMod, metrics });
+  const { metrics, recordMetric } = makeRecorder();
+  await processPublisherTask({ task, ConsumerMod, recordMetric });
   expect(task.log.info).toHaveBeenCalledWith(
     "[Publisher] Consumer failed; retrying",
     expect.objectContaining({ attempt: 1, maxAttempts: 2 }),

@@ -1,3 +1,5 @@
+import { crosspostReleaseAnnouncement } from "./releaseCrosspost.mjs";
+
 export async function deliverDiscordMessage({ discordClient, channelId, embed, post, event, log }) {
   log.info("[Notifier] Sending message to Discord channel", { channelId });
   try {
@@ -5,13 +7,7 @@ export async function deliverDiscordMessage({ discordClient, channelId, embed, p
     if (!channel || typeof channel.send !== "function")
       throw new Error(`Discord channel is not sendable: ${channelId}`);
     const message = await channel.send({ embeds: [embed] });
-    if (post.ref?.startsWith("refs/tags/v") && typeof message?.crosspost === "function") {
-      await message.crosspost();
-      log.info("[Notifier] Cross-posted release announcement", {
-        channelId,
-        tag: post.ref.slice("refs/tags/".length),
-      });
-    }
+    await crosspostReleaseAnnouncement({ message, post, channelId, log });
   } catch (error) {
     log.error?.("[Notifier] Discord channel send failed", {
       error,

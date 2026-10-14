@@ -1,8 +1,8 @@
 import { log as logger } from "@eliware/common";
 
-export async function processPublisherTask({ task, ConsumerMod, metrics }) {
+export async function processPublisherTask({ task, ConsumerMod, recordMetric }) {
   const { raw, parsed, event, deliveryId, log = logger, maxAttempts, retryDelayMs } = task;
-  metrics.processed += 1;
+  recordMetric("processed");
   let succeeded = false;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {
@@ -12,16 +12,16 @@ export async function processPublisherTask({ task, ConsumerMod, metrics }) {
       throw new Error("Consumer returned false");
     } catch (err) {
       if (attempt < maxAttempts) {
-        metrics.retried += 1;
+        recordMetric("retried");
         const warn = typeof log.warn === "function" ? log.warn.bind(log) : log.info.bind(log);
         warn("[Publisher] Consumer failed; retrying", { attempt, maxAttempts, deliveryId });
         await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
       } else {
-        metrics.failed += 1;
+        recordMetric("failed");
         log.error("[Publisher] Error sending to Consumer:", err);
       }
     }
   }
-  if (succeeded) metrics.succeeded += 1;
+  if (succeeded) recordMetric("succeeded");
   return succeeded;
 }

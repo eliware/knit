@@ -1,16 +1,17 @@
 import { log as logger } from "@eliware/common";
 import * as Consumer from "./consumer.mjs";
 import {
-  clearPublisherQueue,
   dequeuePublisherTask,
   enqueuePublisherTask,
   forgetPublisherDelivery,
   getPendingPublisherTasks,
 } from "./publisherQueue.mjs";
 import { processPublisherTask } from "./publisherProcessor.mjs";
-
-let isProcessing = false;
-const metrics = { queued: 0, processed: 0, succeeded: 0, failed: 0, retried: 0, duplicates: 0 };
+import {
+  isPublisherProcessing,
+  recordPublisherMetric,
+  setPublisherProcessing,
+} from "./publisherState.mjs";
 
 export function publish({
   raw,
@@ -33,43 +34,35 @@ export function publish({
     retryDelayMs,
   };
   if (!enqueuePublisherTask(task)) {
-    metrics.duplicates += 1;
+    recordPublisherMetric("duplicates");
     activeLog.info("[Publisher] Duplicate delivery ignored", deliveryId);
     return false;
   }
-  metrics.queued += 1;
+  recordPublisherMetric("queued");
   activeLog.info("[Publisher] Queuing payload for publish");
   setImmediate(() => processTasks(ConsumerMod));
 }
 
 export async function processTasks(ConsumerMod = Consumer) {
-  if (isProcessing || getPendingPublisherTasks() === 0) return;
-  isProcessing = true;
+  if (isPublisherProcessing() || getPendingPublisherTasks() === 0) return;
+  setPublisherProcessing(true);
   try {
     while (getPendingPublisherTasks() > 0) {
       const task = dequeuePublisherTask();
       try {
-        const succeeded = await processPublisherTask({ task, ConsumerMod, metrics });
+        const succeeded = await processPublisherTask({
+          task,
+          ConsumerMod,
+          recordMetric: recordPublisherMetric,
+        });
         if (!succeeded) forgetPublisherDelivery(task.deliveryId);
       } catch (error) {
-        metrics.failed += 1;
+        recordPublisherMetric("failed");
         forgetPublisherDelivery(task.deliveryId);
         logger.error("[Publisher] Unexpected task processing error", error);
       }
     }
   } finally {
-    isProcessing = false;
+    setPublisherProcessing(false);
   }
-}
-
-export function getPublisherMetrics() {
-  return { ...metrics, pending: getPendingPublisherTasks(), processing: isProcessing };
-}
-
-export function _resetPublisherState() {
-  clearPublisherQueue();
-  isProcessing = false;
-  Object.keys(metrics).forEach((key) => {
-    metrics[key] = 0;
-  });
 }
