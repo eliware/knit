@@ -3,15 +3,17 @@ import { jest } from "@jest/globals";
 import { createSshRepo } from "../src/repo.mjs";
 import { setPresenceManager } from "../src/presenceManager.mjs";
 import { body, deployment, target } from "../test-fixtures/repo.mjs";
-test("executes repository workflow against the named trusted target", async () => {
+test("executes each deployment with its trusted target commands and directory", async () => {
   setPresenceManager({ update: jest.fn(), terminal: jest.fn(), end: jest.fn() });
-  const sshExec = jest.fn().mockResolvedValue([
-    { command: "one", result: "out\n", code: 0 },
-    { command: "two", result: "", code: 0 },
-  ]);
+  const sshExec = jest.fn().mockResolvedValue([]);
   const repo = createSshRepo({
-    config: { deployments: [deployment()] },
-    targets: { dev: target },
+    config: {
+      deployments: [
+        deployment(),
+        deployment({ target: "nas", cwd: "/opt/nas", commands: ["deploy"] }),
+      ],
+    },
+    targets: { dev: target, nas: { ...target, host: "nas" } },
     sshExec,
   });
   await expect(repo.update({ body })).resolves.toBe(true);
@@ -26,26 +28,11 @@ test("executes repository workflow against the named trusted target", async () =
       hostCaPath: "/ca",
     }),
   );
-});
-
-test("uses different command sets and directories per target", async () => {
-  const sshExec = jest.fn().mockResolvedValue([]);
-  const repo = createSshRepo({
-    config: {
-      deployments: [
-        deployment(),
-        deployment({ target: "nas", cwd: "/opt/app", commands: ["deploy"] }),
-      ],
-    },
-    targets: { dev: target, nas: { ...target, host: "nas" } },
-    sshExec,
-  });
-  await expect(repo.update({ body })).resolves.toBe(true);
   expect(sshExec).toHaveBeenNthCalledWith(
     2,
     expect.objectContaining({
       host: "nas",
-      cwd: "/opt/app",
+      cwd: "/opt/nas",
       commands: ["deploy"],
     }),
   );
