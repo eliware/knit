@@ -1,6 +1,7 @@
-import { channelName, channelTopic } from "./discordChannelMetadata.mjs";
+import { channelName } from "./discordChannelMetadata.mjs";
 import { syncChannelPermissions } from "./discordChannelPermissions.mjs";
 import { provisionAnnouncementChannel } from "./discordChannelProvisioning.mjs";
+import { syncChannelTopic } from "./discordChannelTopic.mjs";
 export { channelName } from "./discordChannelMetadata.mjs";
 
 export function createChannelResolver({ client, guildId, log = console } = {}) {
@@ -24,9 +25,7 @@ export function createChannelResolver({ client, guildId, log = console } = {}) {
       });
     }
     await syncChannelPermissions(channel, guild, privateRepository);
-    const topic = channelTopic(packageJson);
-    if (topic && typeof channel.edit === "function" && channel.topic !== topic)
-      await channel.edit({ topic });
+    await syncChannelTopic(channel, packageJson);
     cache.set(repository, channel);
     return channel.id;
   };
