@@ -6,7 +6,7 @@ import * as EventHandlers from "./eventHandlers.mjs";
 import { getPresenceManager } from "./presenceManager.mjs";
 import { validateConsumerMessage } from "./consumerValidation.mjs";
 import { resolveConsumerTarget } from "./consumerRouting.mjs";
-import { finishConsumerPresence } from "./consumerPresence.mjs";
+import { finishConsumerOutcome } from "./consumerOutcomePresence.mjs";
 
 export async function consume({
   message,
@@ -23,10 +23,10 @@ export async function consume({
   const deliveryId = message.deliveryId ?? null;
   await presence?.begin(repository, deliveryId);
   if (!validateConsumerMessage({ GitHubMod, post, event, log })) {
-    await finishConsumerPresence({
+    await finishConsumerOutcome({
       presence,
-      text: `${repository} failure`,
-      failed: true,
+      outcome: { type: "validation-failed" },
+      repository,
       deliveryId,
     });
     return false;
@@ -36,13 +36,12 @@ export async function consume({
     if (target.ignored) {
       if (target.kind === "repository") log.error("[Consumer] Repo not found:", target.name);
       else log.info("[Consumer] Event ignored: no configured target", target.name);
-      const isTag = Boolean(post?.ref?.startsWith("refs/tags/"));
-      await finishConsumerPresence({
+      const isTag = await finishConsumerOutcome({
         presence,
-        text: isTag ? `${repository} ignored` : `${repository} failure`,
-        failed: !isTag,
-        neutral: isTag,
+        outcome: { type: "ignored-target" },
+        repository,
         deliveryId,
+        post,
       });
       return isTag;
     }
@@ -55,10 +54,10 @@ export async function consume({
         deliveryId: message.deliveryId,
         log,
       });
-      await finishConsumerPresence({
+      await finishConsumerOutcome({
         presence,
-        text: `${result ? "completed" : "failed"} ${repository}`,
-        failed: !result,
+        outcome: { type: "specialized", result },
+        repository,
         deliveryId,
       });
       return result;
@@ -69,29 +68,24 @@ export async function consume({
       deliveryId: message.deliveryId,
       log,
     });
+    await finishConsumerOutcome({
+      presence,
+      outcome: { type: "push", result: updated },
+      repository,
+      deliveryId,
+    });
     if (!updated) {
-      await finishConsumerPresence({
-        presence,
-        text: `${repository} failure`,
-        failed: true,
-        deliveryId,
-      });
       log.error("[Consumer] Repo update failed");
       return false;
     }
-    await finishConsumerPresence({
-      presence,
-      text: `${repository} success`,
-      deliveryId,
-    });
     log.info("[Consumer] Repo updated successfully");
     return true;
   } catch (error) {
     log.error("[Consumer] Webhook processing failed", error);
-    await finishConsumerPresence({
+    await finishConsumerOutcome({
       presence,
-      text: `${repository} failure`,
-      failed: true,
+      outcome: { type: "processing-error" },
+      repository,
       deliveryId,
     });
     return false;
