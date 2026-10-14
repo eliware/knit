@@ -9,6 +9,7 @@ export function validateTargets({ config, log = logger }) {
     string(config?.guildId) &&
     targets &&
     typeof targets === "object" &&
+    !Array.isArray(targets) &&
     Object.values(targets).length > 0 &&
     Object.values(targets).every(isValidTarget);
   if (!valid) log.error("ConfigValidator::validateTargets failed: invalid target inventory");

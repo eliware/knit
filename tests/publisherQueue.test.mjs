@@ -2,6 +2,7 @@ import {
   clearPublisherQueue,
   dequeuePublisherTask,
   enqueuePublisherTask,
+  forgetPublisherDelivery,
   getPendingPublisherTasks,
 } from "../src/publisherQueue.mjs";
 
@@ -22,6 +23,15 @@ test("evicts the oldest delivery ID after the queue limit", () => {
     enqueuePublisherTask({ deliveryId: `id-${index}` });
   expect(enqueuePublisherTask({ deliveryId: "id-0" })).toBe(true);
   expect(getPendingPublisherTasks()).toBe(1002);
+});
+
+test("allows a failed delivery ID to enter the queue again", () => {
+  const task = { deliveryId: "retry" };
+  forgetPublisherDelivery(null);
+  expect(enqueuePublisherTask(task)).toBe(true);
+  expect(dequeuePublisherTask()).toBe(task);
+  forgetPublisherDelivery(task.deliveryId);
+  expect(enqueuePublisherTask(task)).toBe(true);
 });
 
 test("keeps FIFO order after the queue compacts its consumed prefix", () => {

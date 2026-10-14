@@ -4,6 +4,7 @@ import {
   clearPublisherQueue,
   dequeuePublisherTask,
   enqueuePublisherTask,
+  forgetPublisherDelivery,
   getPendingPublisherTasks,
 } from "./publisherQueue.mjs";
 import { processPublisherTask } from "./publisherProcessor.mjs";
@@ -46,10 +47,13 @@ export async function processTasks(ConsumerMod = Consumer) {
   isProcessing = true;
   try {
     while (getPendingPublisherTasks() > 0) {
+      const task = dequeuePublisherTask();
       try {
-        await processPublisherTask({ task: dequeuePublisherTask(), ConsumerMod, metrics });
+        const succeeded = await processPublisherTask({ task, ConsumerMod, metrics });
+        if (!succeeded) forgetPublisherDelivery(task.deliveryId);
       } catch (error) {
         metrics.failed += 1;
+        forgetPublisherDelivery(task.deliveryId);
         logger.error("[Publisher] Unexpected task processing error", error);
       }
     }

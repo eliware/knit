@@ -23,4 +23,5 @@ export async function processPublisherTask({ task, ConsumerMod, metrics }) {
     }
   }
   if (succeeded) metrics.succeeded += 1;
+  return succeeded;
 }

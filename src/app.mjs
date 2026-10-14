@@ -31,6 +31,16 @@ function configureRoutes(app, processor, log, version) {
   });
 }
 
+function configureErrors(app, log) {
+  app.use((error, request, response, next) => {
+    if (error?.type === "entity.parse.failed") {
+      log.warn?.("[App] Invalid JSON request body");
+      return response.status(400).send("Webhook processing failed.");
+    }
+    return next(error);
+  });
+}
+
 export async function createApp({
   webhookProcessorFactory = createWebhookProcessor,
   publisher = undefined,
@@ -42,6 +52,7 @@ export async function createApp({
   configureMiddleware(app, assetsPath);
   const processor = webhookProcessorFactory({ publisher, log });
   configureRoutes(app, processor, log, version);
+  configureErrors(app, log);
   return app;
 }
 

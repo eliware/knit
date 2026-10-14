@@ -1,15 +1,17 @@
+import { createHash } from "node:crypto";
+
 export function channelName(repository) {
   if (!/^[^/]+\/[^/]+$/.test(repository || ""))
     throw new Error("Repository is required to resolve a Discord channel");
-  return (
-    repository
-      .split("/")
-      .at(-1)
-      .toLowerCase()
-      .replace(/[^a-z0-9-]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 100) || "repository"
-  );
+  const suffix = createHash("sha256").update(repository.toLowerCase()).digest("hex").slice(0, 12);
+  const base = repository
+    .split("/")
+    .at(-1)
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 87);
+  return `${base || "repository"}-${suffix}`;
 }
 
 export function channelTopic(packageJson = {}) {

@@ -1,3 +1,5 @@
+import { escapeDiscordMarkdown } from "./discordMarkdown.mjs";
+
 export function collectPushChanges(post) {
   const files = { added: new Set(), removed: new Set(), modified: new Set() };
   for (const commit of post.commits) {
@@ -27,7 +29,7 @@ export function pushChangeFields(post) {
     .filter(([key]) => files[key].size)
     .map(([key, label]) => ({
       name: `${label} (${files[key].size})`,
-      value: [...files[key]].join("\n"),
+      value: [...files[key]].map(escapeDiscordMarkdown).join("\n"),
       inline: false,
     }));
 }

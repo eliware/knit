@@ -67,3 +67,17 @@ test("does not restore idle state after work starts again", async () => {
   idleTimer();
   expect(send).not.toHaveBeenCalledWith({ status: "idle" });
 });
+
+test("tracks terminal updates for overlapping deliveries", async () => {
+  const { lifecycle, send } = makeLifecycle();
+  await lifecycle.begin("first", "one");
+  await lifecycle.begin("second", "two");
+
+  await expect(lifecycle.terminal("first done", false, "one")).resolves.toBe(true);
+  lifecycle.end("one");
+  await expect(lifecycle.terminal("second done", false, "two")).resolves.toBe(true);
+  lifecycle.end("two");
+  await expect(lifecycle.terminal("stale", false, "one")).resolves.toBe(false);
+
+  expect(send).toHaveBeenLastCalledWith({ name: "✅ second done" });
+});

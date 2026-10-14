@@ -5,8 +5,15 @@ export async function finishConsumerPresence({
   failed = false,
   neutral = false,
 }) {
-  await (neutral
-    ? presence?.neutral?.(text, deliveryId)
-    : presence?.terminal(text, failed, deliveryId));
-  presence?.end();
+  try {
+    await (neutral
+      ? presence?.neutral?.(text, deliveryId)
+      : presence?.terminal(text, failed, deliveryId));
+  } catch {
+    return;
+  } finally {
+    try {
+      presence?.end(deliveryId);
+    } catch {}
+  }
 }

@@ -19,7 +19,18 @@ test("keeps the current delivery when a new delivery has no ID", () => {
 
 test("clears the current delivery after reset", () => {
   const correlation = createPresenceDeliveryCorrelation();
+  correlation.end("unknown");
   correlation.begin("one");
   correlation.reset();
+  expect(correlation.matches("two")).toBe(true);
+});
+
+test("keeps a delivery active until each matching task ends", () => {
+  const correlation = createPresenceDeliveryCorrelation();
+  correlation.begin("one");
+  correlation.begin("one");
+  correlation.end("one");
+  expect(correlation.matches("one")).toBe(true);
+  correlation.end("one");
   expect(correlation.matches("two")).toBe(true);
 });

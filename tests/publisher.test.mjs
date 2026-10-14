@@ -58,6 +58,23 @@ describe("publish", () => {
     immediate.mockRestore();
   });
 
+  it("accepts a failed delivery ID again after processing ends", async () => {
+    const immediate = jest.spyOn(global, "setImmediate").mockImplementation(() => {});
+    const log = { info: jest.fn(), error: jest.fn() };
+    const Consumer = {
+      consume: jest.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true),
+    };
+
+    publish({ ...payload, deliveryId: "retry", log, ConsumerMod: Consumer, maxAttempts: 1 });
+    await processTasks(Consumer);
+    publish({ ...payload, deliveryId: "retry", log, ConsumerMod: Consumer, maxAttempts: 1 });
+    await processTasks(Consumer);
+    immediate.mockRestore();
+
+    expect(Consumer.consume).toHaveBeenCalledTimes(2);
+    expect(getPublisherMetrics()).toEqual(expect.objectContaining({ succeeded: 1, failed: 1 }));
+  });
+
   it("evicts old delivery IDs", () => {
     const Consumer = { consume: jest.fn().mockResolvedValue(true) };
     const log = { info: jest.fn(), error: jest.fn() };

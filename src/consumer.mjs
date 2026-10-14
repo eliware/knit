@@ -21,17 +21,17 @@ export async function consume({
   const presence = getPresenceManager();
   const repository = post?.repository?.full_name || "webhook";
   const deliveryId = message.deliveryId ?? null;
-  await presence?.begin(repository, deliveryId);
-  if (!validateConsumerMessage({ GitHubMod, post, event, log })) {
-    await finishConsumerOutcome({
-      presence,
-      outcome: { type: "validation-failed" },
-      repository,
-      deliveryId,
-    });
-    return false;
-  }
   try {
+    await presence?.begin(repository, deliveryId);
+    if (!validateConsumerMessage({ GitHubMod, post, event, log })) {
+      await finishConsumerOutcome({
+        presence,
+        outcome: { type: "validation-failed" },
+        repository,
+        deliveryId,
+      });
+      return false;
+    }
     const target = await resolveConsumerTarget({ RouterMod, RepoMod, post, event, log });
     if (target.ignored) {
       if (target.kind === "repository") log.error("[Consumer] Repo not found:", target.name);

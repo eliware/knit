@@ -18,3 +18,12 @@ test("rejects a missing or incomplete target inventory", () => {
   ).toBe(false);
   expect(error).toHaveBeenCalledTimes(2);
 });
+
+test("rejects target arrays", () => {
+  expect(
+    validateTargets({
+      config: { guildId: "guild", targets: [target] },
+      log: { error: jest.fn() },
+    }),
+  ).toBe(false);
+});

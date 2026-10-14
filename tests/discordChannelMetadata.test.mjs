@@ -1,8 +1,9 @@
 import { channelName, channelTopic } from "../src/discordChannelMetadata.mjs";
 
 test("normalizes repository names and requires an owner and repository", () => {
-  expect(channelName("eliware/eliware.org")).toBe("eliware-org");
-  expect(channelName("eliware/!!!")).toBe("repository");
+  expect(channelName("eliware/eliware.org")).toMatch(/^eliware-org-[a-f0-9]{12}$/u);
+  expect(channelName("eliware/!!!")).toMatch(/^repository-[a-f0-9]{12}$/u);
+  expect(channelName("owner/a.b")).not.toBe(channelName("owner/a-b"));
   expect(channelName(`owner/${"a".repeat(120)}`)).toHaveLength(100);
   expect(() => channelName()).toThrow("Repository is required");
 });

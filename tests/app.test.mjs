@@ -98,6 +98,45 @@ describe("app.mjs", () => {
     }
   });
 
+  it("should return the processor error for invalid JSON", async () => {
+    const process = jest.fn();
+    const app = await createApp({
+      webhookProcessorFactory: () => ({ process }),
+      assetsPath: "assets",
+      log: { info: jest.fn(), warn: jest.fn() },
+    });
+    const server = app.listen(0);
+
+    try {
+      const response = await request(server, { method: "POST", path: "/", body: "{invalid" });
+      expect(response.statusCode).toBe(400);
+      expect(response.data).toBe("Webhook processing failed.");
+      expect(process).not.toHaveBeenCalled();
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+
+  it("should pass other route errors to Express", async () => {
+    const app = await createApp({
+      webhookProcessorFactory: () => ({
+        process: () => {
+          throw new Error("route failed");
+        },
+      }),
+      assetsPath: "assets",
+      log: { info: jest.fn(), error: jest.fn() },
+    });
+    const server = app.listen(0);
+
+    try {
+      const response = await request(server, { method: "POST", path: "/", body: "{}" });
+      expect(response.statusCode).toBe(500);
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+
   it("should use the default webhook processor factory", async () => {
     await expect(createApp()).resolves.toBeDefined();
   });

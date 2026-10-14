@@ -11,6 +11,23 @@ test("formats branch and commit details", () => {
   ).toBe("Branch: **main** - Commits: **1**\n**1234567**: [change](https://example.test/commit)");
 });
 
+test("escapes untrusted commit text and link targets", () => {
+  expect(
+    createPushDescription({
+      post: {
+        ref: "refs/heads/feature-@everyone",
+        commits: [
+          {
+            id: "123456789",
+            message: "](https://evil.test) @here",
+            url: "https://github.com/owner/repo/commit/abc) (fake",
+          },
+        ],
+      },
+    }),
+  ).toContain("\\]\\(https://evil.test\\) @\u200bhere");
+});
+
 test("truncates long commit descriptions", () => {
   const description = createPushDescription({
     post: {

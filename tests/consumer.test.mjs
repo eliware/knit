@@ -151,6 +151,17 @@ describe("consumer.mjs", () => {
     await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
     expect(presence.begin).toHaveBeenCalledWith("foo", null);
   });
+  it("returns a failure when presence setup rejects", async () => {
+    const presence = {
+      begin: jest.fn().mockRejectedValue(new Error("presence failed")),
+      terminal: jest.fn().mockRejectedValue(new Error("presence failed")),
+      end: jest.fn(),
+    };
+    setPresenceManager(presence);
+
+    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
+    expect(presence.end).toHaveBeenCalledWith("delivery-1");
+  });
   it("uses the default logger when no logger is provided", async () => {
     GitHub.validate.mockReturnValue(false);
 

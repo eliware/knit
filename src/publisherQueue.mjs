@@ -26,6 +26,10 @@ export function dequeuePublisherTask() {
   return task;
 }
 
+export function forgetPublisherDelivery(deliveryId) {
+  if (deliveryId) processedDeliveries.delete(deliveryId);
+}
+
 export function getPendingPublisherTasks() {
   return tasks.length - head;
 }

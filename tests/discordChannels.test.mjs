@@ -1,6 +1,6 @@
 import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
-import { createChannelResolver } from "../src/discordChannels.mjs";
+import { channelName, createChannelResolver } from "../src/discordChannels.mjs";
 
 function clientWith(channels = []) {
   const created = [];
@@ -24,7 +24,7 @@ function clientWith(channels = []) {
 test("reuses a matching text channel and caches it", async () => {
   const existing = {
     id: "channel-1",
-    name: "app",
+    name: channelName("eliware/app"),
     type: 5,
     permissionOverwrites: { edit: jest.fn() },
   };
@@ -61,11 +61,11 @@ test("creates public and private repository channels", async () => {
 test("normalizes repository names for Discord", async () => {
   const { client, created } = clientWith();
   await createChannelResolver({ client, guildId: "guild" })({ repository: "eliware/eliware.org" });
-  expect(created[0].options.name).toBe("eliware-org");
+  expect(created[0].options.name).toBe(channelName("eliware/eliware.org"));
 });
 
 test("synchronizes a channel without overwrite support", async () => {
-  const { client } = clientWith([{ id: "channel", name: "plain", type: 5 }]);
+  const { client } = clientWith([{ id: "channel", name: channelName("eliware/plain"), type: 5 }]);
   await expect(
     createChannelResolver({ client, guildId: "guild" })({ repository: "eliware/plain" }),
   ).resolves.toBe("channel");
@@ -78,7 +78,7 @@ test("requires a valid repository and Discord client", () => {
   return expect(resolve({ repository: "invalid" })).rejects.toThrow();
 });
 test("uses default channel resolver options", async () => {
-  const { client } = clientWith([{ name: "app", type: 5 }]);
+  const { client } = clientWith([{ name: channelName("eliware/app"), type: 5 }]);
   const resolve = createChannelResolver({ client, guildId: "guild" });
   await expect(resolve({ repository: "eliware/app" })).resolves.toBeUndefined();
   await expect(resolve()).rejects.toThrow("Repository is required");
