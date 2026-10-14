@@ -8,6 +8,11 @@ directives:
       - Read repository workflows at the webhook commit.
       - Run approved commands through verified SSH targets.
       - Send supported event and deployment updates to Discord.
+      - Use the repository name as the Discord announcement channel name.
+      - Check the guild channel list for that name on every event.
+      - Reuse the matching announcement channel or create it without a hash suffix.
+      - Set channel access from repository visibility before Knit posts an event.
+      - Set the channel topic from package metadata before Knit posts an event.
       - Deploy released container images through GitOps.
     donts:
       - Do not store runtime credentials in this repository.

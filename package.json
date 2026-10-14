@@ -1,6 +1,6 @@
 {
   "name": "@eliware/knit",
-  "version": "12.0.0",
+  "version": "12.0.1",
   "type": "module",
   "description": "GitHub webhook handler and SSH deployment automation service with Discord notifications, delivery-aware presence, and metadata-aware validation workflows.",
   "keywords": [
@@ -54,7 +54,7 @@
     "@eliware/discord": "^12.0.0",
     "@eliware/ssh-client": "^12.0.0",
     "body-parser": "^2.3.0",
-    "dotenv": "^18.0.7",
+    "dotenv": "^18.0.8",
     "express": "^5.1.0",
     "inquirer": "^14.2.1",
     "js-yaml": "^5.4.1"

@@ -21,19 +21,32 @@ function clientWith(channels = []) {
   return { client: { guilds: { fetch: jest.fn().mockResolvedValue(guild) } }, guild, created };
 }
 
-test("reuses a matching text channel and caches it", async () => {
+test("checks the guild channel list and reuses the repo channel on each event", async () => {
   const existing = {
     id: "channel-1",
     name: channelName("eliware/app"),
     type: 5,
+    edit: jest.fn(),
     permissionOverwrites: { edit: jest.fn() },
   };
   const { client, guild } = clientWith([existing]);
   const resolve = createChannelResolver({ client, guildId: "guild" });
-  await expect(resolve({ repository: "eliware/app" })).resolves.toBe("channel-1");
-  await expect(resolve({ repository: "eliware/app" })).resolves.toBe("channel-1");
-  expect(guild.channels.fetch).toHaveBeenCalledTimes(1);
-  expect(existing.permissionOverwrites.edit).toHaveBeenCalled();
+  const event = {
+    repository: "eliware/app",
+    privateRepository: true,
+    packageJson: { description: "Private app" },
+  };
+  await expect(resolve(event)).resolves.toBe("channel-1");
+  await expect(resolve(event)).resolves.toBe("channel-1");
+  expect(guild.channels.fetch).toHaveBeenCalledTimes(2);
+  expect(existing.permissionOverwrites.edit).toHaveBeenCalledWith("everyone", {
+    ViewChannel: false,
+    SendMessages: false,
+    SendMessagesInThreads: false,
+    CreatePublicThreads: false,
+    CreatePrivateThreads: false,
+  });
+  expect(existing.edit).toHaveBeenCalledWith({ topic: "Private app" });
 });
 
 test("creates public and private repository channels", async () => {
@@ -58,10 +71,11 @@ test("creates public and private repository channels", async () => {
   expect(privateClient.created[0].channel.permissionOverwrites.edit).toHaveBeenCalled();
 });
 
-test("normalizes repository names for Discord", async () => {
+test("creates a channel with the repository name and no hash suffix", async () => {
   const { client, created } = clientWith();
   await createChannelResolver({ client, guildId: "guild" })({ repository: "eliware/eliware.org" });
-  expect(created[0].options.name).toBe(channelName("eliware/eliware.org"));
+  expect(created[0].options.name).toBe("eliware-org");
+  expect(created[0].options.name).not.toMatch(/-[a-f0-9]{12}$/u);
 });
 
 test("synchronizes a channel without overwrite support", async () => {

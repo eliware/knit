@@ -23,7 +23,7 @@ Knit listens on port `3456` by default. Set `PORT` to use another port. Keep the
 Use the GHCR image after release publication:
 
 ```sh
-docker pull ghcr.io/eliware/knit:v12.0.0
+docker pull ghcr.io/eliware/knit:v12.0.1
 docker run --rm -p 3456:3456 \
   --env GITHUB_WEBHOOK_SECRET \
   --env GITHUB_READ_TOKEN \
@@ -34,7 +34,7 @@ docker run --rm -p 3456:3456 \
   --mount type=bind,src=/path/to/ssh/id_rsa,dst=/run/secrets/eliware/ssh/id_rsa,readonly \
   --mount type=bind,src=/path/to/ssh/known_hosts,dst=/run/secrets/eliware/ssh/known_hosts,readonly \
   --mount type=bind,src=/path/to/ssh/eliware_host_ca_ed25519.pub,dst=/run/secrets/eliware/ssh/eliware_host_ca_ed25519.pub,readonly \
-  ghcr.io/eliware/knit:v12.0.0
+  ghcr.io/eliware/knit:v12.0.1
 ```
 
 Replace each source path with a host file or directory. Put `targets.yaml` in `/path/to/config`. The SSH paths in the target inventory must use the container paths shown above. Supply secrets through your container secret store. Do not put secret values in shell history. The image uses Node.js 26 and listens on port `3456` by default.
@@ -63,7 +63,7 @@ Knit sends these values through SSH environment requests. Configure the SSH serv
 
 ## Discord command and activity
 
-Use `/help` to read the short service summary. Knit needs the `Guilds` intent. It creates or reuses an announcement channel for each repository. It sets the channel topic from the repository description and keywords. Grant `View Channels`, `Manage Channels`, `Manage Roles`, and `Send Messages` permissions.
+Use `/help` to read the short service summary. Knit needs the `Guilds` intent. For each event, it checks the guild channel list for an announcement channel named after the repository. It reuses that channel or creates it with the repository name and no hash suffix. It sets public or private access from repository visibility. It sets the topic from package metadata before it posts the notice. Grant `View Channels`, `Manage Channels`, `Manage Roles`, and `Send Messages` permissions.
 
 The bot shows the Knit version when idle. It shows a repository name during work and a result after work. Knit limits activity updates to Discord's rate limit. Do not use activity changes as deployment status records.
 

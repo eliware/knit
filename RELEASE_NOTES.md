@@ -1,5 +1,14 @@
 # Release Notes
 
+## 12.0.1 — 2026-10-14
+
+### Fixed
+
+- Knit uses the repository name for its Discord announcement channel.
+- Knit checks the guild channel list for that channel on every event.
+- Knit reuses the matching channel or creates it without a hash suffix.
+- Knit applies repository access and package metadata before it posts a notice.
+
 ## 12.0.0 — 2026-10-14
 
 ### Added
