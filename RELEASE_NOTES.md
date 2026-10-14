@@ -1,38 +1,35 @@
 # Release Notes
 
-## 12.0.0 — 2026-10-13
+## 12.0.0 — 2026-10-14
 
 ### Added
 
-- The HTTP service now shows a service page at `/` and a versioned health result at `/health`.
-- Discord now has a localized `/help` command, repository announcement channels, event notices, and run activity.
-- Deployment commands now receive the commit, repository, ref, event, and delivery ID as `KNIT_*` values.
-- The GHCR workflow now attests and verifies the published image digest.
-- End-user guides now cover setup, target settings, repository workflows, Discord access, and faults.
+- Added user guides for service use, configuration, and troubleshooting.
+- Added requirement specs, directive specs, and a runnable example.
+- Added a localized Discord `/help` command and interaction handlers.
+- Added CI and GHCR workflows for validation and image publication.
+- Added image attestations and digest checks to the GHCR release workflow.
 
 ### Changed
 
-- Knit now uses Node.js 26 and the Eliware v12 packages and checks.
-- Knit now reads trusted targets from `targets.yaml` and repository workflows from `.knit/deploy.yaml`.
-- Knit now reads each workflow at the webhook commit and runs its commands in order through verified SSH.
-- Discord notices now cover releases, workflows, pull requests, issues, deployments, and deployment status changes.
+- Updated Knit to the Eliware v12 conventions and release checks.
+- Organized source code and tests into focused modules and suites.
+- Set the package entry point to `bin/knit.mjs` and kept the launcher thin.
+- Kept release publication on GHCR. Removed npm package publication.
+- Updated the deployment example to pull `main` from `/eliware/knit`.
+- Clarified that Knit checks SSH files when it opens an SSH connection.
+- Removed the tracked `repos/.gitkeep` placeholder. Local checkouts no longer need it.
 
-### Breaking changes
+### Fixed
 
-- Node.js 26 or later is now required.
-- Target access now uses a YAML target inventory with SSH identity, known-hosts, and host CA paths.
-- Repositories now require a version 1 `.knit/deploy.yaml` file with an absolute working directory.
-
-### Migration
-
-- Create `repos/targets.yaml` or set `KNIT_TARGETS_PATH` to its location.
-- Add a `guildId` and at least one valid target to the inventory.
-- Add `.knit/deploy.yaml` to each repository. Set each target name, absolute working directory, and command list.
-- Set `GITHUB_WEBHOOK_SECRET`. Set both Discord variables or leave both unset.
-- Read the [configuration guide](docs/knit-config-guide.md) before service startup.
+- Kept webhook event names during target routing.
+- Improved target validation, webhook signature checks, rate limiting, and delivery retries.
+- Returned a clear client error for malformed JSON webhook requests.
+- Encoded repository path components in GitHub Contents requests.
+- Escaped repository-controlled Markdown and mentions in Discord event embeds.
+- Rejected stale presence updates during later or anonymous work.
 
 ### Security
 
-- Knit now validates target settings before it opens external connections.
-- Knit now rejects webhook requests without a valid GitHub signature.
-- Knit now checks workflow file digests and SSH host identity before it runs commands.
+- Escaped repository-controlled text before Knit adds it to Discord embeds.
+- Encoded repository path components before Knit requests GitHub Contents files.
