@@ -31,10 +31,13 @@ docker run --rm -p 3456:3456 \
   --env DISCORD_CLIENT_ID \
   --env KNIT_CONFIG_PATH=/config \
   --mount type=bind,src=/path/to/config,dst=/config,readonly \
+  --mount type=bind,src=/path/to/ssh/id_rsa,dst=/run/secrets/eliware/ssh/id_rsa,readonly \
+  --mount type=bind,src=/path/to/ssh/known_hosts,dst=/run/secrets/eliware/ssh/known_hosts,readonly \
+  --mount type=bind,src=/path/to/ssh/eliware_host_ca_ed25519.pub,dst=/run/secrets/eliware/ssh/eliware_host_ca_ed25519.pub,readonly \
   ghcr.io/eliware/knit:v12.0.0
 ```
 
-Replace `/path/to/config` with a directory that contains `targets.yaml`. Supply secrets through your container secret store. Do not put secret values in shell history. The image uses Node.js 26 and listens on port `3456` by default.
+Replace each source path with a host file or directory. Put `targets.yaml` in `/path/to/config`. The SSH paths in the target inventory must use the container paths shown above. Supply secrets through your container secret store. Do not put secret values in shell history. The image uses Node.js 26 and listens on port `3456` by default.
 
 ## Check service status
 

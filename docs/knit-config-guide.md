@@ -40,15 +40,15 @@ targets:
   production:
     host: "host.example.invalid"
     user: "deploy"
-    identity: "/run/secrets/knit_ssh_key"
-    knownHosts: "/run/config/known_hosts"
-    hostCa: "/run/config/host_ca.pub"
+    identity: "/run/secrets/eliware/ssh/id_rsa"
+    knownHosts: "/run/secrets/eliware/ssh/known_hosts"
+    hostCa: "/run/secrets/eliware/ssh/eliware_host_ca_ed25519.pub"
     allowedCwdRoot: "/opt/services"
     allowedRepositories:
       - "owner/repository"
 ```
 
-Replace every example value. Point SSH paths to files that exist on the Knit host or container. Keep private keys outside Git. Use a trusted host CA and known-hosts file. The target must accept the configured user and key. Set `allowedCwdRoot` to the smallest safe root.
+Replace every example value. For Docker Compose, place the SSH files in `~/.ssh` with the names that `docker-compose.yml` mounts. For `docker run`, mount the files to the container paths in this example. Keep private keys outside Git. Use a trusted host CA and known-hosts file. The target must accept the configured user and key. Set `allowedCwdRoot` to the smallest safe root.
 
 Knit checks target fields before it opens network connections. A missing `targets.yaml` file, invalid YAML, missing guild ID, or incomplete target stops startup. Knit reads SSH files when it opens an SSH connection. Correct each path and restart Knit.
 
