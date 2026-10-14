@@ -1,4 +1,4 @@
-import { collectPushChanges } from "../../src/notifier/pushChanges.mjs";
+import { collectPushChanges, pushChangeFields } from "../../src/notifier/pushChanges.mjs";
 
 test("deduplicates changed paths and gives modified paths precedence", () => {
   const changes = collectPushChanges({
@@ -21,4 +21,17 @@ test("ignores malformed change lists", () => {
   expect([...changes.added]).toEqual([]);
   expect([...changes.removed]).toEqual([]);
   expect([...changes.modified]).toEqual(["valid"]);
+});
+
+test("formats collected changes as Discord embed fields", () => {
+  expect(
+    pushChangeFields({
+      commits: [{ added: ["new"], removed: ["gone"], modified: ["same", "edited"] }],
+      head_commit: { added: ["same"] },
+    }),
+  ).toEqual([
+    { name: "New (1)", value: "new", inline: false },
+    { name: "Deleted (1)", value: "gone", inline: false },
+    { name: "Modified (2)", value: "same\nedited", inline: false },
+  ]);
 });

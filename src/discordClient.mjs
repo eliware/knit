@@ -4,7 +4,7 @@ import * as Notifier from "./notifier/index.mjs";
 import { createChannelResolver } from "./discordChannels.mjs";
 import { defaultTargetLoader } from "./targetLoader.mjs";
 import { createPresenceManager, setPresenceManager } from "./presenceManager.mjs";
-import { fs } from "@eliware/common";
+import packageJson from "../package.json" with { type: "json" };
 
 /**
  * Starts the shared Discord client used for channel notifications.
@@ -28,7 +28,6 @@ export async function startDiscordClient({
   // Knit only fetches channels and sends messages; it does not consume gateway
   // message, member, presence, reaction, typing, or scheduled-event events.
   const intents = { Guilds: true };
-  const packageJson = JSON.parse(fs.readFileSync(path(import.meta, "..", "package.json"), "utf8"));
   const client = await createDiscordFn({
     token,
     clientId,

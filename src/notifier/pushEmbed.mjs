@@ -1,11 +1,10 @@
 import { tail } from "./embedLimits.mjs";
-import { collectPushChanges } from "./pushChanges.mjs";
+import { pushChangeFields } from "./pushChanges.mjs";
 
 const DESCRIPTION_LIMIT = 4096;
 
 export function createPushEmbed({ post, logOutput, hasError }) {
   const repository = post.repository?.full_name || "Unknown Repository";
-  const files = collectPushChanges(post);
 
   let description = `Branch: **${post.ref?.replace(/^refs\/heads\//, "") || "unknown"}** - Commits: **${post.commits.length}**\n`;
   for (const commit of post.commits) {
@@ -24,7 +23,7 @@ export function createPushEmbed({ post, logOutput, hasError }) {
     timestamp: post.head_commit?.timestamp || new Date().toISOString(),
     thumbnail: { url: "https://knit.eliware.org/assets/knit.png" },
     description: description.trim(),
-    fields: [],
+    fields: pushChangeFields(post),
     footer: { text: "GitHub Push Event" },
   };
   const author = { name: post.pusher?.name || "unknown" };
@@ -32,18 +31,5 @@ export function createPushEmbed({ post, logOutput, hasError }) {
   if (icon) author.icon_url = icon;
   if (post.pusher?.name) author.url = `https://github.com/${post.pusher.name}`;
   embed.author = author;
-  for (const [key, label] of [
-    ["added", "New"],
-    ["removed", "Deleted"],
-    ["modified", "Modified"],
-  ]) {
-    if (files[key].size) {
-      embed.fields.push({
-        name: `${label} (${files[key].size})`,
-        value: [...files[key]].join("\n"),
-        inline: false,
-      });
-    }
-  }
   return embed;
 }

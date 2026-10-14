@@ -1,8 +1,7 @@
 import { log as logger } from "@eliware/common";
 import { sshExec as realSshExec } from "@eliware/ssh-client";
-import * as Notifier from "./notifier/index.mjs";
 import { runDeployments } from "./repo/deployments.mjs";
-import { notifyTag } from "./repoNotifications.mjs";
+import { notifyPush, notifyTag } from "./repoNotifications.mjs";
 export function createSshRepo({
   config = { deployments: [] },
   targets = {},
@@ -42,16 +41,16 @@ export function createSshRepo({
         stopOnError,
         log: requestLog,
       });
-      await notifyFn?.({ repo: this, body, logOutput: output, hasError: failed, log: requestLog });
-      if (!notifyFn)
-        await Notifier.send({
-          post: body,
-          packageJson,
-          event,
-          logOutput: output,
-          hasError: failed,
-          log: requestLog,
-        });
+      await notifyPush({
+        notifyFn,
+        repo: this,
+        body,
+        packageJson,
+        event,
+        output,
+        failed,
+        log: requestLog,
+      });
       return !failed;
     },
   };

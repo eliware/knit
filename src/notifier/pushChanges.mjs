@@ -16,3 +16,18 @@ export function collectPushChanges(post) {
   });
   return files;
 }
+
+export function pushChangeFields(post) {
+  const files = collectPushChanges(post);
+  return [
+    ["added", "New"],
+    ["removed", "Deleted"],
+    ["modified", "Modified"],
+  ]
+    .filter(([key]) => files[key].size)
+    .map(([key, label]) => ({
+      name: `${label} (${files[key].size})`,
+      value: [...files[key]].join("\n"),
+      inline: false,
+    }));
+}

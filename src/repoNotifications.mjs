@@ -21,3 +21,32 @@ export async function notifyTag({
     log,
   });
 }
+
+export async function notifyPush({
+  notifyFn,
+  repo,
+  body,
+  packageJson,
+  event,
+  output,
+  failed,
+  log,
+  NotifierMod = Notifier,
+}) {
+  const notification = {
+    repo,
+    body,
+    logOutput: output,
+    hasError: failed,
+    log,
+  };
+  if (notifyFn) return notifyFn(notification);
+  return NotifierMod.send({
+    post: body,
+    packageJson,
+    event,
+    logOutput: output,
+    hasError: failed,
+    log,
+  });
+}
