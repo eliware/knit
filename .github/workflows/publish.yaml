@@ -70,6 +70,8 @@ jobs:
       - name: Inspect image by digest
         run: docker buildx imagetools inspect ghcr.io/eliware/knit@${{ steps.image.outputs.digest }}
       - name: Verify signed image attestation
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: gh attestation verify oci://ghcr.io/eliware/knit@${{ steps.image.outputs.digest }} --repo ${{ github.repository }}
       - name: Record release handoff evidence
         run: 'echo "${{ steps.image.outputs.digest }}" >> "$GITHUB_STEP_SUMMARY"'
