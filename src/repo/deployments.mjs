@@ -1,5 +1,5 @@
 import { formatCommandOutput } from "../commandOutput.mjs";
-import { createWebhookEnvironment, withWebhookEnvironment } from "../webhookEnvironment.mjs";
+import { createWebhookEnvironment } from "../webhookEnvironment.mjs";
 
 export async function runDeployments({
   deployments,
@@ -24,9 +24,7 @@ export async function runDeployments({
       const results = await sshExec({
         host: target.host,
         username: target.user,
-        commands: deployment.commands.map((command) =>
-          withWebhookEnvironment(command, environment),
-        ),
+        commands: deployment.commands,
         cwd: deployment.cwd,
         privateKeyPath: target.identity,
         knownHostsPath: target.knownHosts,

@@ -20,7 +20,7 @@ test("executes repository workflow against the named trusted target", async () =
       host: "host",
       username: "user",
       cwd: "/opt/app",
-      commands: [expect.stringContaining("; one"), expect.stringContaining("; two")],
+      commands: ["one", "two"],
       privateKeyPath: "/key",
       knownHostsPath: "/known",
       hostCaPath: "/ca",
@@ -46,7 +46,7 @@ test("uses different command sets and directories per target", async () => {
     expect.objectContaining({
       host: "nas",
       cwd: "/opt/app",
-      commands: [expect.stringContaining("; deploy")],
+      commands: ["deploy"],
     }),
   );
 });

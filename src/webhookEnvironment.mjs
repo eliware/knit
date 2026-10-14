@@ -9,10 +9,3 @@ export function createWebhookEnvironment({ body = {}, event, deliveryId } = {}) 
     KNIT_DELIVERY_ID: String(deliveryId || ""),
   };
 }
-
-export function withWebhookEnvironment(command, environment) {
-  const exports = Object.entries(environment)
-    .map(([key, value]) => `${key}='${String(value).replaceAll("'", "'\\\"'\\\"'")}'`)
-    .join(" ");
-  return `export ${exports}; ${command}`;
-}

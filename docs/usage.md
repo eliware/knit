@@ -56,7 +56,7 @@ Knit passes these values to every remote command:
 | `KNIT_EVENT`       | GitHub event name, or empty text.                     |
 | `KNIT_DELIVERY_ID` | GitHub delivery ID, or empty text.                    |
 
-Knit exports these values in the remote shell. Commands can use them without custom environment setup. Do not trust webhook values as shell code. Quote values in scripts.
+Knit sends these values through SSH environment requests. Configure the SSH server to accept them with `AcceptEnv KNIT_*`. Commands can read them as environment variables. Knit sends the original command without an export prefix.
 
 ## Discord command and activity
 
