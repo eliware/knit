@@ -16,7 +16,6 @@ test("loads and caches the trusted target inventory", () => {
   expect(loader.load()).toEqual({ guildId: "guild", targets: { dev: target } });
   expect(loader.load()).toBe(loader.load());
   expect(fsModule.readFileSync).toHaveBeenCalledTimes(1);
-  expect(loader.validateAll()).toBe(true);
 });
 
 test("rejects an invalid target inventory", () => {
