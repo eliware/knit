@@ -1,10 +1,10 @@
 import * as limits from "../../src/notifier/embedLimits.mjs";
-import { createEmbed } from "../../src/notifier/embeds.mjs";
+import { prepareNotificationMessage } from "../../src/notifier/message.mjs";
 
 describe("Discord embed size limits", () => {
   it("keeps the tail of oversized logs and stays within description limit", async () => {
     const log = `${"old line\n".repeat(1000)}FINAL ERROR LINE`;
-    const embed = createEmbed({
+    const embed = await prepareNotificationMessage({
       post: {},
       event: "push",
       hasError: true,
