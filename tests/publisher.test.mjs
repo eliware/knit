@@ -70,43 +70,6 @@ describe("publish", () => {
 });
 
 describe("processing", () => {
-  it("retries a false result and uses info when warn is absent", async () => {
-    const Consumer = {
-      consume: jest.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true),
-    };
-    const log = { info: jest.fn(), error: jest.fn() };
-    publish({
-      ...payload,
-      event: "release",
-      deliveryId: "id",
-      log,
-      ConsumerMod: Consumer,
-      maxAttempts: 2,
-      retryDelayMs: 0,
-    });
-    await wait();
-    expect(Consumer.consume).toHaveBeenCalledTimes(2);
-    expect(log.info).toHaveBeenCalledWith(
-      "[Publisher] Consumer failed; retrying",
-      expect.any(Object),
-    );
-    expect(getPublisherMetrics()).toEqual(expect.objectContaining({ retried: 1, succeeded: 1 }));
-  });
-
-  it("logs final failures after retries", async () => {
-    const error = new Error("fail");
-    const Consumer = { consume: jest.fn().mockRejectedValue(error) };
-    const log = { info: jest.fn(), warn: jest.fn(), error: jest.fn() };
-    publish({ ...payload, log, ConsumerMod: Consumer, maxAttempts: 2, retryDelayMs: 0 });
-    await wait();
-    expect(Consumer.consume).toHaveBeenCalledTimes(2);
-    expect(log.warn).toHaveBeenCalled();
-    expect(log.error).toHaveBeenCalledWith("[Publisher] Error sending to Consumer:", error);
-    expect(getPublisherMetrics()).toEqual(
-      expect.objectContaining({ failed: 1, retried: 1, succeeded: 0 }),
-    );
-  });
-
   it("covers the default processor and ignores an empty scheduled queue", async () => {
     await processTasks();
 

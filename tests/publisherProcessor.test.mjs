@@ -32,3 +32,17 @@ test("counts and logs a final task failure", async () => {
   expect(metrics).toEqual({ processed: 1, succeeded: 0, failed: 1, retried: 0 });
   expect(task.log.error).toHaveBeenCalledWith("[Publisher] Error sending to Consumer:", error);
 });
+
+test("retries a false result and falls back to info without a warn method", async () => {
+  const task = makeTask({ log: { info: jest.fn(), error: jest.fn() } });
+  const ConsumerMod = {
+    consume: jest.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(true),
+  };
+  const metrics = makeMetrics();
+  await processPublisherTask({ task, ConsumerMod, metrics });
+  expect(task.log.info).toHaveBeenCalledWith(
+    "[Publisher] Consumer failed; retrying",
+    expect.objectContaining({ attempt: 1, maxAttempts: 2 }),
+  );
+  expect(metrics).toEqual({ processed: 1, succeeded: 1, failed: 0, retried: 1 });
+});

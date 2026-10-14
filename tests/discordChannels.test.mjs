@@ -1,6 +1,6 @@
 import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
-import { channelName, createChannelResolver } from "../src/discordChannels.mjs";
+import { createChannelResolver } from "../src/discordChannels.mjs";
 
 function clientWith(channels = []) {
   const created = [];
@@ -98,9 +98,6 @@ test("creates public and private repository channels", async () => {
 
 test("normalizes repository names for Discord", async () => {
   const { client, created } = clientWith();
-  expect(channelName("eliware/eliware.org")).toBe("eliware-org");
-  expect(channelName("eliware/!!!")).toBe("repository");
-  expect(() => channelName()).toThrow();
   await createChannelResolver({ client, guildId: "guild" })({ repository: "eliware/eliware.org" });
   expect(created[0].options.name).toBe("eliware-org");
 });

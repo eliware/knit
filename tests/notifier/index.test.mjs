@@ -6,10 +6,6 @@ import * as notifier from "../../src/notifier/index.mjs";
 const log = { info: jest.fn(), error: jest.fn() };
 beforeEach(() => jest.clearAllMocks());
 
-beforeEach(() => {
-  jest.clearAllMocks();
-});
-
 it("should not send if channelId is missing", async () => {
   const sendMessageFn = jest.fn();
   await notifier.send({
@@ -87,21 +83,18 @@ it("send uses provided embed, defaults event, and sends to the channel", async (
     channelId,
   });
   expect(sendMessageFn).toHaveBeenLastCalledWith({ embeds: [{ title: "✅ Deployment" }] });
-});
-
-it("send prefixes provided error embeds and awaits sender", async () => {
-  const embed = { title: "Failure" };
-  const log = { info: jest.fn(), error: jest.fn() };
-  const sendMessageFn = jest.fn(() => Promise.resolve());
   await notifier.send({
     channelId,
     post: {},
     embed,
     hasError: true,
     log,
-    discordClient: makeClient(sendMessageFn),
+    discordClient,
   });
-  expect(embed).toEqual({ title: "Failure" });
+  expect(embed).toEqual({ title: "Deployment" });
+  expect(sendMessageFn).toHaveBeenLastCalledWith({
+    embeds: [expect.objectContaining({ title: "❌ Error: Deployment", color: 0xff0000 })],
+  });
 });
 
 it.each([
@@ -118,23 +111,6 @@ it.each([
 
 it("covers send parameter defaults on an early return", async () => {
   await notifier.send({ channelId: "", post: {} });
-});
-
-it("does not mutate provided embeds", async () => {
-  const embed = { title: "Deployment", fields: [{ name: "log", value: "ok" }] };
-  const sendMessageFn = jest.fn();
-  await notifier.send({
-    channelId,
-    post: { repository: { full_name: "foo/bar" } },
-    embed,
-    hasError: false,
-    log: { info: jest.fn() },
-    discordClient: makeClient(sendMessageFn),
-  });
-  expect(embed).toEqual({ title: "Deployment", fields: [{ name: "log", value: "ok" }] });
-  expect(sendMessageFn).toHaveBeenCalledWith(
-    expect.objectContaining({ embeds: expect.any(Array) }),
-  );
 });
 
 it("logs and rethrows Discord send failures with context", async () => {

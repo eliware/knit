@@ -1,6 +1,5 @@
 import { log as logger } from "@eliware/common";
-import { limitEmbed } from "./embedLimits.mjs";
-import { createEmbed } from "./embeds.mjs";
+import { prepareNotificationMessage } from "./message.mjs";
 import { getNotifierState } from "./state.mjs";
 import { deliverDiscordMessage } from "./delivery.mjs";
 export { clearDiscordClient, setChannelResolver, setDiscordClient } from "./state.mjs";
@@ -45,15 +44,12 @@ export async function send({
     });
   if (!channelId) return;
   if (!discordClient) throw new Error("Discord client is not connected");
-  const embed = providedEmbed
-    ? { ...providedEmbed, fields: providedEmbed.fields?.map((field) => ({ ...field })) }
-    : await createEmbed({ post, event, logOutput, hasError });
-  if (hasError) {
-    embed.color = 0xff0000;
-    embed.title = `\u274c Error: ${embed.title}`;
-  } else {
-    embed.title = `\u2705 ${embed.title}`;
-  }
-  limitEmbed(embed);
+  const embed = await prepareNotificationMessage({
+    providedEmbed,
+    post,
+    event,
+    logOutput,
+    hasError,
+  });
   await deliverDiscordMessage({ discordClient, channelId, embed, post, event, log });
 }
