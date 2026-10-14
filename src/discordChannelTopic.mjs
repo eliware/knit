@@ -1,4 +1,4 @@
-import { channelTopic } from "./discordChannelMetadata.mjs";
+import { channelTopic } from "./discordChannelTopicMetadata.mjs";
 
 export async function syncChannelTopic(channel, packageJson) {
   const topic = channelTopic(packageJson);

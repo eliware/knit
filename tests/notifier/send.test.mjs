@@ -27,24 +27,6 @@ it("should reject when the shared Discord client is not connected", async () => 
   );
 });
 
-it("should send error embed if hasError is true", async () => {
-  const post = {
-    ref: "refs/tags/v1.0.0",
-    repository: { full_name: "foo/bar", html_url: "url" },
-    pusher: { name: "bob" },
-  };
-  const sendMessageFn = jest.fn();
-  await notifier.send({
-    channelId,
-    post,
-    logOutput: "",
-    hasError: true,
-    log,
-    discordClient: makeClient(sendMessageFn),
-  });
-  expect(sendMessageFn).toHaveBeenCalled();
-});
-
 it("resolves a repository channel when no channel ID is supplied", async () => {
   const channel = { send: jest.fn().mockResolvedValue(undefined) };
   const client = { channels: { fetch: jest.fn().mockResolvedValue(channel) } };
@@ -58,7 +40,7 @@ it("resolves a repository channel when no channel ID is supplied", async () => {
   notifierState.clearDiscordClient();
 });
 
-it("send uses provided embed, defaults event, and sends to the channel", async () => {
+it("sends generated and provided embeds with their status", async () => {
   const embed = { title: "Deployment" };
   const log = { info: jest.fn(), error: jest.fn() };
   const sendMessageFn = jest.fn();
@@ -66,6 +48,21 @@ it("send uses provided embed, defaults event, and sends to the channel", async (
   await notifier.send({ channelId, post: {}, hasError: false, log, discordClient });
   expect(sendMessageFn).toHaveBeenLastCalledWith({
     embeds: [expect.objectContaining({ title: "✅ Unknown Repository - Event" })],
+  });
+  await notifier.send({
+    channelId,
+    post: {
+      ref: "refs/tags/v1.0.0",
+      repository: { full_name: "foo/bar", html_url: "url" },
+      pusher: { name: "bob" },
+    },
+    logOutput: "",
+    hasError: true,
+    log,
+    discordClient,
+  });
+  expect(sendMessageFn).toHaveBeenLastCalledWith({
+    embeds: [expect.objectContaining({ title: "❌ Error: bar v1.0.0 has been released! 🎉" })],
   });
   await notifier.send({ channelId, post: {}, embed, hasError: false, log, discordClient });
   expect(log.info).toHaveBeenCalledWith("[Notifier] Sending message to Discord channel", {

@@ -1,6 +1,6 @@
 import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
-import { channelName } from "../src/discordChannelMetadata.mjs";
+import { channelName } from "../src/discordChannelName.mjs";
 import { createChannelResolver } from "../src/discordChannels.mjs";
 
 function clientWith(channels = []) {

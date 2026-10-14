@@ -1,6 +1,7 @@
 import { pushChangeFields } from "./pushChanges.mjs";
 import { createPushDescription } from "./pushDescription.mjs";
 import { escapeDiscordMarkdown } from "./discordMarkdown.mjs";
+import { createPushAuthor } from "./pushAuthor.mjs";
 
 export function createPushEmbed({ post, logOutput, hasError }) {
   const repository = post.repository?.full_name || "Unknown Repository";
@@ -15,10 +16,6 @@ export function createPushEmbed({ post, logOutput, hasError }) {
     fields: pushChangeFields(post),
     footer: { text: "GitHub Push Event" },
   };
-  const author = { name: escapeDiscordMarkdown(post.pusher?.name || "unknown") };
-  const icon = post.sender?.avatar_url || post.repository?.owner?.avatar_url;
-  if (icon) author.icon_url = icon;
-  if (post.pusher?.name) author.url = `https://github.com/${post.pusher.name}`;
-  embed.author = author;
+  embed.author = createPushAuthor(post);
   return embed;
 }

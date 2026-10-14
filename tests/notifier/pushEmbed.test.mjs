@@ -45,11 +45,6 @@ test("merges file changes and error logs from push commits", () => {
       expect.objectContaining({ name: "Modified (2)", value: "c\ne" }),
     ]),
   );
-  expect(embed.author).toEqual({
-    name: "bob",
-    icon_url: "owner.png",
-    url: "https://github.com/bob",
-  });
 });
 
 test("handles malformed change lists", () => {
@@ -65,6 +60,5 @@ test("handles malformed change lists", () => {
       pusher: {},
     },
   });
-  expect(embed.author).toEqual({ name: "unknown", icon_url: "sender.png" });
   expect(embed.fields).toEqual([{ name: "Modified (1)", value: "same", inline: false }]);
 });

@@ -1,4 +1,4 @@
-import { channelName } from "./discordChannelMetadata.mjs";
+import { channelName } from "./discordChannelName.mjs";
 import { syncChannelPermissions } from "./discordChannelPermissions.mjs";
 import { provisionAnnouncementChannel } from "./discordChannelProvisioning.mjs";
 import { syncChannelTopic } from "./discordChannelTopic.mjs";
