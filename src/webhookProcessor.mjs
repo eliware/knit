@@ -1,6 +1,7 @@
 import { log as logger } from "@eliware/common";
 import * as SignatureValidator from "./signatureValidator.mjs";
 import * as Publisher from "./publisher.mjs";
+import { projectWebhookEventDetails } from "./webhookEventDetails.mjs";
 
 /**
  * Creates a webhook processor for handling GitHub webhook events.
@@ -54,22 +55,7 @@ export function createWebhookProcessor({
         log.info("[WebhookProcessor] Signature validated");
         const event = req.headers["x-github-event"] || "push";
         const deliveryId = req.headers["x-github-delivery"] || null;
-        const repository = data?.repository?.full_name || data?.organization?.login || "unknown";
-        const details = {
-          event,
-          deliveryId,
-          repository,
-          action: data?.action || null,
-          ref: data?.ref || null,
-          workflow:
-            data?.workflow_run?.name || data?.workflow_job?.name || data?.workflow?.name || null,
-          status:
-            data?.workflow_run?.status ||
-            data?.workflow_job?.status ||
-            data?.workflow_run?.conclusion ||
-            null,
-          conclusion: data?.workflow_run?.conclusion || data?.workflow_job?.conclusion || null,
-        };
+        const details = projectWebhookEventDetails({ data, event, deliveryId });
         log.info("[WebhookProcessor] GitHub event received", details);
         publisher.publish({
           raw: rawData,
