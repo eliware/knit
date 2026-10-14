@@ -126,7 +126,7 @@ test("handles invalid bodies, tags, connection errors, and continue-on-error", a
 });
 test("uses the shared notifier for tag notifications", async () => {
   const repo = createSshRepo({ config: { deployments: [] }, targets: {} });
-  const notifier = await import("../src/notifier/index.mjs");
+  const notifier = await import("../src/notifier/state.mjs");
   const client = {
     channels: {
       fetch: jest.fn().mockResolvedValue({ send: jest.fn().mockResolvedValue(undefined) }),

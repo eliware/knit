@@ -1,4 +1,4 @@
-import * as Notifier from "./notifier/index.mjs";
+import * as Notifier from "./notifier/send.mjs";
 
 export function isTagUpdate(body) {
   return body?.ref?.startsWith("refs/tags/") || false;

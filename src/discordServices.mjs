@@ -1,4 +1,4 @@
-import * as Notifier from "./notifier/index.mjs";
+import * as Notifier from "./notifier/state.mjs";
 import { createChannelResolver } from "./discordChannels.mjs";
 import { defaultTargetLoader } from "./targetLoader.mjs";
 import { createPresenceManager, setPresenceManager } from "./presenceManager.mjs";

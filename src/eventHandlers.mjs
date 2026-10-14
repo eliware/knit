@@ -1,5 +1,5 @@
 import { log as logger } from "@eliware/common";
-import * as Notifier from "./notifier/index.mjs";
+import * as Notifier from "./notifier/send.mjs";
 import { registerSpecializedHandlers } from "./specializedHandlers.mjs";
 
 /**

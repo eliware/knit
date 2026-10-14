@@ -2,7 +2,8 @@ import { jest } from "@jest/globals";
 const channelId = "123456789012345678";
 const makeClient = (send) => ({ channels: { fetch: jest.fn().mockResolvedValue({ send }) } });
 
-import * as notifier from "../../src/notifier/index.mjs";
+import * as notifier from "../../src/notifier/send.mjs";
+import * as notifierState from "../../src/notifier/state.mjs";
 const log = { info: jest.fn(), error: jest.fn() };
 beforeEach(() => jest.clearAllMocks());
 
@@ -20,7 +21,7 @@ it("should not send if channelId is missing", async () => {
 });
 
 it("should reject when the shared Discord client is not connected", async () => {
-  notifier.clearDiscordClient();
+  notifierState.clearDiscordClient();
   await expect(notifier.send({ channelId, post: {} })).rejects.toThrow(
     "Discord client is not connected",
   );
@@ -47,14 +48,14 @@ it("should send error embed if hasError is true", async () => {
 it("resolves a repository channel when no channel ID is supplied", async () => {
   const channel = { send: jest.fn().mockResolvedValue(undefined) };
   const client = { channels: { fetch: jest.fn().mockResolvedValue(channel) } };
-  notifier.setChannelResolver(jest.fn().mockResolvedValue(channelId));
+  notifierState.setChannelResolver(jest.fn().mockResolvedValue(channelId));
   await notifier.send({
     post: { repository: { full_name: "foo/bar" } },
     log,
     discordClient: client,
   });
   expect(client.channels.fetch).toHaveBeenCalledWith(channelId);
-  notifier.clearDiscordClient();
+  notifierState.clearDiscordClient();
 });
 
 it("send uses provided embed, defaults event, and sends to the channel", async () => {

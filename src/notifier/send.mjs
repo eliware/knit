@@ -2,15 +2,7 @@ import { log as logger } from "@eliware/common";
 import { prepareNotificationMessage } from "./message.mjs";
 import { getNotifierState } from "./state.mjs";
 import { deliverDiscordMessage } from "./delivery.mjs";
-export { clearDiscordClient, setChannelResolver, setDiscordClient } from "./state.mjs";
-export {
-  tail,
-  limitEmbed,
-  DISCORD_EMBED_DESCRIPTION_LIMIT,
-  DISCORD_EMBED_TOTAL_LIMIT,
-  DISCORD_EMBED_FIELD_VALUE_LIMIT,
-} from "./embedLimits.mjs";
-export { createEmbed } from "./embeds.mjs";
+
 /**
  * Sends a notification to a Discord channel.
  * @param {Object} params
