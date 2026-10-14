@@ -32,7 +32,7 @@ export async function consume({
     return false;
   }
   try {
-    const target = await resolveConsumerTarget({ RouterMod, RepoMod, post, log });
+    const target = await resolveConsumerTarget({ RouterMod, RepoMod, post, event, log });
     if (target.ignored) {
       if (target.kind === "repository") log.error("[Consumer] Repo not found:", target.name);
       else log.info("[Consumer] Event ignored: no configured target", target.name);

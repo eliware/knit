@@ -11,6 +11,7 @@ test("forwards the repository target loader when it exists", async () => {
   });
   expect(RouterMod.resolveEventTarget).toHaveBeenCalledWith({
     post: {},
+    event: "push",
     RepoMod,
     log,
     targetLoader,
@@ -20,5 +21,21 @@ test("forwards the repository target loader when it exists", async () => {
 test("does not add a missing target loader", async () => {
   const RouterMod = { resolveEventTarget: jest.fn().mockResolvedValue(null) };
   await resolveConsumerTarget({ RouterMod, RepoMod: {}, post: {}, log: {} });
-  expect(RouterMod.resolveEventTarget).toHaveBeenCalledWith({ post: {}, RepoMod: {}, log: {} });
+  expect(RouterMod.resolveEventTarget).toHaveBeenCalledWith({
+    post: {},
+    event: "push",
+    RepoMod: {},
+    log: {},
+  });
+});
+
+test("forwards non-push events to target resolution", async () => {
+  const RouterMod = { resolveEventTarget: jest.fn().mockResolvedValue(null) };
+  await resolveConsumerTarget({ RouterMod, RepoMod: {}, post: {}, event: "issues", log: {} });
+  expect(RouterMod.resolveEventTarget).toHaveBeenCalledWith({
+    post: {},
+    event: "issues",
+    RepoMod: {},
+    log: {},
+  });
 });

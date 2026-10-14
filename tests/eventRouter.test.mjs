@@ -1,5 +1,6 @@
 import { jest } from "@jest/globals";
 import { repositoryName, resolveEventTarget } from "../src/eventRouter.mjs";
+import { get } from "../src/repositoryLoader.mjs";
 
 describe("eventRouter", () => {
   test("extracts repository names", () => {
@@ -26,6 +27,22 @@ describe("eventRouter", () => {
       targetLoader,
       log: console,
     });
+  });
+
+  test("resolves non-push events without loading a deployment workflow", async () => {
+    const targetLoader = { load: jest.fn().mockReturnValue({ targets: {} }) };
+    const workflowLoader = jest.fn();
+    const RepoMod = {
+      get: (options) => get({ ...options, targetLoader, workflowLoader }),
+    };
+    const post = { repository: { full_name: "eliware/knit" } };
+
+    await expect(resolveEventTarget({ post, event: "issues", RepoMod })).resolves.toMatchObject({
+      kind: "repository",
+      name: "eliware/knit",
+      ignored: false,
+    });
+    expect(workflowLoader).not.toHaveBeenCalled();
   });
 
   test("rejects events without a repository instead of using a fallback", async () => {

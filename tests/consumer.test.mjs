@@ -44,6 +44,7 @@ describe("consumer.mjs", () => {
     await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
     expect(Router.resolveEventTarget).toHaveBeenCalledWith({
       post: message.parsed,
+      event: "push",
       RepoMod: Repo,
       log,
     });
