@@ -52,26 +52,34 @@ test("reserves a final update for terminal failures", async () => {
   );
 });
 
-test("returns to the version activity after the idle timer", async () => {
+test("restores idle presence and ignores a stale timer after work resumes", async () => {
   const setPresence = jest.fn().mockResolvedValue(undefined);
-  let timer;
+  const timers = [];
   const manager = createPresenceManager({
     client: { user: { setPresence } },
     version: "2.2.0",
-    setTimeoutFn: jest.fn((callback) => {
-      timer = callback;
+    setTimeoutFn: (callback) => {
+      timers.push(callback);
       return { unref: jest.fn() };
-    }),
+    },
     clearTimeoutFn: jest.fn(),
   });
   manager.begin("working");
   manager.update("still working");
   manager.end();
-  timer();
+  timers[0]();
   await new Promise((resolve) => setImmediate(resolve));
-  expect(setPresence).toHaveBeenCalledWith(
-    expect.objectContaining({ activities: [{ name: "🧶 knit v2.2.0", type: 4 }] }),
-  );
+  const idleName = "🧶 knit v2.2.0";
+  const idleCalls = () =>
+    setPresence.mock.calls.filter(([presence]) => presence.activities?.[0]?.name === idleName)
+      .length;
+  expect(idleCalls()).toBe(1);
+
+  manager.begin("first task");
+  manager.end();
+  manager.begin("resumed task");
+  timers[1]();
+  expect(idleCalls()).toBe(1);
   manager.stop();
 });
 
@@ -122,27 +130,6 @@ test("supports missing Discord client, duplicate updates, and timers without unr
   manager.stop();
   await new Promise((resolve) => setImmediate(resolve));
   expect(clearTimeoutFn).toHaveBeenCalled();
-});
-
-test("does not restore idle presence while work is active", async () => {
-  const setPresence = jest.fn().mockResolvedValue(undefined);
-  let timer;
-  const manager = createPresenceManager({
-    client: { user: { setPresence } },
-    version: "2.2.0",
-    setTimeoutFn: (callback) => {
-      timer = callback;
-      return {};
-    },
-    clearTimeoutFn: jest.fn(),
-  });
-  manager.begin("work");
-  manager.end();
-  manager.begin("new work");
-  timer();
-  expect(setPresence).not.toHaveBeenCalledWith(
-    expect.objectContaining({ activities: [{ name: "🧶 knit v2.2.0", type: 4 }] }),
-  );
 });
 
 test("publishes a neutral ignored state while busy", async () => {
