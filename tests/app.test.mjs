@@ -2,7 +2,7 @@ import "../test-fixtures/silenceConsole.mjs";
 // Tests for src/app.mjs
 import { jest } from "@jest/globals";
 import http from "node:http";
-import { createApp, startApp } from "../src/app.mjs";
+import { createApp } from "../src/app.mjs";
 
 const request = (server, { method, path, body }) =>
   new Promise((resolve, reject) => {
@@ -145,41 +145,5 @@ describe("app.mjs", () => {
     const factory = jest.fn(() => ({ process: jest.fn() }));
     await expect(createApp({ webhookProcessorFactory: factory })).resolves.toBeDefined();
     expect(factory).toHaveBeenCalledWith(expect.objectContaining({ publisher: undefined }));
-  });
-
-  it("should throw if startApp is called without appInstance", () => {
-    expect(() => startApp({})).toThrow("App not created. Call createApp() first.");
-  });
-
-  it("should start the app, log info, and return a server object", () => {
-    const close = jest.fn();
-    const listen = jest.fn((port, cb) => {
-      cb();
-      return { close };
-    });
-    const appInstance = { listen };
-    const log = { info: jest.fn() };
-    const server = startApp({ appInstance, PORT: 1234, log });
-    expect(listen).toHaveBeenCalledWith(1234, expect.any(Function));
-    expect(log.info).toHaveBeenCalledWith("Server is listening on port 1234");
-    expect(typeof server.close).toBe("function");
-    server.close();
-    expect(close).toHaveBeenCalled();
-  });
-
-  it("should use the default port and logger when starting", () => {
-    const listen = jest.fn((port, cb) => {
-      cb();
-      return {};
-    });
-    const originalPort = process.env.PORT;
-    delete process.env.PORT;
-    try {
-      expect(startApp({ appInstance: { listen } })).toEqual({});
-      expect(listen).toHaveBeenCalledWith(3456, expect.any(Function));
-    } finally {
-      if (originalPort === undefined) delete process.env.PORT;
-      else process.env.PORT = originalPort;
-    }
   });
 });

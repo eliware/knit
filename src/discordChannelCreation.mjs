@@ -1,6 +1,5 @@
 import { createChannelPermissionOverwrites } from "./discordChannelPermissionRules.mjs";
-
-const GUILD_ANNOUNCEMENT = 5;
+import { GUILD_ANNOUNCEMENT } from "./discordChannelMetadata.mjs";
 
 export async function createAnnouncementChannel({
   guild,

@@ -93,14 +93,7 @@ test("rejects unauthorized repository workflows", async () => {
   ).resolves.toBeNull();
 });
 
-test("returns a notification-only repository for non-push events and ignores unmatched tags", async () => {
-  const targetLoader = { load: () => ({ targets: {} }) };
-  await expect(
-    get({ name: "eliware/app", event: "issues", body: {}, targetLoader }),
-  ).resolves.toBeDefined();
-  await expect(
-    get({ name: "eliware/app", event: "issues", body: {}, targetLoader: { load: () => ({}) } }),
-  ).resolves.toBeDefined();
+test("ignores unmatched tags", async () => {
   const workflow = {
     version: 1,
     on: { push: { deployments: [deployment()] }, tags: { "v*": { deployments: [deployment()] } } },
@@ -114,6 +107,18 @@ test("returns a notification-only repository for non-push events and ignores unm
     }),
   ).resolves.toBeNull();
 });
+
+test("uses an empty target map for notification events without target configuration", async () => {
+  await expect(
+    get({
+      name: "eliware/app",
+      event: "issues",
+      body: {},
+      targetLoader: { load: () => ({}) },
+    }),
+  ).resolves.toBeDefined();
+});
+
 test("uses default repository loader inputs", async () => {
   await expect(get()).resolves.toBeNull();
 });

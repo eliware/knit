@@ -13,7 +13,8 @@ describe("main.mjs", () => {
 
   beforeAll(async () => {
     jest.unstable_mockModule("@eliware/common", () => ({ log, registerHandlers, registerSignals }));
-    jest.unstable_mockModule("../src/app.mjs", () => ({ createApp, startApp }));
+    jest.unstable_mockModule("../src/app.mjs", () => ({ createApp }));
+    jest.unstable_mockModule("../src/server.mjs", () => ({ startApp }));
     jest.unstable_mockModule("../src/discordClient.mjs", () => ({
       startDiscordClient,
       stopDiscordClient,

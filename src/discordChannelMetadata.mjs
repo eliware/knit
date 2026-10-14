@@ -1,3 +1,5 @@
+export const GUILD_ANNOUNCEMENT = 5;
+
 export function channelName(repository) {
   if (!/^[^/]+\/[^/]+$/.test(repository || ""))
     throw new Error("Repository is required to resolve a Discord channel");

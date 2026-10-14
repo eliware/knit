@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { log, registerHandlers, registerSignals } from "@eliware/common";
-import { createApp, startApp } from "./app.mjs";
+import { createApp } from "./app.mjs";
+import { startApp } from "./server.mjs";
 import { startDiscordClient, stopDiscordClient } from "./discordClient.mjs";
 import { defaultTargetLoader } from "./targetLoader.mjs";
 

@@ -1,6 +1,5 @@
 import { createAnnouncementChannel } from "./discordChannelCreation.mjs";
-
-const GUILD_ANNOUNCEMENT = 5;
+import { GUILD_ANNOUNCEMENT } from "./discordChannelMetadata.mjs";
 
 export async function provisionAnnouncementChannel({
   guild,
