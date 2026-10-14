@@ -2,39 +2,39 @@
 
 ## Project
 
-This repository contains Knit, a GitHub webhook and SSH deployment service.
+Knit runs signed GitHub webhooks and SSH deployment commands.
 
 ## Scope and boundaries
 
-Keep service code and deployment workflow changes within this repository. Use GitOps to deploy released container images.
+Keep service and workflow changes in this repository. Use GitOps to deploy released container images.
 
 ## Layout
 
-Keep implementation modules under `src/`. Keep launchers under `bin/`. Keep tests under `tests/`. Keep test support under `test-fixtures/`.
+Keep implementation in `src/`. Keep launchers in `bin/`. Keep tests in `tests/`. Keep test support in `test-fixtures/`.
 
 ## Development
 
-Use Node.js 26 and native ESM. Keep each module focused on one purpose. Use the README and docs index for repository guidance.
+Use Node.js 26 and native ESM. Keep runtime secrets outside Git.
 
 ## Validation
 
-Use npm 12 or later. Run `npm test` for aggregate validation. Run `npm run lint` for lint checks. Run `npm run audit` for dependency checks. Run `npm run format` to format files. Run `npm run format:check` to check formatting.
+Run `npm test`, `npm run lint`, `npm run audit`, `npm run format`, and `npm run format:check`.
 
 ## Security
 
-Keep credentials, private keys, decrypted data, and runtime state out of Git. Use strict SSH host verification. Do not print secrets.
+Use strict SSH host verification. Do not print secrets.
 
 ## Changes
 
-Keep package metadata, lockfile data, docs, and workflows in sync. Do not publish or deploy from local validation.
+Keep package metadata, lockfile data, docs, and workflows in sync. Do not deploy during local validation.
 
 ## Application
 
-Document supported events, routes, settings, startup, shutdown, and operations in README.md. Use YAML for target profiles and repository workflows. Supply secrets through the runtime environment. Validate targets before service startup. Deploy immutable container images through GitOps.
+Validate targets before connections. Fetch workflows at the webhook commit. Keep launchers thin. Keep user documentation in `docs/`.
 
 ## Discord
 
-Document webhook notifications, Discord events, intents, and permissions in README.md. Request only the Guilds intent.
+Use only the `Guilds` intent. Document commands, events, intents, and permissions in `README.md`.
 
 ## GHCR publication
 
