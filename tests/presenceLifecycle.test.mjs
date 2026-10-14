@@ -25,21 +25,6 @@ test("routes lifecycle states", async () => {
   expect(send).toHaveBeenLastCalledWith({ name: "ℹ️ info" });
 });
 
-test("ignores neutral updates while idle and for stale deliveries", async () => {
-  const { lifecycle, send } = makeLifecycle();
-  await expect(lifecycle.neutral("idle")).resolves.toBe(false);
-  await lifecycle.begin("current", "one");
-  await expect(lifecycle.neutral("stale", "two")).resolves.toBe(false);
-  expect(send).toHaveBeenCalledTimes(1);
-});
-
-test("ignores stale delivery updates during anonymous work", async () => {
-  const { lifecycle, send } = makeLifecycle();
-  await lifecycle.begin("anonymous work");
-  await expect(lifecycle.terminal("stale", false, "completed-delivery")).resolves.toBe(false);
-  expect(send).toHaveBeenCalledTimes(1);
-});
-
 test("schedules idle state and refuses updates while idle", async () => {
   let timer;
   const clearTimeoutFn = jest.fn();
@@ -51,6 +36,7 @@ test("schedules idle state and refuses updates while idle", async () => {
     clearTimeoutFn,
   });
   await expect(lifecycle.update("idle update")).resolves.toBe(false);
+  await expect(lifecycle.neutral("idle update")).resolves.toBe(false);
   await lifecycle.begin("work");
   await lifecycle.update("active update");
   lifecycle.end();

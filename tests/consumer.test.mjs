@@ -2,9 +2,10 @@ import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
 import { consume } from "../src/consumer.mjs";
 import { setPresenceManager } from "../src/presenceManager.mjs";
+import { createConsumerHarness } from "../test-fixtures/consumerHarness.mjs";
 
 describe("consumer.mjs", () => {
-  const log = { error: jest.fn(), info: jest.fn() };
+  let log;
   let Repo;
   let GitHub;
   let Router;
@@ -13,16 +14,7 @@ describe("consumer.mjs", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    Repo = { get: jest.fn() };
-    GitHub = { validate: jest.fn().mockReturnValue(true) };
-    Router = { resolveEventTarget: jest.fn() };
-    Handlers = { dispatch: jest.fn() };
-    message = {
-      raw: "{}",
-      parsed: { repository: { full_name: "foo" } },
-      event: "push",
-      deliveryId: "delivery-1",
-    };
+    ({ log, Repo, GitHub, Router, Handlers, message } = createConsumerHarness());
     setPresenceManager(null);
   });
   it.each([
@@ -162,19 +154,15 @@ describe("consumer.mjs", () => {
     await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
     expect(presence.end).toHaveBeenCalledWith("delivery-1");
   });
-  it("uses the default logger when no logger is provided", async () => {
+  it("uses default logger and GitHub modules when omitted", async () => {
     GitHub.validate.mockReturnValue(false);
-
     await expect(consume({ message, GitHub, Router, Handlers })).resolves.toBe(false);
     expect(GitHub.validate).toHaveBeenCalledWith({
       post: message.parsed,
       event: "push",
       log: expect.anything(),
     });
-  });
-  it("uses the default GitHub module when no GitHub module is provided", async () => {
     message.parsed = null;
-
     await expect(consume({ message, log, Repo, Router, Handlers })).resolves.toBe(false);
     expect(log.error).toHaveBeenCalledWith("[Consumer] GitHub validation failed");
   });

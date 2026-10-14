@@ -1,11 +1,9 @@
-import { DISCORD_EMBED_DESCRIPTION_LIMIT, tail } from "./embedLimits.mjs";
-import {
-  escapeDiscordCode,
-  escapeDiscordLinkTarget,
-  escapeDiscordMarkdown,
-} from "./discordMarkdown.mjs";
+import { DISCORD_EMBED_DESCRIPTION_LIMIT } from "./embedLimits.mjs";
+import { escapeDiscordLinkTarget, escapeDiscordMarkdown } from "./discordMarkdown.mjs";
+import { renderErrorLog } from "./errorLog.mjs";
 
 const COMMIT_DESCRIPTION_LIMIT = 1800;
+const ERROR_LOG_WRAPPER_LENGTH = 12;
 
 export function createPushDescription({ post, logOutput, hasError }) {
   const branch = escapeDiscordMarkdown(post.ref?.replace(/^refs\/heads\//, "") || "unknown");
@@ -19,13 +17,11 @@ export function createPushDescription({ post, logOutput, hasError }) {
   if (description.length > COMMIT_DESCRIPTION_LIMIT)
     description = `${description.slice(0, COMMIT_DESCRIPTION_LIMIT - 3)}...`;
   if (hasError && logOutput) {
-    const start = "```text\n";
-    const end = "\n```";
     const available = Math.max(
       0,
-      DISCORD_EMBED_DESCRIPTION_LIMIT - description.length - start.length - end.length,
+      DISCORD_EMBED_DESCRIPTION_LIMIT - description.length - ERROR_LOG_WRAPPER_LENGTH,
     );
-    description += `${start}${escapeDiscordCode(tail(logOutput, available))}${end}`;
+    description += renderErrorLog(logOutput, available);
   }
   return description.trim();
 }
