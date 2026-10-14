@@ -2,6 +2,7 @@ import { log as logger } from "@eliware/common";
 import { limitEmbed } from "./embedLimits.mjs";
 import { createEmbed } from "./embeds.mjs";
 import { getNotifierState } from "./state.mjs";
+import { deliverDiscordMessage } from "./delivery.mjs";
 export { clearDiscordClient, setChannelResolver, setDiscordClient } from "./state.mjs";
 export {
   tail,
@@ -54,26 +55,5 @@ export async function send({
     embed.title = `\u2705 ${embed.title}`;
   }
   limitEmbed(embed);
-  log.info("[Notifier] Sending message to Discord channel", { channelId });
-  try {
-    const channel = await discordClient.channels.fetch(channelId);
-    if (!channel || typeof channel.send !== "function")
-      throw new Error(`Discord channel is not sendable: ${channelId}`);
-    const message = await channel.send({ embeds: [embed] });
-    if (post.ref?.startsWith("refs/tags/v") && typeof message?.crosspost === "function") {
-      await message.crosspost();
-      log.info("[Notifier] Cross-posted release announcement", {
-        channelId,
-        tag: post.ref.slice("refs/tags/".length),
-      });
-    }
-  } catch (error) {
-    log.error?.("[Notifier] Discord channel send failed", {
-      error,
-      event,
-      channelId,
-      repository: post.repository?.full_name,
-    });
-    throw error;
-  }
+  await deliverDiscordMessage({ discordClient, channelId, embed, post, event, log });
 }

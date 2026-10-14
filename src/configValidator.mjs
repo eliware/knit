@@ -1,4 +1,5 @@
 import { log as logger } from "@eliware/common";
+export { validateTargets } from "./targetValidator.mjs";
 
 const string = (value) => typeof value === "string" && value.length > 0;
 const commands = (value) => Array.isArray(value) && value.length > 0 && value.every(string);
@@ -39,24 +40,4 @@ export function selectWorkflowAction({ config, post = {} } = {}) {
     return pattern ? config.on.tags[pattern] : null;
   }
   return config.on.push;
-}
-
-export function validateTargets({ config, log = logger }) {
-  const targets = config?.targets;
-  const valid =
-    string(config?.guildId) &&
-    targets &&
-    typeof targets === "object" &&
-    Object.values(targets).length > 0 &&
-    Object.values(targets).every(
-      (target) =>
-        target &&
-        string(target.host) &&
-        string(target.user) &&
-        string(target.identity) &&
-        string(target.knownHosts) &&
-        string(target.hostCa),
-    );
-  if (!valid) log.error("ConfigValidator::validateTargets failed: invalid target inventory");
-  return valid;
 }

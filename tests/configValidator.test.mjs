@@ -1,12 +1,7 @@
 import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
-import {
-  selectWorkflowAction,
-  validateTargets,
-  validateWorkflow,
-} from "../src/configValidator.mjs";
+import { selectWorkflowAction, validateWorkflow } from "../src/configValidator.mjs";
 
-const target = { host: "dev", user: "root", identity: "/key", knownHosts: "/known", hostCa: "/ca" };
 test("accepts separate push and tag actions", () =>
   expect(
     validateWorkflow({
@@ -47,12 +42,6 @@ test("rejects legacy workflow shapes", () =>
   expect(
     validateWorkflow({ config: { repository: "o/r", targets: [] }, log: { error: jest.fn() } }),
   ).toBe(false));
-test("accepts trusted target inventory", () =>
-  expect(validateTargets({ config: { guildId: "guild", targets: { dev: target } } })).toBe(true));
-test("rejects incomplete target inventory", () =>
-  expect(
-    validateTargets({ config: { targets: { dev: { host: "dev" } } }, log: { error: jest.fn() } }),
-  ).toBe(false));
 test("selects push and matching tag actions without tag fallback", () => {
   const push = { deployments: [] };
   const release = { deployments: [{ target: "dev", cwd: "/opt/release", commands: ["release"] }] };
@@ -70,7 +59,6 @@ test("ignores tags when release actions are not configured", () =>
   ).toBeNull());
 test("uses default inputs for workflow and target validation", () => {
   expect(validateWorkflow({})).toBe(false);
-  expect(validateTargets({})).toBe(false);
   expect(selectWorkflowAction({ config: { on: { push: [] } } })).toEqual([]);
   expect(() => selectWorkflowAction()).toThrow();
 });

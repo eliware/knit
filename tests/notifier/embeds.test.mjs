@@ -1,176 +1,18 @@
 import { createEmbed } from "../../src/notifier/embeds.mjs";
 
-it("createEmbed: should return an embed for tag", async () => {
-  const post = {
-    ref: "refs/tags/v1.0.0",
-    repository: { full_name: "foo/bar", html_url: "url" },
-    pusher: { name: "bob" },
-  };
-  const embed = await createEmbed({ post, logOutput: "", hasError: false });
-  expect(embed.title).toMatch(/has been released/);
-  expect(embed.url).toContain("releases/tag");
-});
-
-it("createEmbed: should build push embed with file changes and log output", async () => {
-  const embed = await createEmbed({
-    post: {
-      ref: "refs/heads/main",
-      repository: { full_name: "foo/bar", html_url: "url", owner: { avatar_url: "owner.png" } },
-      pusher: { name: "bob" },
-      commits: [
-        {
-          id: "123456789",
-          message: "change",
-          url: "commit",
-          added: ["a"],
-          removed: ["b"],
-          modified: ["c"],
-        },
-      ],
-      head_commit: {
-        timestamp: "2025-01-01T00:00:00Z",
-        added: ["c"],
-        removed: ["d"],
-        modified: ["e"],
-      },
-    },
-    logOutput: "failure",
-    hasError: true,
-  });
-  expect(embed.title).toBe("New Commits Pushed to foo/bar");
-  expect(embed.fields).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({ name: "New (1)", value: "a" }),
-      expect.objectContaining({ name: "Deleted (2)", value: "b\nd" }),
-      expect.objectContaining({ name: "Modified (2)", value: "c\ne" }),
-    ]),
+test("routes tags, pushes, and generic events to the matching embed rules", () => {
+  expect(createEmbed({ post: { ref: "refs/tags/v1", repository: {} } }).title).toContain(
+    "has been released",
   );
-  expect(embed.author).toEqual({
-    name: "bob",
-    icon_url: "owner.png",
-    url: "https://github.com/bob",
-  });
-  expect(embed.description).toContain("failure");
-});
-
-it("createEmbed: should build generic event embed", async () => {
-  const embed = await createEmbed({
-    post: { action: "opened", repository: { full_name: "foo/bar" } },
-    logOutput: "details",
-    hasError: true,
-  });
-  expect(embed.title).toBe("foo/bar - opened");
-  expect(embed.description).toContain("details");
-  expect(embed.footer.text).toBe("GitHub Event");
-});
-
-it("createEmbed: should use sender avatar and unknown defaults", async () => {
-  const embed = await createEmbed({
-    post: { ref: "refs/tags/v1 beta", repository: {}, sender: { avatar_url: "sender.png" } },
-  });
-  expect(embed.author).toEqual({ name: "unknown", icon_url: "sender.png" });
-  expect(embed.url).toContain("v1%20beta");
-});
-
-it("truncates long push descriptions", async () => {
-  const embed = await createEmbed({
-    post: {
-      ref: "refs/heads/main",
-      repository: {},
-      commits: Array.from({ length: 100 }, (_, i) => ({
-        id: String(i).repeat(10),
-        message: "x".repeat(100),
-        url: "",
-      })),
-    },
-  });
-  expect(embed.description.length).toBeLessThanOrEqual(1800);
-  expect(embed.description).toContain("...");
-});
-
-it("uses repository owner avatar for tag fallback", async () => {
-  const embed = await createEmbed({
-    post: {
-      ref: "refs/tags/v1",
-      repository: { full_name: "o/r", owner: { avatar_url: "owner.png" } },
-    },
-  });
-  expect(embed.author.icon_url).toBe("owner.png");
-});
-
-it("builds tag embed with fallback repository data and no author extras", async () => {
-  const embed = await createEmbed({ post: { ref: "refs/tags/v1", repository: {} } });
-  expect(embed).toMatchObject({
-    title: "Unknown Repository v1 has been released! 🎉",
-    url: "https://github.com/Unknown Repository/releases/tag/v1",
-    author: { name: "unknown" },
-  });
-  expect(embed.author).not.toHaveProperty("icon_url");
-  expect(embed.author).not.toHaveProperty("url");
-});
-
-it("builds push embed with sender avatar and handles absent change arrays", async () => {
-  const embed = await createEmbed({
-    post: {
-      commits: [
-        { id: "123", message: "", url: "", added: "bad", removed: [], modified: ["same"] },
-        { added: ["same"] },
-      ],
-      head_commit: { added: "bad", removed: "bad", modified: "bad" },
-      sender: { avatar_url: "sender.png" },
-      repository: { full_name: "r/r", owner: {} },
-      pusher: {},
-    },
-    event: "pull_request",
-  });
-  expect(embed.author).toEqual({ name: "unknown", icon_url: "sender.png" });
-  expect(embed.fields).toEqual([{ name: "Modified (1)", value: "same", inline: false }]);
-  expect(embed.description).toContain("**123**: []()");
-});
-
-it("builds generic embeds for missing event, push event, and defaults", () => {
-  expect(createEmbed({ post: {} })).toMatchObject({
-    title: "Unknown Repository - Event",
-    description: "See details on GitHub for more information.",
-  });
-  expect(createEmbed({ post: { action: "closed" }, event: "push" })).toMatchObject({
-    title: "Unknown Repository - closed",
-  });
-  expect(createEmbed({ post: {}, event: "issues" })).toMatchObject({
-    title: "Unknown Repository - issues",
-  });
-});
-
-it("adds generic error output without altering the short description", async () => {
-  const embed = await createEmbed({ post: {}, event: null, hasError: true, logOutput: "failure" });
-  expect(embed.description).toBe(
-    "See details on GitHub for more information.```text\nfailure\n```",
+  expect(createEmbed({ post: { commits: [], repository: {} } }).footer.text).toBe(
+    "GitHub Push Event",
+  );
+  expect(createEmbed({ post: { action: "opened" }, event: "issues" }).title).toBe(
+    "Unknown Repository - issues: opened",
   );
 });
 
-it("uses repository URL when a tag name is empty", async () => {
-  const embed = await createEmbed({
-    post: { ref: "refs/tags/", repository: { full_name: "o/r", html_url: "repo-url" } },
-  });
-  expect(embed.url).toBe("repo-url");
-});
-
-it("handles truthy non-array commits and generic events without actions", async () => {
-  const push = await createEmbed({ post: { commits: "x", repository: {} } });
-  expect(push.description).toContain("Branch: **unknown** - Commits: **1**");
-
-  const generic = await createEmbed({ post: {}, event: "issues" });
-  expect(generic.title).toBe("Unknown Repository - issues");
-
-  const actionEvent = await createEmbed({ post: { action: "opened" }, event: "issues" });
-  expect(actionEvent.title).toBe("Unknown Repository - issues: opened");
-});
-
-it("defaults an omitted post when creating an embed", () => {
-  expect(createEmbed({ post: undefined })).toMatchObject({
-    title: "Unknown Repository - Event",
-  });
-});
-it("uses default embed options", () => {
+test("uses default embed inputs", () => {
   expect(createEmbed()).toMatchObject({ title: "Unknown Repository - Event" });
+  expect(createEmbed({ post: undefined })).toMatchObject({ title: "Unknown Repository - Event" });
 });

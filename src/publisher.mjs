@@ -1,11 +1,15 @@
 import { log as logger } from "@eliware/common";
 import * as Consumer from "./consumer.mjs";
+import {
+  clearPublisherQueue,
+  dequeuePublisherTask,
+  enqueuePublisherTask,
+  getPendingPublisherTasks,
+} from "./publisherQueue.mjs";
+import { processPublisherTask } from "./publisherProcessor.mjs";
 
-let tasks = [];
 let isProcessing = false;
 const metrics = { queued: 0, processed: 0, succeeded: 0, failed: 0, retried: 0, duplicates: 0 };
-const processedDeliveries = new Set();
-const MAX_DELIVERIES = 1000;
 
 export function publish({
   raw,
@@ -18,19 +22,7 @@ export function publish({
   retryDelayMs = 100,
 }) {
   const activeLog = log ?? logger;
-  if (deliveryId && processedDeliveries.has(deliveryId)) {
-    metrics.duplicates += 1;
-    activeLog.info("[Publisher] Duplicate delivery ignored", deliveryId);
-    return false;
-  }
-  if (deliveryId) {
-    processedDeliveries.add(deliveryId);
-    while (processedDeliveries.size > MAX_DELIVERIES)
-      processedDeliveries.delete(processedDeliveries.values().next().value);
-  }
-  metrics.queued += 1;
-  activeLog.info("[Publisher] Queuing payload for publish");
-  tasks.push({
+  const task = {
     raw,
     parsed,
     event,
@@ -38,56 +30,32 @@ export function publish({
     ...(log ? { log } : {}),
     maxAttempts: Math.max(1, maxAttempts),
     retryDelayMs,
-  });
+  };
+  if (!enqueuePublisherTask(task)) {
+    metrics.duplicates += 1;
+    activeLog.info("[Publisher] Duplicate delivery ignored", deliveryId);
+    return false;
+  }
+  metrics.queued += 1;
+  activeLog.info("[Publisher] Queuing payload for publish");
   setImmediate(() => processTasks(ConsumerMod));
 }
 
 export async function processTasks(ConsumerMod = Consumer) {
-  if (isProcessing || tasks.length === 0) return;
+  if (isProcessing || getPendingPublisherTasks() === 0) return;
   isProcessing = true;
-  while (tasks.length > 0) {
-    const {
-      raw,
-      parsed,
-      event,
-      deliveryId,
-      log = logger,
-      maxAttempts,
-      retryDelayMs,
-    } = tasks.shift();
-    metrics.processed += 1;
-    let succeeded = false;
-    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-      try {
-        log.info("[Publisher] Sending payload to Consumer", { attempt, maxAttempts, deliveryId });
-        succeeded = await ConsumerMod.consume({ message: { raw, parsed, event, deliveryId }, log });
-        if (succeeded) break;
-        throw new Error("Consumer returned false");
-      } catch (err) {
-        if (attempt < maxAttempts) {
-          metrics.retried += 1;
-          const warn = typeof log.warn === "function" ? log.warn.bind(log) : log.info.bind(log);
-          warn("[Publisher] Consumer failed; retrying", { attempt, maxAttempts, deliveryId });
-          await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
-        } else {
-          metrics.failed += 1;
-          log.error("[Publisher] Error sending to Consumer:", err);
-        }
-      }
-    }
-    if (succeeded) metrics.succeeded += 1;
-  }
+  while (getPendingPublisherTasks() > 0)
+    await processPublisherTask({ task: dequeuePublisherTask(), ConsumerMod, metrics });
   isProcessing = false;
 }
 
 export function getPublisherMetrics() {
-  return { ...metrics, pending: tasks.length, processing: isProcessing };
+  return { ...metrics, pending: getPendingPublisherTasks(), processing: isProcessing };
 }
 
 export function _resetPublisherState() {
-  tasks = [];
+  clearPublisherQueue();
   isProcessing = false;
-  processedDeliveries.clear();
   Object.keys(metrics).forEach((key) => {
     metrics[key] = 0;
   });

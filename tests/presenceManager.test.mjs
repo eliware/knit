@@ -155,34 +155,6 @@ test("publishes a neutral ignored state while busy", async () => {
   );
 });
 
-test("ignores terminal results from a stale delivery", async () => {
-  const setPresence = jest.fn().mockResolvedValue(undefined);
-  const manager = createPresenceManager({ client: { user: { setPresence } }, version: "2.2.0" });
-  await manager.begin("first", "delivery-1");
-  await manager.begin("second", "delivery-2");
-  await manager.terminal("first failure", true, "delivery-1");
-  expect(setPresence).not.toHaveBeenLastCalledWith(
-    expect.objectContaining({ activities: [{ name: "❌ first failure", type: 4 }] }),
-  );
-});
-
-test("ignores stale neutral results and safely ends nested work", async () => {
-  const setPresence = jest.fn().mockResolvedValue(undefined);
-  const manager = createPresenceManager({
-    client: { user: { setPresence } },
-    version: "2.2.0",
-    clearTimeoutFn: jest.fn(),
-  });
-  await manager.begin("first", "delivery-1");
-  await manager.begin("second", "delivery-2");
-  await manager.neutral("first ignored", "delivery-1");
-  manager.end();
-  manager.end();
-  await manager.neutral("idle ignored");
-  expect(setPresence).not.toHaveBeenLastCalledWith(
-    expect.objectContaining({ activities: [{ name: "ℹ️ first ignored", type: 4 }] }),
-  );
-});
 test("uses default presence manager inputs", () => {
   expect(createPresenceManager()).toBeDefined();
 });

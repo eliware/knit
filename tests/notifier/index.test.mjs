@@ -48,24 +48,6 @@ it("should send error embed if hasError is true", async () => {
   expect(sendMessageFn).toHaveBeenCalled();
 });
 
-it("should send success embed if hasError is false", async () => {
-  const post = {
-    ref: "refs/tags/v1.0.0",
-    repository: { full_name: "foo/bar", html_url: "url" },
-    pusher: { name: "bob" },
-  };
-  const sendMessageFn = jest.fn();
-  await notifier.send({
-    channelId,
-    post,
-    logOutput: "",
-    hasError: false,
-    log,
-    discordClient: makeClient(sendMessageFn),
-  });
-  expect(sendMessageFn).toHaveBeenCalled();
-});
-
 it("cross-posts v tag announcements when Discord returns a message", async () => {
   const crosspost = jest.fn().mockResolvedValue(undefined);
   const sendMessageFn = jest.fn().mockResolvedValue({ crosspost });
@@ -96,11 +78,15 @@ it("send uses provided embed, defaults event, and sends to the channel", async (
   const log = { info: jest.fn(), error: jest.fn() };
   const sendMessageFn = jest.fn();
   const discordClient = makeClient(sendMessageFn);
+  await notifier.send({ channelId, post: {}, hasError: false, log, discordClient });
+  expect(sendMessageFn).toHaveBeenLastCalledWith({
+    embeds: [expect.objectContaining({ title: "✅ Unknown Repository - Event" })],
+  });
   await notifier.send({ channelId, post: {}, embed, hasError: false, log, discordClient });
   expect(log.info).toHaveBeenCalledWith("[Notifier] Sending message to Discord channel", {
     channelId,
   });
-  expect(sendMessageFn).toHaveBeenCalledWith({ embeds: [{ title: "✅ Deployment" }] });
+  expect(sendMessageFn).toHaveBeenLastCalledWith({ embeds: [{ title: "✅ Deployment" }] });
 });
 
 it("send prefixes provided error embeds and awaits sender", async () => {
