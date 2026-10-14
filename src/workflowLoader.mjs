@@ -10,9 +10,12 @@ function blobSha(content) {
 }
 
 async function fetchFile({ repository, path, commit, token, fetchFn, required }) {
-  const url = `${API_ROOT}/${repository}/contents/${path}?ref=${commit}`;
+  const repositoryPath = repository.split("/").map(encodeURIComponent).join("/");
+  const encodedPath = path.split("/").map(encodeURIComponent).join("/");
+  const url = new URL(`${repositoryPath}/contents/${encodedPath}`, `${API_ROOT}/`);
+  url.searchParams.set("ref", commit);
   for (let attempt = 1; attempt <= RETRIES; attempt++) {
-    const response = await fetchFn(url, {
+    const response = await fetchFn(url.toString(), {
       headers: {
         Accept: "application/vnd.github+json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),

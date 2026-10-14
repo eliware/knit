@@ -35,6 +35,14 @@ test("fetches only pinned workflow and package metadata", async () => {
   expect(fetchFn.mock.calls[0][1].headers.Authorization).toBe("Bearer token");
 });
 
+test("encodes repository URL components before fetching metadata", async () => {
+  const fetchFn = jest.fn((url) =>
+    response(new URL(url).pathname.endsWith("package.json") ? "package.json" : ".knit/deploy.yaml"),
+  );
+  await loadWorkflow({ repository: "eliware/app#archive", commit, fetchFn });
+  expect(fetchFn.mock.calls[0][0]).toContain("/eliware/app%23archive/contents/");
+});
+
 test.each([
   [{ repository: "bad", commit }, "Invalid repository"],
   [{ repository: "eliware/app", commit: "bad" }, "Webhook commit SHA is required"],

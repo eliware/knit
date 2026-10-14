@@ -1,4 +1,5 @@
 import { COLORS, createEmbed } from "../src/specializedEventEmbed.mjs";
+import { escapeDiscordMarkdown } from "../src/notifier/discordMarkdown.mjs";
 
 test("uses the configured color for each specialized event", () => {
   for (const [event, color] of Object.entries(COLORS)) {
@@ -46,7 +47,9 @@ test.each([
   [{ sender: { name: "sender-name" } }, "sender-name"],
   [{ pusher: { name: "pusher-name" } }, "pusher-name"],
 ])("selects actor fallback from event data", (post, expected) => {
-  expect(createEmbed({ event: "issues", post }).description).toContain(`Actor: **${expected}**`);
+  expect(createEmbed({ event: "issues", post }).description).toContain(
+    `Actor: **${escapeDiscordMarkdown(expected)}**`,
+  );
 });
 
 test("uses repository URL and supported event names", () => {
@@ -55,7 +58,7 @@ test("uses repository URL and supported event names", () => {
       event: "pull_request",
       post: { repository: { html_url: "repository" }, issue: { [field]: field } },
     });
-    expect(embed.description).toContain(`**${field}**`);
+    expect(embed.description).toContain(`**${escapeDiscordMarkdown(field)}**`);
     expect(embed.url).toBe("repository");
   }
   expect(createEmbed({ event: "deployment", post: { deployment: { url: "deploy" } } }).url).toBe(
@@ -66,5 +69,20 @@ test("uses repository URL and supported event names", () => {
     post: { deployment_status: { state: "active", status: "in_progress" } },
   });
   expect(status.description).toContain("State: **active**");
-  expect(status.description).toContain("Status: **in_progress**");
+  expect(status.description).toContain(`Status: **${escapeDiscordMarkdown("in_progress")}**`);
+});
+
+test("escapes repository-controlled Markdown and special mentions", () => {
+  const embed = createEmbed({
+    event: "issues",
+    post: {
+      action: "opened",
+      repository: { full_name: "eliware/app" },
+      sender: { login: "@everyone" },
+      issue: { title: "**urgent** @here" },
+    },
+  });
+  expect(embed.description).toContain("\\*\\*urgent\\*\\*");
+  expect(embed.description).toContain("@\u200beveryone");
+  expect(embed.description).toContain("@\u200bhere");
 });
