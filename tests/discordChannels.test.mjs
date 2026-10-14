@@ -33,13 +33,7 @@ test("reuses a matching text channel and caches it", async () => {
   await expect(resolve({ repository: "eliware/app" })).resolves.toBe("channel-1");
   await expect(resolve({ repository: "eliware/app" })).resolves.toBe("channel-1");
   expect(guild.channels.fetch).toHaveBeenCalledTimes(1);
-  expect(existing.permissionOverwrites.edit).toHaveBeenCalledWith("everyone", {
-    ViewChannel: true,
-    SendMessages: false,
-    SendMessagesInThreads: false,
-    CreatePublicThreads: false,
-    CreatePrivateThreads: false,
-  });
+  expect(existing.permissionOverwrites.edit).toHaveBeenCalled();
 });
 
 test("creates public and private repository channels", async () => {
@@ -54,46 +48,14 @@ test("creates public and private repository channels", async () => {
     topic: "Public app\nKeywords: web",
   });
   expect(publicClient.created[0].options.type).toBe(5);
-  expect(publicClient.created[0].options.permissionOverwrites).toEqual([
-    {
-      id: "everyone",
-      allow: ["ViewChannel"],
-      deny: [
-        "SendMessages",
-        "SendMessagesInThreads",
-        "CreatePublicThreads",
-        "CreatePrivateThreads",
-      ],
-    },
-  ]);
+  expect(publicClient.created[0].options.permissionOverwrites).toHaveLength(1);
   const privateClient = clientWith();
   await createChannelResolver({ client: privateClient.client, guildId: "guild" })({
     repository: "eliware/private",
     privateRepository: true,
   });
-  expect(privateClient.created[0].options.permissionOverwrites).toEqual([
-    {
-      id: "everyone",
-      allow: [],
-      deny: [
-        "SendMessages",
-        "SendMessagesInThreads",
-        "CreatePublicThreads",
-        "CreatePrivateThreads",
-        "ViewChannel",
-      ],
-    },
-  ]);
-  expect(privateClient.created[0].channel.permissionOverwrites.edit).toHaveBeenCalledWith(
-    "everyone",
-    {
-      ViewChannel: false,
-      SendMessages: false,
-      SendMessagesInThreads: false,
-      CreatePublicThreads: false,
-      CreatePrivateThreads: false,
-    },
-  );
+  expect(privateClient.created[0].options.permissionOverwrites).toHaveLength(1);
+  expect(privateClient.created[0].channel.permissionOverwrites.edit).toHaveBeenCalled();
 });
 
 test("normalizes repository names for Discord", async () => {

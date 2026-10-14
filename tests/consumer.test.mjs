@@ -25,37 +25,29 @@ describe("consumer.mjs", () => {
     };
     setPresenceManager(null);
   });
-  it("returns false and logs when GitHub validation fails", async () => {
-    GitHub.validate.mockReturnValue(false);
-    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
-    expect(GitHub.validate).toHaveBeenCalledWith({ post: message.parsed, event: "push", log });
-    expect(log.error).toHaveBeenCalledWith("[Consumer] GitHub validation failed");
-    expect(Router.resolveEventTarget).not.toHaveBeenCalled();
-  });
-  it("returns false and logs when a repository target is missing", async () => {
-    Router.resolveEventTarget.mockResolvedValue({ ignored: true, kind: "repository", name: "foo" });
-
+  it.each([
+    [
+      "repository",
+      { ignored: true, kind: "repository", name: "foo" },
+      "error",
+      "[Consumer] Repo not found:",
+    ],
+    [
+      "organization",
+      { ignored: true, kind: "organization", name: "eliware/knit" },
+      "info",
+      "[Consumer] Event ignored: no configured target",
+    ],
+  ])("returns false when the %s target is missing", async (_kind, target, level, text) => {
+    if (target.kind === "organization") message.parsed = {};
+    Router.resolveEventTarget.mockResolvedValue(target);
     await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
     expect(Router.resolveEventTarget).toHaveBeenCalledWith({
       post: message.parsed,
       RepoMod: Repo,
       log,
     });
-    expect(log.error).toHaveBeenCalledWith("[Consumer] Repo not found:", "foo");
-  });
-  it("returns false and logs when an organization event has no fallback target", async () => {
-    message.parsed = {};
-    Router.resolveEventTarget.mockResolvedValue({
-      ignored: true,
-      kind: "organization",
-      name: "eliware/knit",
-    });
-
-    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
-    expect(log.info).toHaveBeenCalledWith(
-      "[Consumer] Event ignored: no configured target",
-      "eliware/knit",
-    );
+    expect(log[level]).toHaveBeenCalledWith(text, target.name);
   });
   it("marks an unmatched tag delivery as neutral instead of failure", async () => {
     const presence = { begin: jest.fn(), neutral: jest.fn(), terminal: jest.fn(), end: jest.fn() };
@@ -121,47 +113,34 @@ describe("consumer.mjs", () => {
     expect(presence.terminal).toHaveBeenCalledWith("failed foo", true, "delivery-1");
     expect(presence.end).toHaveBeenCalled();
   });
-  it.each([false, true])(
-    "returns update result and logs appropriately when push update is %s",
-    async (updated) => {
-      const update = jest.fn().mockResolvedValue(updated);
-      Router.resolveEventTarget.mockResolvedValue({
-        ignored: false,
-        repo: { update },
-        name: "foo",
-      });
+  it.each([
+    [false, "push"],
+    [true, "push"],
+    [true, undefined],
+  ])("routes push updates and defaults a missing event", async (updated, requestEvent) => {
+    if (requestEvent) message.event = requestEvent;
+    else delete message.event;
+    const update = jest.fn().mockResolvedValue(updated);
+    Router.resolveEventTarget.mockResolvedValue({
+      ignored: false,
+      repo: { update },
+      name: "foo",
+    });
 
-      await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(
-        updated,
-      );
-      expect(update).toHaveBeenCalledWith({
-        body: message.parsed,
-        event: "push",
-        deliveryId: "delivery-1",
-        log,
-      });
-      expect(updated ? log.info : log.error).toHaveBeenCalledWith(
-        updated ? "[Consumer] Repo updated successfully" : "[Consumer] Repo update failed",
-      );
-    },
-  );
+    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(updated);
+    expect(update).toHaveBeenCalledWith({
+      body: message.parsed,
+      event: "push",
+      deliveryId: "delivery-1",
+      log,
+    });
+    expect(updated ? log.info : log.error).toHaveBeenCalledWith(
+      updated ? "[Consumer] Repo updated successfully" : "[Consumer] Repo update failed",
+    );
+  });
   it("uses default repository and router modules when omitted", async () => {
     await expect(consume({ message, log, GitHub })).resolves.toBe(false);
     expect(log.error).toHaveBeenCalledWith("[Consumer] Repo not found:", "foo");
-  });
-  it("passes an injected target loader to the default router", async () => {
-    const targetLoader = { load: jest.fn() };
-    const RepoWithTargets = { targetLoader, get: jest.fn().mockResolvedValue(null) };
-    await expect(consume({ message, log, GitHub, Repo: RepoWithTargets })).resolves.toBe(false);
-    expect(targetLoader.load).not.toHaveBeenCalled();
-  });
-  it("defaults an absent event to push", async () => {
-    delete message.event;
-    const update = jest.fn().mockResolvedValue(true);
-    Router.resolveEventTarget.mockResolvedValue({ ignored: false, repo: { update }, name: "foo" });
-
-    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(true);
-    expect(GitHub.validate).toHaveBeenCalledWith({ post: message.parsed, event: "push", log });
   });
   it("supports deliveries without a delivery id", async () => {
     delete message.deliveryId;

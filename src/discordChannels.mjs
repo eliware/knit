@@ -1,4 +1,8 @@
 import { channelName, channelTopic } from "./discordChannelMetadata.mjs";
+import {
+  createChannelPermissionOverwrites,
+  syncChannelPermissions,
+} from "./discordChannelPermissions.mjs";
 export { channelName } from "./discordChannelMetadata.mjs";
 
 const GUILD_ANNOUNCEMENT = 5;
@@ -23,19 +27,10 @@ export function createChannelResolver({ client, guildId, log = console } = {}) {
         const options = {
           name,
           type: GUILD_ANNOUNCEMENT,
-          permissionOverwrites: [
-            {
-              id: guild.roles.everyone.id,
-              allow: privateRepository ? [] : ["ViewChannel"],
-              deny: [
-                "SendMessages",
-                "SendMessagesInThreads",
-                "CreatePublicThreads",
-                "CreatePrivateThreads",
-                ...(privateRepository ? ["ViewChannel"] : []),
-              ],
-            },
-          ],
+          permissionOverwrites: createChannelPermissionOverwrites(
+            guild.roles.everyone.id,
+            privateRepository,
+          ),
         };
         channel = await guild.channels.create(options);
         log.info?.("[Discord] Created repository channel", {
@@ -44,15 +39,7 @@ export function createChannelResolver({ client, guildId, log = console } = {}) {
         });
       }
     }
-    if (channel.permissionOverwrites?.edit && guild.roles?.everyone?.id) {
-      await channel.permissionOverwrites.edit(guild.roles.everyone.id, {
-        ViewChannel: !privateRepository,
-        SendMessages: false,
-        SendMessagesInThreads: false,
-        CreatePublicThreads: false,
-        CreatePrivateThreads: false,
-      });
-    }
+    await syncChannelPermissions(channel, guild, privateRepository);
     const topic = channelTopic(packageJson);
     if (topic && typeof channel.edit === "function" && channel.topic !== topic)
       await channel.edit({ topic });

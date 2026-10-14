@@ -71,7 +71,7 @@ describe("publish", () => {
 
 describe("processing", () => {
   it("covers the default processor and ignores an empty scheduled queue", async () => {
-    await processTasks();
+    await expect(processTasks()).resolves.toBeUndefined();
 
     const callbacks = [];
     const immediate = jest
@@ -106,9 +106,6 @@ describe("processing", () => {
     immediate.mockRestore();
     expect(Consumer.consume).toHaveBeenCalledTimes(2);
   });
-});
-test("processes an empty queue with default consumer", async () => {
-  await expect(processTasks()).resolves.toBeUndefined();
 });
 test("uses the default publisher logger", async () => {
   const Consumer = { consume: jest.fn().mockResolvedValue(true) };
