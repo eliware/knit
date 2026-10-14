@@ -44,7 +44,7 @@ describe("specializedHandlers", () => {
     for (const event of specializedEvents) expect(registry.has(event)).toBe(true);
   });
 
-  test("registers expected color for every specialized event", () => {
+  test("registers a handler for every specialized event", () => {
     const registry = { register: jest.fn() };
     registerSpecializedHandlers(registry, { Notifier: { send: jest.fn() } });
     expect(registry.register).toHaveBeenCalledTimes(specializedEvents.length);

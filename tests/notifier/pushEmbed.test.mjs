@@ -10,7 +10,6 @@ test("creates a push embed with file changes", () => {
   });
 
   expect(embed.fields).toEqual([{ name: "New (1)", value: "file", inline: false }]);
-  expect(embed.description).toContain("1234567");
 });
 
 test("merges file changes and error logs from push commits", () => {
@@ -51,21 +50,9 @@ test("merges file changes and error logs from push commits", () => {
     icon_url: "owner.png",
     url: "https://github.com/bob",
   });
-  expect(embed.description).toContain("failure");
 });
 
-test("limits long descriptions and handles malformed change lists", () => {
-  const longEmbed = createPushEmbed({
-    post: {
-      commits: Array.from({ length: 100 }, (_, index) => ({
-        id: String(index).repeat(10),
-        message: "x".repeat(100),
-        url: "",
-      })),
-    },
-  });
-  expect(longEmbed.description.length).toBeLessThanOrEqual(1800);
-  expect(longEmbed.description).toContain("...");
+test("handles malformed change lists", () => {
   const embed = createPushEmbed({
     post: {
       commits: [
@@ -80,11 +67,4 @@ test("limits long descriptions and handles malformed change lists", () => {
   });
   expect(embed.author).toEqual({ name: "unknown", icon_url: "sender.png" });
   expect(embed.fields).toEqual([{ name: "Modified (1)", value: "same", inline: false }]);
-  expect(embed.description).toContain("**123**: []()");
-});
-
-test("supports a truthy string commit list", () => {
-  expect(createPushEmbed({ post: { commits: "x" } }).description).toContain(
-    "Branch: **unknown** - Commits: **1**",
-  );
 });

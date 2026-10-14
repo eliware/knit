@@ -1,4 +1,10 @@
-import { createEmbed } from "../src/specializedEventEmbed.mjs";
+import { COLORS, createEmbed } from "../src/specializedEventEmbed.mjs";
+
+test("uses the configured color for each specialized event", () => {
+  for (const [event, color] of Object.entries(COLORS)) {
+    expect(createEmbed({ event, post: {} }).color).toBe(color);
+  }
+});
 
 test("builds release embed fields and event links", () => {
   const embed = createEmbed({

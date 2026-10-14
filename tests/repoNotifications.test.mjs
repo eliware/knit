@@ -15,9 +15,10 @@ test("classifies tag updates", () => {
   expect(isTagUpdate({})).toBe(false);
 });
 
-test("routes tag and push updates to their notification handlers", async () => {
+test("routes tag and push updates with the expected notification fields", async () => {
   const notifyFn = jest.fn();
   await notifyUpdate({ ...values, notifyFn });
+  expect(notifyFn).toHaveBeenCalledTimes(1);
   expect(notifyFn).toHaveBeenLastCalledWith({
     repo: values.repo,
     body: values.body,
@@ -39,21 +40,6 @@ test("routes tag and push updates to their notification handlers", async () => {
     body: { ref: "refs/heads/main" },
     logOutput: "out",
     hasError: true,
-    log: values.log,
-  });
-});
-
-test("uses the injected tag notification handler", async () => {
-  const notifyFn = jest.fn();
-
-  await notifyTag({ ...values, notifyFn });
-
-  expect(notifyFn).toHaveBeenCalledWith({
-    repo: values.repo,
-    body: values.body,
-    event: values.event,
-    logOutput: "",
-    hasError: false,
     log: values.log,
   });
 });

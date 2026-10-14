@@ -1,20 +1,8 @@
-import { tail } from "./embedLimits.mjs";
 import { pushChangeFields } from "./pushChanges.mjs";
-
-const DESCRIPTION_LIMIT = 4096;
+import { createPushDescription } from "./pushDescription.mjs";
 
 export function createPushEmbed({ post, logOutput, hasError }) {
   const repository = post.repository?.full_name || "Unknown Repository";
-
-  let description = `Branch: **${post.ref?.replace(/^refs\/heads\//, "") || "unknown"}** - Commits: **${post.commits.length}**\n`;
-  for (const commit of post.commits) {
-    description += `**${commit.id?.substring(0, 7) || ""}**: [${commit.message || ""}](${commit.url || ""})\n`;
-  }
-  if (description.length > 1800) description = `${description.slice(0, 1797)}...`;
-  if (hasError && logOutput) {
-    const available = Math.max(0, DESCRIPTION_LIMIT - description.length - 10);
-    description += `\`\`\`text\n${tail(logOutput, available)}\n\`\`\``;
-  }
 
   const embed = {
     title: `New Commits Pushed to ${repository}`,
@@ -22,7 +10,7 @@ export function createPushEmbed({ post, logOutput, hasError }) {
     color: 0x00ff00,
     timestamp: post.head_commit?.timestamp || new Date().toISOString(),
     thumbnail: { url: "https://knit.eliware.org/assets/knit.png" },
-    description: description.trim(),
+    description: createPushDescription({ post, logOutput, hasError }),
     fields: pushChangeFields(post),
     footer: { text: "GitHub Push Event" },
   };
