@@ -1,102 +1,102 @@
-# @eliware/knit
+# [![eliware.org](https://eliware.org/logos/brand.png)](https://discord.gg/M6aTR9eTwN)
 
-Documentation: [docs](docs/README.md) · [specifications](specs/README.md) · [examples](examples/README.md)
+## @eliware/knit [![License](https://img.shields.io/github/license/eliware/knit)](https://github.com/eliware/knit/blob/main/LICENSE) [![CI](https://github.com/eliware/knit/actions/workflows/ci.yaml/badge.svg)](https://github.com/eliware/knit/actions/workflows/ci.yaml)
 
-GitHub webhook handler and SSH deployment automation service.
+GitHub webhook handler and SSH deployment automation service with Discord notifications, delivery-aware presence, and metadata-aware validation workflows.
 
-## Runtime
+## Table of Contents
 
-- Node.js >=26; ESM.
-- `POST /` receives signed GitHub webhooks.
-- `GET /` serves the Knit project landing page.
-- `GET /health` returns service status and version.
-- Trusted target profiles are YAML mounted at `KNIT_CONFIG_PATH` (default `./repos`).
-- Repository deployment workflows live in each repository at `.knit/deploy.yaml`.
-- Knit fetches and validates that file at the webhook commit SHA; there is no central repository configuration or legacy fallback.
+- [Features](#features)
+- [Requirements](#requirements)
+- [Setup](#setup)
+- [Usage](#usage)
+- [Development](#development)
+- [Testing](#testing)
+- [Troubleshooting](#troubleshooting)
+- [Security](#security)
+- [Configuration](#configuration)
+- [Operations](#operations)
+- [Commands](#commands)
+- [Events](#events)
+- [Intents and permissions](#intents-and-permissions)
+- [Support](#support)
+- [Links](#links)
+- [License](#license)
 
-## Configuration
+## Features
 
-For a complete agent-oriented tutorial, see [the Knit configuration guide](docs/knit-config-guide.md).
+Knit accepts signed GitHub webhooks. It runs repository deployment commands over verified SSH targets. It sends event and deployment updates to Discord.
 
-Repository workflow configuration uses target-specific command sets:
+## Requirements
 
-```yaml
-version: 1
-on:
-  push:
-    deployments:
-      - target: dev
-        cwd: project-root
-        commands:
-          - git pull --ff-only
-          - npm install
-          - npm test
-  tags:
-    "v*":
-      deployments:
-        - target: dev
-          cwd: project-root
-          commands:
-            - npm run release
-```
+Use Node.js 26 or later. Configure GitHub webhook access, a Discord bot, and trusted SSH targets before deployment.
 
-Repository workflows are intentionally plaintext YAML and contain no credentials. The GitHub read token, Discord bot token, and SSH assets remain runtime secrets. Pushes and matching `v*` tags select separate actions; there is no fallback from a tag to the push action.
+## Setup
 
-The main target configuration contains one Discord `guildId`, not project channel IDs. Knit finds an Announcement channel named after the repository, creating it on demand. New channels are public but read-only for public GitHub repositories and hide `@everyone` for private repositories. Repository descriptions and keywords from `package.json` are synchronized into the channel topic, and `v*` tag announcements are cross-posted.
+Run `npm ci` to install the locked dependencies. Set the environment values in the Configuration section. Mount the target inventory and SSH assets.
 
-While idle, the bot displays `🧶 knit v<version>` as its activity. When a webhook begins, it displays `⏳ knitting <repository>`, then displays `✅ <repository> success` or `❌ <repository> failure` when processing finishes. Intentionally unmatched tag deliveries display `ℹ️ <repository> ignored` instead of being retried as failures. Presence updates are throttled to Discord's presence limit; when the bucket is full, Knit waits for capacity instead of dropping the start or terminal result. Delivery IDs prevent stale terminal results from replacing the active delivery's status. After ten minutes without work, the version activity returns.
+## Usage
 
-Kubernetes uses a content-hashed ConfigMap for repository configuration. Updating a config through GitOps changes the ConfigMap name and the Deployment reference, causing Kubernetes to restart Knit with the new configuration. Knit does not monitor mounted files for changes while running.
+Run `npm start` to start Knit. Send signed GitHub events to `POST /`. Open `GET /health` to read service status and version.
 
-Targets execute commands over SSH with strict host verification through `@eliware/ssh-client`. GitOps target profiles own connection details and may restrict repository access and working-directory roots. CA-signed host certificates are trusted through an `@cert-authority` record in `known_hosts` or a mounted `hostCa` public-key file.
-
-Each SSH command receives the triggering webhook metadata as environment variables:
-
-| Variable | Value |
-|---|---|
-| `KNIT_COMMIT_SHA` | Exact webhook `after` SHA, or empty when absent/malformed |
-| `KNIT_REPOSITORY` | Full repository name, such as `eliware/gitops-k8s` |
-| `KNIT_REF` | Webhook ref, such as `refs/heads/main` |
-| `KNIT_EVENT` | GitHub event name |
-| `KNIT_DELIVERY_ID` | Webhook delivery correlation ID |
-
-Workflows may set `timeoutMs` on a deployment, from 1 through 300000 milliseconds, to bound each remote command. Metadata values are passed through SSH environment requests and safely exported in the remote shell so they work even when `sshd` does not accept arbitrary `AcceptEnv` values. Knit does not interpolate arbitrary environment variables or secrets into command strings. Commands should enforce their own cleanup and must not print secrets. Output is truncated for Discord limits; secret redaction remains the responsibility of the command and runtime configuration.
-
-New configurations must use YAML and SSH targets. Local Compose requires the target inventory, Discord credentials, and read-only mounts for the SSH identity, strict `known_hosts`, and host CA; systemd requires equivalent mounted/provisioned configuration and secrets.
-
-## Operations
-
-Knit validates target profiles before opening the Discord connection. Repository workflows are evaluated per signed event and pinned to the webhook commit. The encrypted runtime Secret is owned and recovered through the GitOps secret-management process; never copy workstation private keys, decrypted secrets, or GitHub tokens into this repository.
-
-## Knit self-deployment and organization events
-
-Organization-level events are ignored unless they include a repository. Repository pushes fetch and execute only that repository's committed `.knit/deploy.yaml`. Knit code changes are delivered as immutable container releases through GitOps; source push handling does not restart the running service.
-
-## Environment
-
-| Variable | Purpose |
-|---|---|
-| `PORT` | Listen port; default `3456` |
-| `GITHUB_WEBHOOK_SECRET` | GitHub signature secret |
-| `LOG_LEVEL` | Logger level |
-| `KNIT_CONFIG_PATH` | Mounted configuration directory |
-| `KNIT_TARGETS_PATH` | Optional explicit path to the trusted target inventory; otherwise `KNIT_CONFIG_PATH/targets.yaml` |
-| `NODE_ENV` | Runtime mode; use `test` only for test execution |
-| `GITHUB_READ_TOKEN` | GitHub Contents API token for private repository workflow files |
-| `DISCORD_TOKEN` | Discord bot token, supplied from a runtime Secret |
-| `DISCORD_CLIENT_ID` | Discord application/client ID |
+Read [the configuration guide](docs/knit-config-guide.md), [usage notes](docs/usage.md), and [release notes](RELEASE_NOTES.md). Read [the docs index](docs/README.md) and [the specification index](specs/README.md) for more information.
 
 ## Development
 
-```sh
-npm install
-npm test
-npm run lint
-npm start
-```
+Run `npm ci` to install dependencies. Run `npm start` to start the service. Keep local secrets outside Git.
 
-`npm test` uses `@eliware/test` for the baseline Jest coverage and Oxlint
-checks. It requires 100×4 coverage and zero lint warnings; project-specific
-integration, smoke, regression, or end-to-end checks remain separate.
+## Testing
 
-Development now takes place on the Windows workstation under `C:\Users\russe\src\knit`; the former OVH `dev` VM is a legacy deployment target. Kubernetes releases use immutable container images and Argo CD GitOps. New Knit code is delivered by releasing an image, not by runtime self-updating. The notifier implementation is organized under `src/notifier/`, and webhook command-environment construction is isolated in `src/webhookEnvironment.mjs`.
+Run `npm test` for the full repository checks. Run `npm run lint` for lint checks. Run `npm run format:check` to check formatting.
+
+## Troubleshooting
+
+Read [the troubleshooting guide](docs/troubleshooting.md). Confirm webhook delivery, signature settings, target access, and SSH host keys.
+
+## Security
+
+Knit checks webhook signatures before it accepts events. It reads deployment workflows at the signed commit. It checks SSH host identity before it runs commands.
+
+## Configuration
+
+Set `GITHUB_WEBHOOK_SECRET`, `GITHUB_READ_TOKEN`, `DISCORD_TOKEN`, and `DISCORD_CLIENT_ID` through runtime secrets. Set `KNIT_CONFIG_PATH` for the mounted configuration directory. Set `KNIT_TARGETS_PATH` only when the target inventory uses a separate path. Set `PORT` to change the HTTP port. Set `LOG_LEVEL` to change log output.
+
+Target profiles are YAML files. The default target inventory is `repos/targets.yaml`. Repository workflows are stored in `.knit/deploy.yaml`. Each workflow uses a target name, absolute working directory, and command list.
+
+## Operations
+
+Knit validates target profiles before it opens the Discord connection. It fetches repository workflows at the webhook commit SHA. It reports command results in the matching Discord channel.
+
+Kubernetes releases use immutable container images and Argo CD GitOps. Image publication does not deploy Knit. The deployment workflow runs validation on the configured target.
+
+## Commands
+
+The `/help` command returns a short description of Knit.
+
+## Events
+
+Knit sends Discord updates for GitHub releases, workflow runs, pull requests, issues, deployments, and deployment status changes. It sends a general update for other repository events.
+
+## Intents and permissions
+
+Knit requests the Guilds intent. The bot needs permission to view the configured guild, create announcement channels, edit channel topics, and send messages.
+
+## Support
+
+For help, questions, or to chat with the author and community, visit:
+
+[![Discord](https://eliware.org/logos/discord_96.png)](https://discord.gg/M6aTR9eTwN)[![eliware.org](https://eliware.org/logos/eliware_96.png)](https://discord.gg/M6aTR9eTwN)
+
+**[eliware.org on Discord](https://discord.gg/M6aTR9eTwN)**
+
+## Links
+
+- [Home Page](https://eliware.org)
+- [GitHub Org](https://github.com/eliware)
+- [GitHub Repo](https://github.com/eliware/knit)
+- [Bug Reports](https://github.com/eliware/knit/issues)
+- [Discord](https://discord.gg/M6aTR9eTwN)
+
+## License
+
+[MIT © Eliware](LICENSE)

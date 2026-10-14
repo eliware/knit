@@ -74,13 +74,13 @@ Prefer a committed script for complex logic. Use `set -eu`, quote variables, ins
 
 Every SSH command receives these environment variables. Knit passes them as SSH environment values and also safely exports them in the remote shell because target `sshd` configurations may reject arbitrary `AcceptEnv` values. No arbitrary environment variables or secrets are interpolated:
 
-| Variable | Meaning |
-|---|---|
-| `KNIT_COMMIT_SHA` | Exact 40-character GitHub webhook `after` SHA; empty if absent or malformed |
-| `KNIT_REPOSITORY` | Full name such as `eliware/gitops-k8s` |
-| `KNIT_REF` | Ref such as `refs/heads/main` |
-| `KNIT_EVENT` | GitHub event type, normally `push` |
-| `KNIT_DELIVERY_ID` | Webhook correlation ID; never source identity |
+| Variable           | Meaning                                                                     |
+| ------------------ | --------------------------------------------------------------------------- |
+| `KNIT_COMMIT_SHA`  | Exact 40-character GitHub webhook `after` SHA; empty if absent or malformed |
+| `KNIT_REPOSITORY`  | Full name such as `eliware/gitops-k8s`                                      |
+| `KNIT_REF`         | Ref such as `refs/heads/main`                                               |
+| `KNIT_EVENT`       | GitHub event type, normally `push`                                          |
+| `KNIT_DELIVERY_ID` | Webhook correlation ID; never source identity                               |
 
 The SHA is not the current branch tip and must not be replaced with the result of `git pull`. For exact-commit validation, fetch and use the SHA in a temporary worktree:
 

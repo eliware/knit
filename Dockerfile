@@ -10,9 +10,12 @@ RUN apt-get update \
 
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts
-COPY knit.mjs ./
+COPY bin ./bin
 COPY src ./src
 COPY assets ./assets
+COPY commands ./commands
+COPY events ./events
+COPY locales ./locales
 
 EXPOSE 3456
-CMD ["node", "knit.mjs"]
+CMD ["node", "bin/knit.mjs"]

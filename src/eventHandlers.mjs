@@ -1,6 +1,6 @@
-import { log as logger } from '@eliware/common';
-import * as Notifier from './notifier/index.mjs';
-import { registerSpecializedHandlers } from './specializedHandlers.mjs';
+import { log as logger } from "@eliware/common";
+import * as Notifier from "./notifier/index.mjs";
+import { registerSpecializedHandlers } from "./specializedHandlers.mjs";
 
 /**
  * Creates the default event handler registry.
@@ -13,17 +13,18 @@ export function createRegistry({ Notifier: NotifierMod = Notifier } = {}) {
 
   return {
     register(event, handler) {
-      if (!event || typeof handler !== 'function') throw new TypeError('Event and handler are required');
+      if (!event || typeof handler !== "function")
+        throw new TypeError("Event and handler are required");
       handlers.set(event, handler);
       return this;
     },
     async dispatch({ event, post, target, deliveryId = null, log = logger }) {
-      const handler = handlers.get(event) || handlers.get('*');
+      const handler = handlers.get(event) || handlers.get("*");
       if (!handler) return false;
       return handler({ event, post, target, deliveryId, log });
     },
     has(event) {
-      return handlers.has(event) || handlers.has('*');
+      return handlers.has(event) || handlers.has("*");
     },
     size() {
       return handlers.size;
@@ -45,7 +46,7 @@ export function createGenericHandler({ Notifier: NotifierMod = Notifier, eventNa
     await NotifierMod.send({
       post,
       event: eventName || event,
-      logOutput: '',
+      logOutput: "",
       hasError: false,
       log,
     });
@@ -56,7 +57,7 @@ export function createGenericHandler({ Notifier: NotifierMod = Notifier, eventNa
 export function createDefaultRegistry({ Notifier: NotifierMod = Notifier } = {}) {
   const registry = createRegistry({ Notifier: NotifierMod });
   registerSpecializedHandlers(registry, { Notifier: NotifierMod });
-  return registry.register('*', createGenericHandler({ Notifier: NotifierMod }));
+  return registry.register("*", createGenericHandler({ Notifier: NotifierMod }));
 }
 
 export const defaultRegistry = createDefaultRegistry();

@@ -1,10 +1,10 @@
-import { createDiscord } from '@eliware/discord';
-import { log as logger, path } from '@eliware/common';
-import * as Notifier from './notifier/index.mjs';
-import { createChannelResolver } from './discordChannels.mjs';
-import { defaultTargetLoader } from './targetLoader.mjs';
-import { createPresenceManager, setPresenceManager } from './presenceManager.mjs';
-import { fs } from '@eliware/common';
+import { createDiscord } from "@eliware/discord";
+import { log as logger, path } from "@eliware/common";
+import * as Notifier from "./notifier/index.mjs";
+import { createChannelResolver } from "./discordChannels.mjs";
+import { defaultTargetLoader } from "./targetLoader.mjs";
+import { createPresenceManager, setPresenceManager } from "./presenceManager.mjs";
+import { fs } from "@eliware/common";
 
 /**
  * Starts the shared Discord client used for channel notifications.
@@ -19,18 +19,20 @@ export async function startDiscordClient({
   log = logger,
 } = {}) {
   if (!token && !clientId) {
-    log.warn?.('[Discord] DISCORD_TOKEN and DISCORD_CLIENT_ID are not configured; notifications disabled');
+    log.warn?.(
+      "[Discord] DISCORD_TOKEN and DISCORD_CLIENT_ID are not configured; notifications disabled",
+    );
     return null;
   }
-  if (!token || !clientId) throw new Error('Both DISCORD_TOKEN and DISCORD_CLIENT_ID are required');
+  if (!token || !clientId) throw new Error("Both DISCORD_TOKEN and DISCORD_CLIENT_ID are required");
   // Knit only fetches channels and sends messages; it does not consume gateway
   // message, member, presence, reaction, typing, or scheduled-event events.
   const intents = { Guilds: true };
-  const packageJson = JSON.parse(fs.readFileSync(path(import.meta, '..', 'package.json'), 'utf8'));
+  const packageJson = JSON.parse(fs.readFileSync(path(import.meta, "..", "package.json"), "utf8"));
   const client = await createDiscordFn({
     token,
     clientId,
-    rootDir: path(import.meta, '..'),
+    rootDir: path(import.meta, ".."),
     intents,
     log,
   });
@@ -40,7 +42,7 @@ export async function startDiscordClient({
   Notifier.setDiscordClient(client);
   const configuredGuildId = guildId || targetLoader.load().guildId;
   Notifier.setChannelResolver(createChannelResolver({ client, guildId: configuredGuildId, log }));
-  log.info('[Discord] Client connected for channel notifications');
+  log.info("[Discord] Client connected for channel notifications");
   return client;
 }
 
@@ -49,5 +51,5 @@ export async function stopDiscordClient(client) {
   setPresenceManager(null);
   Notifier.clearDiscordClient(client);
   await client.shutdown?.();
-  if (!client.shutdown && typeof client.destroy === 'function') await client.destroy();
+  if (!client.shutdown && typeof client.destroy === "function") await client.destroy();
 }

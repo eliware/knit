@@ -1,0 +1,40 @@
+version: "12.0"
+description: Defines committed requirements for the Knit service.
+directives:
+  - id: E-1310.0
+    dos:
+      - Accept signed GitHub webhook events through the service endpoint.
+      - Validate trusted target profiles before the service opens external connections.
+      - Read repository workflows at the webhook commit.
+      - Run approved commands through verified SSH targets.
+      - Send supported event and deployment updates to Discord.
+      - Deploy released container images through GitOps.
+    donts:
+      - Do not store runtime credentials in this repository.
+      - Do not deploy mutable container tags.
+      - Do not run unvalidated repository workflows.
+    children:
+      - id: E-1310.0.0
+        dos:
+          - Require a valid GitHub webhook signature before event processing.
+          - Preserve delivery identifiers through event processing.
+          - Ignore events without a configured repository target.
+        donts:
+          - Do not execute deployment commands from unsigned events.
+          - Do not treat a missing repository target as a successful deployment.
+      - id: E-1310.0.1
+        dos:
+          - Load target profiles from the configured YAML inventory.
+          - Fetch workflow files from the exact webhook commit.
+          - Validate target access and working-directory limits before SSH execution.
+        donts:
+          - Do not use a central repository workflow fallback.
+          - Do not bypass strict SSH host verification.
+      - id: E-1310.0.2
+        dos:
+          - Run aggregate repository validation through npm test.
+          - Keep runtime secrets and private SSH keys outside Git.
+          - Use immutable version tags for container deployment.
+        donts:
+          - Do not publish or deploy during local validation.
+          - Do not expose secrets in command output.

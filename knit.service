@@ -11,7 +11,7 @@ Group=root
 RestartSec=0
 Restart=always
 WorkingDirectory=/opt/knit
-ExecStart=/opt/knit/knit.mjs
+ExecStart=/opt/knit/bin/knit.mjs
 EnvironmentFile=/opt/knit/.env
 
 [Install]

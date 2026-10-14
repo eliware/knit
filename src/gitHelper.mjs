@@ -1,5 +1,5 @@
-import { exec as realExec } from 'child_process';
-import { log as logger } from '@eliware/common';
+import { exec as realExec } from "child_process";
+import { log as logger } from "@eliware/common";
 
 /**
  * Stages a file for commit using git add.
@@ -36,7 +36,7 @@ export function commit({ message, log = logger, exec = realExec }) {
         log.error(`git commit error: ${stderr}`);
         reject(new Error(`git commit error: ${stderr}`));
       } else {
-        log.info('git commit success');
+        log.info("git commit success");
         resolve(stdout);
       }
     });
@@ -49,7 +49,7 @@ export function commit({ message, log = logger, exec = realExec }) {
  */
 export function push({ exec = realExec } = {}) {
   return new Promise((resolve, reject) => {
-    exec('git push --quiet', (error, stdout, stderr) => {
+    exec("git push --quiet", (error, stdout, stderr) => {
       if (error) {
         reject(new Error(`git push error: ${stderr}`));
       } else {

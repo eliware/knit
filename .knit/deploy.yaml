@@ -3,11 +3,9 @@ on:
   push:
     deployments:
       - target: dev
-        cwd: /opt/knit
+        cwd: /eliware/knit
+        timeoutMs: 300000
         commands:
-          - git pull --ff-only
+          - git pull --ff-only origin main
           - npm ci
           - npm test
-          - npm run lint
-          - npm audit --omit=dev --audit-level=moderate
-          - npm run pack

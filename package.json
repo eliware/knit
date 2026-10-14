@@ -1,103 +1,125 @@
 {
-    "name": "@eliware/knit",
-    "type": "module",
-    "version": "2.3.3",
-    "description": "GitHub webhook handler and SSH deployment automation service with Discord notifications, delivery-aware presence, and metadata-aware validation workflows.",
-    "main": "knit.mjs",
-    "scripts": {
-        "start": "node knit.mjs",
-        "test": "eliware-test",
-        "lint": "eliware-test --lint",
-        "pack": "npm pack --dry-run"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/eliware/knit.git"
-    },
-    "keywords": [
-        "knit",
-        "nodejs",
-        "webhook",
-        "github",
-        "deployment",
-        "automation",
-        "ssh",
-        "kubernetes",
-        "argo-cd",
-        "validation",
-        "discord",
-        "ci",
-        "cd",
-        "github-webhooks",
-        "webhook-handler",
-        "self-hosted"
+  "name": "@eliware/knit",
+  "version": "12.0.0",
+  "type": "module",
+  "description": "GitHub webhook handler and SSH deployment automation service with Discord notifications, delivery-aware presence, and metadata-aware validation workflows.",
+  "keywords": [
+    "knit",
+    "nodejs",
+    "webhook",
+    "github",
+    "deployment",
+    "automation",
+    "ssh",
+    "kubernetes",
+    "argo-cd",
+    "validation",
+    "discord",
+    "ci",
+    "cd",
+    "github-webhooks",
+    "webhook-handler",
+    "self-hosted"
+  ],
+  "private": true,
+  "main": "bin/knit.mjs",
+  "bin": {
+    "knit": "./bin/knit.mjs"
+  },
+  "files": [
+    "src/",
+    "docs/",
+    "README.md",
+    "AGENTS.md",
+    "LICENSE",
+    "RELEASE_NOTES.md",
+    "bin/",
+    "specs/",
+    ".env.example"
+  ],
+  "scripts": {
+    "start": "node bin/knit.mjs",
+    "test": "eliware-test",
+    "lint": "eliware-test --lint",
+    "audit": "eliware-test --audit",
+    "format": "eliware-test --format",
+    "format:check": "eliware-test --format-check",
+    "pack": "npm pack --dry-run"
+  },
+  "engines": {
+    "node": ">=26"
+  },
+  "dependencies": {
+    "@eliware/common": "^12.0.1",
+    "@eliware/discord": "^12.0.0",
+    "@eliware/ssh-client": "^12.0.0",
+    "body-parser": "^2.3.0",
+    "dotenv": "^18.0.7",
+    "express": "^5.1.0",
+    "inquirer": "^14.2.1",
+    "js-yaml": "^5.4.1"
+  },
+  "devDependencies": {
+    "@eliware/test": "^12.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.mjs"
     ],
-    "author": "Eli Sterling, eliware.org <eli@eliware.org>",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/eliware/knit/issues"
-    },
-    "homepage": "https://github.com/eliware/knit#readme",
-    "jest": {
-        "testEnvironment": "node",
-        "testMatch": [
-            "**/?(*.)+(spec|test).[jt]s?(x)",
-            "**/?(*.)+(spec|test).mjs",
-            "**/?(*.)+(spec|test).cjs"
-        ],
-        "setupFilesAfterEnv": [
-            "<rootDir>/tests/setup.mjs"
-        ],
-        "coverageReporters": [
-            "text",
-            "json-summary"
-        ]
-    },
-    "dependencies": {
-        "@eliware/common": "^2.0.0",
-        "@eliware/discord": "^2.0.0",
-        "@eliware/ssh-client": "^2.1.0",
-        "body-parser": "^2.3.0",
-        "dotenv": "^17.2.0",
-        "express": "^5.1.0",
-        "inquirer": "^14.2.1",
-        "js-yaml": "^5.4.1"
-    },
-    "engines": {
-        "node": ">=26"
-    },
-    "files": [
-        "knit.mjs",
-        "src",
-        "README.md",
-        "RELEASE_NOTES.md",
-        "LICENSE"
+    "collectCoverageFrom": [
+      "src/**/*.mjs"
     ],
-    "devDependencies": {
-        "@eliware/test": "^5.0.0"
-    },
-    "allowScripts": {
-        "unrs-resolver@1.12.2": true,
-        "cpu-features@0.0.10": true,
-        "ssh2@1.17.0": true
-    },
-    "prettier": {
-      "printWidth": 100,
-      "tabWidth": 2,
-      "useTabs": false,
-      "semi": true,
-      "singleQuote": false,
-      "quoteProps": "as-needed",
-      "jsxSingleQuote": false,
-      "trailingComma": "all",
-      "bracketSpacing": true,
-      "bracketSameLine": false,
-      "arrowParens": "always",
-      "proseWrap": "preserve",
-      "endOfLine": "lf"
-    },
-    "eliware": {
-      "id": "E-1310",
-      "apply": ["general", "application", "discord", "ghcr-published"]
+    "coverageReporters": [
+      "text",
+      "json-summary"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 100,
+        "functions": 100,
+        "lines": 100,
+        "statements": 100
+      }
     }
+  },
+  "prettier": {
+    "printWidth": 100,
+    "tabWidth": 2,
+    "useTabs": false,
+    "semi": true,
+    "singleQuote": false,
+    "quoteProps": "as-needed",
+    "jsxSingleQuote": false,
+    "trailingComma": "all",
+    "bracketSpacing": true,
+    "bracketSameLine": false,
+    "arrowParens": "always",
+    "proseWrap": "preserve",
+    "endOfLine": "lf"
+  },
+  "author": "Eliware <eliware@eliware.org>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eliware/knit.git"
+  },
+  "homepage": "https://github.com/eliware/knit#readme",
+  "bugs": {
+    "url": "https://github.com/eliware/knit/issues"
+  },
+  "eliware": {
+    "id": "E-1310",
+    "apply": [
+      "general",
+      "application",
+      "discord",
+      "ghcr-published"
+    ]
+  },
+  "allowScripts": {
+    "unrs-resolver@1.12.2": true,
+    "cpu-features@0.0.10": true,
+    "ssh2@1.17.0": true
+  }
 }
