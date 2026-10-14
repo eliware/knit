@@ -35,3 +35,11 @@ test("uses sender or owner avatars and fallback repository data", () => {
   expect(fallback.author).not.toHaveProperty("icon_url");
   expect(fallback.author).not.toHaveProperty("url");
 });
+
+test("encodes path delimiters in the profile URL", () => {
+  const embed = createReleaseEmbed({
+    ref: "refs/tags/v1",
+    pusher: { name: "person/other?tab=code" },
+  });
+  expect(embed.author.url).toBe("https://github.com/person%2Fother%3Ftab%3Dcode");
+});

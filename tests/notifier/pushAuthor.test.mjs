@@ -19,6 +19,12 @@ test("uses the sender avatar and a safe author name when pusher data is absent",
 test("escapes the pusher name", () => {
   expect(createPushAuthor({ pusher: { name: "@everyone" } })).toEqual({
     name: "@\u200beveryone",
-    url: "https://github.com/@everyone",
+    url: "https://github.com/%40everyone",
   });
+});
+
+test("encodes path delimiters in the profile URL", () => {
+  expect(createPushAuthor({ pusher: { name: "person/other?tab=code" } }).url).toBe(
+    "https://github.com/person%2Fother%3Ftab%3Dcode",
+  );
 });

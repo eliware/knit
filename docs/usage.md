@@ -51,7 +51,7 @@ Knit returns HTTP 200 after it queues a valid signed webhook. Knit does not wait
 
 Knit uses repository `push` events to run deployment commands. It reads `.knit/deploy.yaml` and `package.json` at the event commit. It sends specialized Discord notices for release, workflow, pull request, issue, and deployment events. It sends a general notice for other repository events. It ignores events without a repository name.
 
-Knit passes these values to every remote command:
+Knit requests these values for every remote command:
 
 | Name               | Value                                                 |
 | ------------------ | ----------------------------------------------------- |

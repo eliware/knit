@@ -42,6 +42,24 @@ describe("Discord embed size limits", () => {
     expect(total).toBeLessThanOrEqual(6000);
     expect(embed.description).toContain("xxxxxxxx");
   });
+
+  it("limits the total when non-description text exceeds the budget", () => {
+    const embed = limits.limitEmbed({
+      title: "t".repeat(256),
+      footer: { text: "f".repeat(2048) },
+      author: { name: "a".repeat(256) },
+      fields: Array.from({ length: 25 }, () => ({
+        name: "n".repeat(256),
+        value: "v".repeat(1024),
+      })),
+    });
+    const total =
+      embed.title.length +
+      embed.footer.text.length +
+      embed.author.name.length +
+      embed.fields.reduce((size, field) => size + field.name.length + field.value.length, 0);
+    expect(total).toBeLessThanOrEqual(6000);
+  });
 });
 
 test("covers empty and null values in embed limit helpers", () => {

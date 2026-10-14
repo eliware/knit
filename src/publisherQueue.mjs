@@ -1,15 +1,11 @@
 const MAX_DELIVERIES = 1000;
 const tasks = [];
-const processedDeliveries = new Set();
+const deliveryStates = new Map();
 let head = 0;
 
 export function enqueuePublisherTask(task) {
-  if (task.deliveryId && processedDeliveries.has(task.deliveryId)) return false;
-  if (task.deliveryId) {
-    processedDeliveries.add(task.deliveryId);
-    while (processedDeliveries.size > MAX_DELIVERIES)
-      processedDeliveries.delete(processedDeliveries.values().next().value);
-  }
+  if (task.deliveryId && deliveryStates.has(task.deliveryId)) return false;
+  if (task.deliveryId) deliveryStates.set(task.deliveryId, "pending");
   tasks.push(task);
   return true;
 }
@@ -27,7 +23,22 @@ export function dequeuePublisherTask() {
 }
 
 export function forgetPublisherDelivery(deliveryId) {
-  if (deliveryId) processedDeliveries.delete(deliveryId);
+  if (deliveryId) deliveryStates.delete(deliveryId);
+}
+
+export function completePublisherDelivery(deliveryId) {
+  if (!deliveryId || !deliveryStates.has(deliveryId)) return;
+  deliveryStates.delete(deliveryId);
+  deliveryStates.set(deliveryId, "processed");
+  let processedCount = 0;
+  for (const state of deliveryStates.values()) {
+    if (state === "processed") processedCount += 1;
+  }
+  while (processedCount > MAX_DELIVERIES) {
+    const oldestProcessed = [...deliveryStates].find(([, state]) => state === "processed")[0];
+    deliveryStates.delete(oldestProcessed);
+    processedCount -= 1;
+  }
 }
 
 export function getPendingPublisherTasks() {
@@ -37,5 +48,5 @@ export function getPendingPublisherTasks() {
 export function clearPublisherQueue() {
   tasks.length = 0;
   head = 0;
-  processedDeliveries.clear();
+  deliveryStates.clear();
 }

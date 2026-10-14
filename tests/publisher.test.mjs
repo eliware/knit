@@ -72,13 +72,13 @@ describe("publish", () => {
     );
   });
 
-  it("evicts old delivery IDs", () => {
+  it("keeps pending delivery IDs when the queue grows", () => {
     const Consumer = { consume: jest.fn().mockResolvedValue(true) };
     const log = { info: jest.fn(), error: jest.fn() };
     const immediate = jest.spyOn(global, "setImmediate").mockImplementation(() => {});
     for (let i = 0; i <= 1000; i += 1)
       publish({ ...payload, deliveryId: `id-${i}`, log, ConsumerMod: Consumer });
-    expect(publish({ ...payload, deliveryId: "id-0", log, ConsumerMod: Consumer })).toBe(true);
+    expect(publish({ ...payload, deliveryId: "id-0", log, ConsumerMod: Consumer })).toBe(false);
     immediate.mockRestore();
   });
 });

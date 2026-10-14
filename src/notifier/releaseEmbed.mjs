@@ -19,7 +19,7 @@ export function createReleaseEmbed(post) {
   const icon = post.sender?.avatar_url || post.repository?.owner?.avatar_url;
   const author = { name: escapeDiscordMarkdown(post.pusher?.name || "unknown") };
   if (icon) author.icon_url = icon;
-  if (post.pusher?.name) author.url = `https://github.com/${post.pusher.name}`;
+  if (post.pusher?.name) author.url = `https://github.com/${encodeURIComponent(post.pusher.name)}`;
   embed.author = author;
   return embed;
 }

@@ -14,3 +14,9 @@ test("skips an empty topic, a matching topic, and unsupported edits", async () =
   await syncChannelTopic({}, { description: "topic" });
   expect(edit).not.toHaveBeenCalled();
 });
+
+test("clears a stale topic when package metadata has no topic text", async () => {
+  const edit = jest.fn();
+  await syncChannelTopic({ edit, topic: "old topic" }, {});
+  expect(edit).toHaveBeenCalledWith({ topic: "" });
+});

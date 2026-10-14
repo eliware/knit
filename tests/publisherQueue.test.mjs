@@ -1,4 +1,5 @@
 import {
+  completePublisherDelivery,
   clearPublisherQueue,
   dequeuePublisherTask,
   enqueuePublisherTask,
@@ -18,11 +19,28 @@ test("queues distinct tasks and rejects duplicate delivery IDs", () => {
   expect(dequeuePublisherTask()).toBeUndefined();
 });
 
-test("evicts the oldest delivery ID after the queue limit", () => {
+test("keeps delivery IDs while their tasks remain queued", () => {
   for (let index = 0; index <= 1000; index += 1)
     enqueuePublisherTask({ deliveryId: `id-${index}` });
+  expect(enqueuePublisherTask({ deliveryId: "id-0" })).toBe(false);
+  expect(getPendingPublisherTasks()).toBe(1001);
+});
+
+test("keeps pending delivery IDs outside the completed history limit", () => {
+  for (let index = 0; index <= 1000; index += 1)
+    enqueuePublisherTask({ deliveryId: `pending-${index}` });
+  dequeuePublisherTask();
+  completePublisherDelivery("pending-0");
+  expect(enqueuePublisherTask({ deliveryId: "pending-0" })).toBe(false);
+});
+
+test("evicts only completed delivery IDs after the history limit", () => {
+  for (let index = 0; index <= 1000; index += 1) {
+    enqueuePublisherTask({ deliveryId: `id-${index}` });
+    dequeuePublisherTask();
+    completePublisherDelivery(`id-${index}`);
+  }
   expect(enqueuePublisherTask({ deliveryId: "id-0" })).toBe(true);
-  expect(getPendingPublisherTasks()).toBe(1002);
 });
 
 test("allows a failed delivery ID to enter the queue again", () => {

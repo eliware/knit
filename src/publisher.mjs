@@ -1,6 +1,7 @@
 import { log as logger } from "@eliware/common";
 import * as Consumer from "./consumer.mjs";
 import {
+  completePublisherDelivery,
   dequeuePublisherTask,
   enqueuePublisherTask,
   forgetPublisherDelivery,
@@ -52,7 +53,8 @@ export async function processTasks(ConsumerMod = Consumer) {
           ConsumerMod,
           recordMetric: recordPublisherMetric,
         });
-        if (!succeeded) forgetPublisherDelivery(task.deliveryId);
+        if (succeeded) completePublisherDelivery(task.deliveryId);
+        else forgetPublisherDelivery(task.deliveryId);
       } catch (error) {
         recordPublisherMetric("failed");
         forgetPublisherDelivery(task.deliveryId);
