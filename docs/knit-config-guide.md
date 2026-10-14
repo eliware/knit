@@ -72,6 +72,8 @@ on:
 
 Knit runs deployments in order. It runs commands in order. A nonzero command result fails that deployment. Knit stops after the first failed deployment by default. Use `stopOnError: false` at the action level to run later deployments after a failure. Knit sends each delivery to the consumer once. A failed delivery ends without an automatic retry.
 
+Each push or tag action must list one or more deployments.
+
 Set `timeoutMs` to a value from `1` to `300000` milliseconds. The timeout applies to each remote command. Use a script with its own overall deadline for longer work.
 
 Use `tags` for a separate release action when needed:

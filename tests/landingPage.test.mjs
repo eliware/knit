@@ -7,3 +7,9 @@ test("renders the service landing page with its version", () => {
   expect(html).toContain("Running Knit 12.0.0");
   expect(html).toContain('href="/health"');
 });
+
+test("escapes version text before it enters the page", () => {
+  const html = renderLandingPage(`<x a="&'">`);
+  expect(html).toContain("Running Knit &lt;x a=&quot;&amp;&#39;&quot;&gt;");
+  expect(html).not.toContain(`<x a=`);
+});

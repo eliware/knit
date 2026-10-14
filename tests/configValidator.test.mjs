@@ -16,6 +16,20 @@ test("accepts separate push and tag actions", () =>
       },
     }),
   ).toBe(true));
+
+test("rejects a tag action without deployments", () =>
+  expect(
+    validateWorkflow({
+      config: {
+        version: 1,
+        on: {
+          push: { deployments: [{ target: "dev", cwd: "/opt/app", commands: ["npm test"] }] },
+          tags: { "v*": { deployments: [] } },
+        },
+      },
+      log: { error: jest.fn() },
+    }),
+  ).toBe(false));
 test("accepts bounded deployment timeouts and rejects unsafe values", () => {
   const base = {
     version: 1,

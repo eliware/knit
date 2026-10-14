@@ -9,6 +9,7 @@ directives:
       - Validate trusted target profiles before the service opens external connections.
       - Read repository workflows at the webhook commit.
       - Run approved commands through verified SSH targets.
+      - Require one or more deployments in every configured action.
       - Send supported event and deployment updates to Discord.
       - Use the repository name as the Discord announcement channel name.
       - Use only the repository name after the owner slash; do not add a hash or owner name.
@@ -21,6 +22,7 @@ directives:
       - Set channel access from repository visibility before Knit posts an event.
       - Set the channel topic from package metadata before Knit posts an event.
       - Preserve keyword metadata when the channel topic reaches its length limit.
+      - Reject keyword metadata that exceeds the channel topic limit.
       - Give the Discord bot the Administrator permission.
       - Do not require the Discord bot in channel allowlists.
       - Use the Administrator permission to access private announcement channels.

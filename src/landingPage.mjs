@@ -1,3 +1,9 @@
+const htmlEscapes = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (character) => htmlEscapes[character]);
+}
+
 export function renderLandingPage(version) {
   return `<!doctype html>
 <html lang="en">
@@ -55,7 +61,7 @@ export function renderLandingPage(version) {
             <article class="card"><div class="icon">↗</div><h2>SSH deployments</h2><p>Sequential targets, strict host verification, and repository-specific deployment workflows.</p></article>
             <article class="card"><div class="icon">✦</div><h2>Discord updates</h2><p>Deployment results are posted directly to configured Discord channels by the Knit bot.</p></article>
         </section>
-        <footer><span>Running Knit ${version}</span><span>Ready to weave</span></footer>
+        <footer><span>Running Knit ${escapeHtml(version)}</span><span>Ready to weave</span></footer>
     </main>
 </body>
 </html>`;
