@@ -1,7 +1,7 @@
 import { log as logger } from "@eliware/common";
 import { sshExec as realSshExec } from "@eliware/ssh-client";
 import { runDeployments } from "./repo/deployments.mjs";
-import { notifyPush, notifyTag } from "./repoNotifications.mjs";
+import { isTagUpdate, notifyUpdate } from "./repoNotifications.mjs";
 export function createSshRepo({
   config = { deployments: [] },
   targets = {},
@@ -20,8 +20,8 @@ export function createSshRepo({
         requestLog.error("[Repo] body validation failed");
         return false;
       }
-      if (body.ref?.startsWith("refs/tags/")) {
-        await notifyTag({
+      if (isTagUpdate(body)) {
+        await notifyUpdate({
           notifyFn,
           repo: this,
           body,
@@ -41,7 +41,7 @@ export function createSshRepo({
         stopOnError,
         log: requestLog,
       });
-      await notifyPush({
+      await notifyUpdate({
         notifyFn,
         repo: this,
         body,

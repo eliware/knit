@@ -1,5 +1,13 @@
 import * as Notifier from "./notifier/index.mjs";
 
+export function isTagUpdate(body) {
+  return body?.ref?.startsWith("refs/tags/") || false;
+}
+
+export async function notifyUpdate(options) {
+  return isTagUpdate(options.body) ? notifyTag(options) : notifyPush(options);
+}
+
 export async function notifyTag({
   notifyFn,
   repo,

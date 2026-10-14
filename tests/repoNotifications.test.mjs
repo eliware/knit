@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { notifyPush, notifyTag } from "../src/repoNotifications.mjs";
+import { isTagUpdate, notifyPush, notifyTag, notifyUpdate } from "../src/repoNotifications.mjs";
 
 const values = {
   repo: {},
@@ -8,6 +8,40 @@ const values = {
   packageJson: {},
   log: {},
 };
+
+test("classifies tag updates", () => {
+  expect(isTagUpdate(values.body)).toBe(true);
+  expect(isTagUpdate({ ref: "refs/heads/main" })).toBe(false);
+  expect(isTagUpdate({})).toBe(false);
+});
+
+test("routes tag and push updates to their notification handlers", async () => {
+  const notifyFn = jest.fn();
+  await notifyUpdate({ ...values, notifyFn });
+  expect(notifyFn).toHaveBeenLastCalledWith({
+    repo: values.repo,
+    body: values.body,
+    event: values.event,
+    logOutput: "",
+    hasError: false,
+    log: values.log,
+  });
+
+  await notifyUpdate({
+    ...values,
+    body: { ref: "refs/heads/main" },
+    notifyFn,
+    output: "out",
+    failed: true,
+  });
+  expect(notifyFn).toHaveBeenLastCalledWith({
+    repo: values.repo,
+    body: { ref: "refs/heads/main" },
+    logOutput: "out",
+    hasError: true,
+    log: values.log,
+  });
+});
 
 test("uses the injected tag notification handler", async () => {
   const notifyFn = jest.fn();

@@ -1,11 +1,7 @@
 import { channelName, channelTopic } from "./discordChannelMetadata.mjs";
-import {
-  createChannelPermissionOverwrites,
-  syncChannelPermissions,
-} from "./discordChannelPermissions.mjs";
+import { syncChannelPermissions } from "./discordChannelPermissions.mjs";
+import { provisionAnnouncementChannel } from "./discordChannelProvisioning.mjs";
 export { channelName } from "./discordChannelMetadata.mjs";
-
-const GUILD_ANNOUNCEMENT = 5;
 
 export function createChannelResolver({ client, guildId, log = console } = {}) {
   if (!client || !guildId) throw new Error("Discord client and guild ID are required");
@@ -19,25 +15,13 @@ export function createChannelResolver({ client, guildId, log = console } = {}) {
     let channel = cache.get(repository);
     const guild = await client.guilds.fetch(guildId);
     if (!channel) {
-      const channels = await guild.channels.fetch();
-      channel = channels.find(
-        (candidate) => candidate?.name === name && candidate?.type === GUILD_ANNOUNCEMENT,
-      );
-      if (!channel) {
-        const options = {
-          name,
-          type: GUILD_ANNOUNCEMENT,
-          permissionOverwrites: createChannelPermissionOverwrites(
-            guild.roles.everyone.id,
-            privateRepository,
-          ),
-        };
-        channel = await guild.channels.create(options);
-        log.info?.("[Discord] Created repository channel", {
-          repository,
-          private: privateRepository,
-        });
-      }
+      channel = await provisionAnnouncementChannel({
+        guild,
+        name,
+        privateRepository,
+        repository,
+        log,
+      });
     }
     await syncChannelPermissions(channel, guild, privateRepository);
     const topic = channelTopic(packageJson);
