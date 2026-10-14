@@ -1,5 +1,4 @@
-const MAX_UPDATES = 5;
-const WINDOW_MS = 20_000;
+import { createPresenceRateLimiter } from "./presenceRateLimiter.mjs";
 const IDLE_MS = 10 * 60 * 1_000;
 
 export function createPresenceManager({
@@ -10,11 +9,9 @@ export function createPresenceManager({
   clearTimeoutFn = clearTimeout,
   log = console,
 } = {}) {
-  const updates = [];
   let idleTimer;
   let busy = 0;
   let activeDelivery;
-  let lastPresence;
 
   const versionPresence = () => ({
     activities: [{ name: `🧶 knit v${version}`, type: 4 }],
@@ -25,24 +22,7 @@ export function createPresenceManager({
     status: "online",
   });
 
-  async function send(presence) {
-    const current = now();
-    while (updates[0] <= current - WINDOW_MS) updates.shift();
-    if (JSON.stringify(presence) === JSON.stringify(lastPresence)) return true;
-    if (updates.length >= MAX_UPDATES) {
-      await new Promise((resolve) => setTimeoutFn(resolve, WINDOW_MS - (current - updates[0])));
-      return send(presence);
-    }
-    updates.push(current);
-    lastPresence = presence;
-    try {
-      await client?.user?.setPresence?.(presence);
-      return true;
-    } catch (error) {
-      log.warn?.("[Discord] Failed to update presence", error);
-      return false;
-    }
-  }
+  const send = createPresenceRateLimiter({ client, now, setTimeoutFn, log });
 
   function scheduleIdle() {
     clearTimeoutFn(idleTimer);

@@ -30,15 +30,6 @@ it("should reject when the shared Discord client is not connected", async () => 
   );
 });
 
-it("should clear only the registered Discord client", () => {
-  const client = makeClient(jest.fn());
-  const otherClient = makeClient(jest.fn());
-  notifier.setDiscordClient(client);
-  notifier.clearDiscordClient(otherClient);
-  notifier.clearDiscordClient(client);
-  notifier.clearDiscordClient();
-});
-
 it("should send error embed if hasError is true", async () => {
   const post = {
     ref: "refs/tags/v1.0.0",
@@ -177,9 +168,6 @@ it("logs and rethrows Discord send failures with context", async () => {
     channelId,
     repository: "foo/bar",
   });
-});
-it("returns when no channel is configured", async () => {
-  await expect(notifier.send({})).resolves.toBeUndefined();
 });
 it("returns when no channel is configured", async () => {
   await expect(notifier.send({})).resolves.toBeUndefined();

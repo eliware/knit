@@ -1,6 +1,8 @@
 import { log as logger } from "@eliware/common";
 import { limitEmbed } from "./embedLimits.mjs";
 import { createEmbed } from "./embeds.mjs";
+import { getNotifierState } from "./state.mjs";
+export { clearDiscordClient, setChannelResolver, setDiscordClient } from "./state.mjs";
 export {
   tail,
   limitEmbed,
@@ -9,24 +11,6 @@ export {
   DISCORD_EMBED_FIELD_VALUE_LIMIT,
 } from "./embedLimits.mjs";
 export { createEmbed } from "./embeds.mjs";
-let sharedDiscordClient;
-let resolveRepositoryChannel;
-
-export function setDiscordClient(client) {
-  sharedDiscordClient = client;
-}
-
-export function setChannelResolver(resolver) {
-  resolveRepositoryChannel = resolver;
-}
-
-export function clearDiscordClient(client) {
-  if (!client || sharedDiscordClient === client) {
-    sharedDiscordClient = undefined;
-    resolveRepositoryChannel = undefined;
-  }
-}
-
 /**
  * Sends a notification to a Discord channel.
  * @param {Object} params
@@ -47,8 +31,11 @@ export async function send({
   hasError,
   packageJson,
   log = logger,
-  discordClient = sharedDiscordClient,
+  discordClient,
 }) {
+  const state = getNotifierState();
+  discordClient ??= state.discordClient;
+  const resolveRepositoryChannel = state.resolveRepositoryChannel;
   if (!channelId && resolveRepositoryChannel)
     channelId = await resolveRepositoryChannel({
       repository: post.repository?.full_name,
