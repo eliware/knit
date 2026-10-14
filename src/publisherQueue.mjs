@@ -1,7 +1,9 @@
 const MAX_DELIVERIES = 1000;
 const tasks = [];
 const deliveryStates = new Map();
+const processedDeliveries = [];
 let head = 0;
+let processedHead = 0;
 
 export function enqueuePublisherTask(task) {
   if (task.deliveryId && deliveryStates.has(task.deliveryId)) return false;
@@ -28,16 +30,16 @@ export function forgetPublisherDelivery(deliveryId) {
 
 export function completePublisherDelivery(deliveryId) {
   if (!deliveryId || !deliveryStates.has(deliveryId)) return;
-  deliveryStates.delete(deliveryId);
   deliveryStates.set(deliveryId, "processed");
-  let processedCount = 0;
-  for (const state of deliveryStates.values()) {
-    if (state === "processed") processedCount += 1;
+  processedDeliveries.push(deliveryId);
+  if (processedDeliveries.length - processedHead > MAX_DELIVERIES) {
+    deliveryStates.delete(processedDeliveries[processedHead]);
+    processedDeliveries[processedHead] = undefined;
+    processedHead += 1;
   }
-  while (processedCount > MAX_DELIVERIES) {
-    const oldestProcessed = [...deliveryStates].find(([, state]) => state === "processed")[0];
-    deliveryStates.delete(oldestProcessed);
-    processedCount -= 1;
+  if (processedHead >= 256 && processedHead * 2 >= processedDeliveries.length) {
+    processedDeliveries.splice(0, processedHead);
+    processedHead = 0;
   }
 }
 
@@ -49,4 +51,6 @@ export function clearPublisherQueue() {
   tasks.length = 0;
   head = 0;
   deliveryStates.clear();
+  processedDeliveries.length = 0;
+  processedHead = 0;
 }

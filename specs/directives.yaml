@@ -23,6 +23,7 @@ directives:
       - Set the channel topic from package metadata before Knit posts an event.
       - Preserve keyword metadata when the channel topic reaches its length limit.
       - Reject keyword metadata that exceeds the channel topic limit.
+      - Preserve the current channel topic when an event has no package metadata.
       - Give the Discord bot the Administrator permission.
       - Do not require the Discord bot in channel allowlists.
       - Use the Administrator permission to access private announcement channels.
@@ -39,6 +40,7 @@ directives:
           - Require a valid GitHub webhook signature before event processing.
           - Preserve delivery identifiers through event processing.
           - Ignore events without a configured repository target.
+          - Treat unmatched tag events as ignored events with a neutral result.
         donts:
           - Do not execute deployment commands from unsigned events.
           - Do not treat a missing repository target as a successful deployment.

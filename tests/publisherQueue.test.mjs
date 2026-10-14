@@ -35,7 +35,7 @@ test("keeps pending delivery IDs outside the completed history limit", () => {
 });
 
 test("evicts only completed delivery IDs after the history limit", () => {
-  for (let index = 0; index <= 1000; index += 1) {
+  for (let index = 0; index <= 2000; index += 1) {
     enqueuePublisherTask({ deliveryId: `id-${index}` });
     dequeuePublisherTask();
     completePublisherDelivery(`id-${index}`);

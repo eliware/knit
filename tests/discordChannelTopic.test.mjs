@@ -20,3 +20,9 @@ test("clears a stale topic when package metadata has no topic text", async () =>
   await syncChannelTopic({ edit, topic: "old topic" }, {});
   expect(edit).toHaveBeenCalledWith({ topic: "" });
 });
+
+test("keeps the current topic when package metadata is unavailable", async () => {
+  const edit = jest.fn();
+  await syncChannelTopic({ edit, topic: "current topic" }, undefined);
+  expect(edit).not.toHaveBeenCalled();
+});
