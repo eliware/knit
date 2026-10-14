@@ -14,6 +14,7 @@ test("queues distinct tasks and rejects duplicate delivery IDs", () => {
   expect(getPendingPublisherTasks()).toBe(1);
   expect(dequeuePublisherTask()).toBe(task);
   expect(getPendingPublisherTasks()).toBe(0);
+  expect(dequeuePublisherTask()).toBeUndefined();
 });
 
 test("evicts the oldest delivery ID after the queue limit", () => {
@@ -21,4 +22,14 @@ test("evicts the oldest delivery ID after the queue limit", () => {
     enqueuePublisherTask({ deliveryId: `id-${index}` });
   expect(enqueuePublisherTask({ deliveryId: "id-0" })).toBe(true);
   expect(getPendingPublisherTasks()).toBe(1002);
+});
+
+test("keeps FIFO order after the queue compacts its consumed prefix", () => {
+  for (let index = 0; index < 100; index += 1) enqueuePublisherTask({ value: index });
+  for (let index = 0; index < 75; index += 1)
+    expect(dequeuePublisherTask()).toEqual({ value: index });
+  for (let index = 100; index < 140; index += 1) enqueuePublisherTask({ value: index });
+  for (let index = 75; index < 140; index += 1)
+    expect(dequeuePublisherTask()).toEqual({ value: index });
+  expect(getPendingPublisherTasks()).toBe(0);
 });

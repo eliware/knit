@@ -60,7 +60,7 @@ Knit exports these values in the remote shell. Commands can use them without cus
 
 ## Discord command and activity
 
-Use `/help` to read the short service summary. Knit needs the `Guilds` intent. It creates or reuses an announcement channel for each repository. It sets the channel topic from the repository description and keywords. Grant the bot permission to view guild channels, create announcement channels, edit channel topics, and send messages.
+Use `/help` to read the short service summary. Knit needs the `Guilds` intent. It creates or reuses an announcement channel for each repository. It sets the channel topic from the repository description and keywords. Grant `View Channels`, `Manage Channels`, `Manage Roles`, and `Send Messages` permissions.
 
 The bot shows the Knit version when idle. It shows a repository name during work and a result after work. Knit limits activity updates to Discord's rate limit. Do not use activity changes as deployment status records.
 

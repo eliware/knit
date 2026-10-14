@@ -73,7 +73,7 @@ Knit handles repository `push` events. It sends special Discord notices for `rel
 
 ## Intents and permissions
 
-Enable the `Guilds` intent. Grant the bot permission to view the guild, create announcement channels, edit channel topics, and send messages. Knit does not request message, member, presence, reaction, typing, or scheduled event intents.
+Enable the `Guilds` intent. Grant the bot `View Channels`, `Manage Channels`, `Manage Roles`, and `Send Messages` permissions. Knit does not request message, member, presence, reaction, typing, or scheduled event intents.
 
 ## Support
 

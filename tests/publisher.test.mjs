@@ -106,6 +106,29 @@ describe("processing", () => {
     immediate.mockRestore();
     expect(Consumer.consume).toHaveBeenCalledTimes(2);
   });
+
+  it("continues draining after an unexpected task error", async () => {
+    const immediate = jest.spyOn(global, "setImmediate").mockImplementation(() => {});
+    const brokenLog = {
+      info: jest.fn(),
+      error: jest.fn(() => {
+        throw new Error("logger failed");
+      }),
+    };
+    publish({ ...payload, deliveryId: "bad", log: brokenLog, maxAttempts: 1 });
+    publish({ ...payload, deliveryId: "good", log: { info: jest.fn(), error: jest.fn() } });
+    const Consumer = {
+      consume: jest.fn(async ({ message }) => message.deliveryId === "good"),
+    };
+
+    await processTasks(Consumer);
+    immediate.mockRestore();
+
+    expect(getPublisherMetrics()).toEqual(
+      expect.objectContaining({ pending: 0, processing: false, succeeded: 1 }),
+    );
+    expect(Consumer.consume).toHaveBeenCalledTimes(2);
+  });
 });
 test("uses the default publisher logger", async () => {
   const Consumer = { consume: jest.fn().mockResolvedValue(true) };

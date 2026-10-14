@@ -46,7 +46,7 @@ Knit runs commands in order. The first nonzero result fails the deployment. By d
 
 ## Discord notices do not arrive
 
-Confirm that both Discord variables are set. Confirm that the bot joined the guild in `guildId`. Grant view, create announcement channel, edit topic, and send message permissions. Confirm that the bot can access the target channel. Knit requires the `Guilds` intent.
+Confirm that both Discord variables are set. Confirm that the bot joined the guild in `guildId`. Grant `View Channels`, `Manage Channels`, `Manage Roles`, and `Send Messages` permissions. Confirm that the bot can access the target channel. Knit requires the `Guilds` intent.
 
 ## GitHub API limit or access fault
 

@@ -9,8 +9,9 @@ import crypto from "crypto";
  * @returns {boolean} True if valid, false otherwise.
  */
 export function validate({ data, secret, signature }) {
-  if (!secret || !signature) return false;
-  const expectedSignature =
-    "sha256=" + crypto.createHmac("sha256", secret).update(data).digest("hex");
-  return expectedSignature === signature;
+  if (!secret || typeof signature !== "string" || !/^sha256=[\da-f]{64}$/iu.test(signature))
+    return false;
+  const expected = crypto.createHmac("sha256", secret).update(data).digest();
+  const supplied = Buffer.from(signature.slice("sha256=".length), "hex");
+  return supplied.length === expected.length && crypto.timingSafeEqual(expected, supplied);
 }

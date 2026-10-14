@@ -44,9 +44,18 @@ export function publish({
 export async function processTasks(ConsumerMod = Consumer) {
   if (isProcessing || getPendingPublisherTasks() === 0) return;
   isProcessing = true;
-  while (getPendingPublisherTasks() > 0)
-    await processPublisherTask({ task: dequeuePublisherTask(), ConsumerMod, metrics });
-  isProcessing = false;
+  try {
+    while (getPendingPublisherTasks() > 0) {
+      try {
+        await processPublisherTask({ task: dequeuePublisherTask(), ConsumerMod, metrics });
+      } catch (error) {
+        metrics.failed += 1;
+        logger.error("[Publisher] Unexpected task processing error", error);
+      }
+    }
+  } finally {
+    isProcessing = false;
+  }
 }
 
 export function getPublisherMetrics() {

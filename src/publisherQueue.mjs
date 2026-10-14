@@ -1,6 +1,7 @@
 const MAX_DELIVERIES = 1000;
 const tasks = [];
 const processedDeliveries = new Set();
+let head = 0;
 
 export function enqueuePublisherTask(task) {
   if (task.deliveryId && processedDeliveries.has(task.deliveryId)) return false;
@@ -14,14 +15,23 @@ export function enqueuePublisherTask(task) {
 }
 
 export function dequeuePublisherTask() {
-  return tasks.shift();
+  if (head >= tasks.length) return undefined;
+  const task = tasks[head];
+  tasks[head] = undefined;
+  head += 1;
+  if (head >= 64 && head * 2 >= tasks.length) {
+    tasks.splice(0, head);
+    head = 0;
+  }
+  return task;
 }
 
 export function getPendingPublisherTasks() {
-  return tasks.length;
+  return tasks.length - head;
 }
 
 export function clearPublisherQueue() {
   tasks.length = 0;
+  head = 0;
   processedDeliveries.clear();
 }

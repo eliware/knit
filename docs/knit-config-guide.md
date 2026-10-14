@@ -100,7 +100,7 @@ Knit reads `.knit/deploy.yaml` at the webhook commit SHA. It also reads `package
 
 ## Discord setup
 
-Create a Discord application and bot. Invite the bot to the target guild. Copy the bot token and application ID into the runtime secret store. Set both `DISCORD_TOKEN` and `DISCORD_CLIENT_ID`. Give the bot permission to view the guild, create announcement channels, edit channel topics, and send messages. Enable the `Guilds` intent only.
+Create a Discord application and bot. Invite the bot to the target guild. Copy the bot token and application ID into the runtime secret store. Set both `DISCORD_TOKEN` and `DISCORD_CLIENT_ID`. Grant `View Channels`, `Manage Channels`, `Manage Roles`, and `Send Messages` permissions. Enable the `Guilds` intent only.
 
 Knit uses the required `guildId` from the target inventory. It does not read message content or member lists.
 
