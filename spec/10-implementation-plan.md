@@ -5,20 +5,20 @@
 - EliD OIDC login/session.
 - Server-side RBAC and audit middleware.
 - Persisted webhook/deployment/run history.
-- Overview with attention, active deployments, and recent activity.
-- Repository activity.
-- Deployment detail with unified timeline and grouped logs.
+- Overview with items that require action, active deployments, and recent work.
+- Repository work.
+- Deployment view with one timeline and grouped logs.
 - SSE live updates with reconnect cursors.
 - Server-side redaction.
 - Retry failed target.
-- Webhook delivery detail and safe replay controls.
+- Webhook request information and safe replay controls.
 - Health checks and read-only mode.
 
 ## P1
 
 - Command palette and saved filters.
-- Read-only effective config viewer and validation.
-- Notification delivery status.
+- Read-only config viewer and validation.
+- Notification status.
 - Retry remaining/full deployment.
 - Mobile inspection experience.
 - Target inventory.
@@ -37,14 +37,14 @@
 
 React + TypeScript, Vite, TanStack Router/Query, CSS variables or Tailwind, CodeMirror/Monaco for future YAML proposals, SSE for realtime.
 
-## Acceptance criteria
+## Done criteria
 
-- Unauthorized users cannot access protected data or actions.
-- Every deployment is traceable from webhook to notification.
+- Users without approval cannot access protected data or actions.
+- Each deployment links to its webhook and notice.
 - Failed deployments identify exact target, phase, command, and error.
 - Retry scope is explicit and idempotent.
-- Logs/payloads are redacted before browser delivery.
-- Refreshing/reconnecting does not lose or duplicate events.
-- History survives service restart.
+- Redact logs and payloads before sending them to a browser.
+- Refreshing/reconnecting does not remove or duplicate events.
+- Keep history after Knit starts again.
 - Production actions are visually distinct and safely confirmed.
 - Keyboard, mobile, reduced-motion, and screen-reader behavior are usable.

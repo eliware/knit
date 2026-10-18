@@ -6,5 +6,5 @@ test("logs when the Discord client is ready", () => {
 
   clientReady(context);
 
-  expect(context.log.info).toHaveBeenCalledWith("Discord client is ready");
+  expect(context.log.info).toHaveBeenCalledWith("Discord client has started");
 });

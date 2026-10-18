@@ -15,7 +15,7 @@ test("starts the app, logs the port, and returns the server", () => {
   const log = { info: jest.fn() };
   const server = startApp({ appInstance: { listen }, PORT: 1234, log });
   expect(listen).toHaveBeenCalledWith(1234, expect.any(Function));
-  expect(log.info).toHaveBeenCalledWith("Server is listening on port 1234");
+  expect(log.info).toHaveBeenCalledWith("Server is listening on TCP endpoint 1234");
   expect(typeof server.close).toBe("function");
   server.close();
   expect(close).toHaveBeenCalled();

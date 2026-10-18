@@ -6,7 +6,7 @@ const DISCORD_EMBED_FIELD_NAME_LIMIT = 256;
 const DISCORD_EMBED_AUTHOR_LIMIT = 256;
 const DISCORD_EMBED_FOOTER_LIMIT = 2048;
 
-export function tail(value, limit, marker = "\n... [truncated; showing log tail] ...\n") {
+export function tail(value, limit, marker = "\n... [truncated, showing log tail] ...\n") {
   const text = String(value ?? "");
   if (limit <= 0) return "";
   if (text.length <= limit) return text;

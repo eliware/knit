@@ -11,6 +11,6 @@ test("builds bounded channel topics from package metadata", () => {
   expect(topic).toHaveLength(1024);
   expect(topic.endsWith("\nKeywords: web, deploy")).toBe(true);
   expect(() => channelTopic({ keywords: ["x".repeat(1024)] })).toThrow(
-    "Package keywords exceed the Discord channel topic limit",
+    "Package keywords are above the Discord channel topic limit",
   );
 });

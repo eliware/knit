@@ -16,13 +16,13 @@ export async function startDiscordClient({
 } = {}) {
   if (!token && !clientId) {
     log.warn?.(
-      "[Discord] DISCORD_TOKEN and DISCORD_CLIENT_ID are not configured; notifications disabled",
+      "[Discord] DISCORD_TOKEN and DISCORD_CLIENT_ID are not configured. Notifications disabled",
     );
     return null;
   }
   if (!token || !clientId) throw new Error("Both DISCORD_TOKEN and DISCORD_CLIENT_ID are required");
-  // Knit only fetches channels and sends messages; it does not consume gateway
-  // message, member, presence, reaction, typing, or scheduled-event events.
+  // Knit fetches channels and sends messages. It does not consume gateway
+  // message, member, status, reaction, typing, or scheduled-event events.
   const intents = { Guilds: true };
   const client = await createDiscordFn({
     token,

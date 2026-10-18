@@ -6,6 +6,6 @@ on:
         cwd: /eliware/knit
         timeoutMs: 300000
         commands:
-          - git pull --ff-only origin main
+          - git pull
           - npm ci
           - npm test

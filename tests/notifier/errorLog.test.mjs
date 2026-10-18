@@ -14,5 +14,5 @@ test("adds an error log within the remaining description space", () => {
   const description = appendErrorLog("failure", `${"old\n".repeat(2000)}FINAL`);
   expect(description.length).toBeLessThanOrEqual(4096);
   expect(description).toContain("FINAL");
-  expect(description).toContain("truncated; showing log tail");
+  expect(description).toContain("truncated, showing log tail");
 });

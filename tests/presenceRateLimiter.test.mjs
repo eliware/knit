@@ -32,7 +32,7 @@ test("returns success without a client and logs a failed update", async () => {
     await createPresenceRateLimiter({ now: () => 0, setTimeoutFn: setTimeout, log: {} })({}),
   ).toBe(true);
   expect(await send({ status: "offline" })).toBe(false);
-  expect(warn).toHaveBeenCalledWith("[Discord] Failed to update presence", error);
+  expect(warn).toHaveBeenCalledWith("[Discord] Failed to update status", error);
 });
 
 test("serializes concurrent updates while the rate limit is full", async () => {

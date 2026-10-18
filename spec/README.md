@@ -1,36 +1,36 @@
-# Knit Web UI Specification
+# Knit Web Console Specification
 
-Implementation-oriented product specification for the Knit deployment observability console.
+This specification describes an authenticated console for deployment status and fault recovery.
 
-## Product
+## Main tasks
 
-Knit UI is a calm, authenticated operations console for answering:
+Use the console to answer these questions:
 
-1. Is anything broken?
-2. What is deploying now?
-3. What should I do next?
+1. Is a fault active?
+2. Which repository has an active deployment?
+3. Which action must follow?
 
-It observes the complete flow: webhook receipt, validation, routing, queueing, SSH deployment, and Discord notification. It must not expose secrets or provide arbitrary shell execution.
+Show the full flow from webhook receipt through validation, routing, queueing, SSH work, and Discord notices. Do not expose secrets or allow arbitrary shell commands.
 
 ## Documents
 
-- `01-product.md` — product goals, principles, and scope
-- `02-information-architecture.md` — navigation and page structure
-- `03-visual-design.md` — aesthetic and design system
-- `04-core-workflows.md` — operator journeys and behavior
-- `05-deployment-detail.md` — primary deployment/run experience
-- `06-webhooks-and-events.md` — delivery, routing, replay UX
-- `07-authentication-authorization.md` — EliD OAuth/OIDC, sessions, RBAC
-- `08-security-and-audit.md` — redaction, audit, operational safeguards
-- `09-realtime-and-data-model.md` — API, SSE, entities, state model
-- `10-implementation-plan.md` — phased delivery and acceptance criteria
-- `11-components.md` — shared component behavior
-- `12-dashboard.md` — overview layout
-- `13-configuration.md` — config viewer/proposal rules
-- `14-safety.md` — retry/replay/production safeguards
-- `15-accessibility-and-responsive.md` — accessibility and responsive behavior
-- `16-api-contract.md` — UI-facing API requirements
+- `01-product.md` describes goals, rules, and scope.
+- `02-information-architecture.md` describes navigation and page structure.
+- `03-visual-design.md` describes the visual style.
+- `04-core-workflows.md` describes operator tasks and expected behavior.
+- `05-deployment-detail.md` describes the deployment view.
+- `06-webhooks-and-events.md` describes request, routing, and replay views.
+- `07-authentication-authorization.md` describes EliD login, sessions, and access roles.
+- `08-security-and-audit.md` describes secret removal, audit, and safe operation.
+- `09-realtime-and-data-model.md` describes APIs, SSE, data items, and states.
+- `10-implementation-plan.md` describes work phases and done checks.
+- `11-components.md` describes shared interface components.
+- `12-dashboard.md` describes the overview page.
+- `13-configuration.md` describes config views and change proposals.
+- `14-safety.md` describes retry, replay, and production safeguards.
+- `15-accessibility-and-responsive.md` describes accessibility and screen sizes.
+- `16-api-contract.md` describes interface requirements for APIs.
 
-## Source of truth
+## Current system
 
-Knit currently receives GitHub webhooks, queues/deduplicates events, loads mounted YAML configuration, deploys sequentially over strict SSH, and sends Discord notifications. Config files remain source-controlled/runtime-mounted unless a future proposal workflow is implemented.
+Knit accepts GitHub webhooks, queues and deduplicates events, reads YAML settings, and runs deployment steps through strict SSH checks. Knit sends event notices to Discord. Keep config files in source control and attach them at runtime. A future proposal flow can add reviewed edits.

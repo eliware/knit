@@ -50,7 +50,7 @@ test("adds the end of an error log within the Discord description limit", () => 
   });
   expect(description.length).toBeLessThanOrEqual(4096);
   expect(description).toContain("FINAL ERROR LINE");
-  expect(description).toContain("truncated; showing log tail");
+  expect(description).toContain("truncated, showing log tail");
 });
 
 test("supports a truthy string commit list", () => {

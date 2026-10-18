@@ -2,10 +2,10 @@
 
 Target WCAG AA.
 
-- Full keyboard navigation and visible focus.
+- Full keyboard navigation and a focus marker.
 - Semantic headings, labels, tables, dialogs, and live status regions.
-- Never communicate status through color alone.
-- Reduced-motion mode.
-- Desktop: slim rail and wide detail canvas.
-- Tablet: collapsible navigation and stacked detail panels.
-- Mobile: bottom navigation; deployment header remains sticky; logs support horizontal scrolling, search, follow mode, and target/command collapse.
+- Do not show status through color alone.
+- Limit animation.
+- Desktop: slim rail and wide information area.
+- Tablet: navigation that users can close and stacked information panels.
+- Mobile: show main links. Keep the deployment header fixed. Let users scroll logs horizontally, apply filters, follow output, and hide target or command rows.

@@ -2,14 +2,14 @@
 
 The default screen is operational and action-oriented.
 
-If failures exist, open/focus Attention Required. Otherwise focus Active Deployments and Recent Activity.
+If a failure exists, focus items that require action. If no failure exists, focus active deployments and recent work.
 
 Layout:
 
 - One-sentence system status.
-- Attention Required queue.
+- Items that require action.
 - Active Deployments.
-- Recent Activity timeline.
+- Recent work timeline.
 - Small actionable health metrics.
 
-Avoid vanity metrics and charts without drill-down links. Every item links to its immutable run, delivery, repository, or target record.
+Do not show vanity metrics or charts without links to more data. Link each item to its fixed run, request, repository, or target record.

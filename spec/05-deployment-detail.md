@@ -1,28 +1,28 @@
-# Deployment Detail
+# Deployment View
 
 ## Identity header
 
-Show status, repository, ref, commit, actor, trigger event, delivery ID, deployment ID, start time, duration, and environment.
+Show status, repository, ref, commit, actor, trigger event, request ID, deployment ID, start time, elapsed time, and environment.
 
 ## Unified timeline
 
-Webhook received -> signature validated -> routed/ignored -> queued -> consumer attempt(s) -> target execution -> notification -> completed.
+Webhook received -> signature checked -> routed/ignored -> queued -> consumer runs -> target execution -> notice -> completed.
 
 Timeline entries are immutable and link to related objects.
 
 ## Target stages
 
-For every target show name, host (not credentials), working directory, status, duration, and phase. Expand into pre commands, git synchronization, post commands, stdout/stderr, and exit code.
+For each target, show its name, host (not credentials), working directory, status, elapsed time, and phase. Show pre commands, Git sync, post commands, stdout/stderr, and exit code when requested.
 
 ## Logs
 
 - Server-side redacted before storage/streaming/download.
 - Terminal-like but readable.
-- Search, timestamps toggle, wrap toggle, copy/download, follow output, jump to error.
+- Add filters, a time label toggle, line length control, copy/download, output follow, and error navigation.
 - Group by target and command.
-- Sticky plain-language error summary above raw output.
-- Preserve logs after process restart.
+- Keep a plain-language error summary above raw output.
+- Preserve logs after Knit starts again.
 
 ## Actions
 
-Retry failed target, retry remaining targets, retry full deployment, replay source webhook where permitted, and copy IDs. Cancellation must only be offered if the backend can safely implement it.
+Allow a retry for a failed target, remaining targets, or the full deployment. Allow a webhook replay when permitted. Allow ID copies. Offer cancellation only when the backend can stop work safely.

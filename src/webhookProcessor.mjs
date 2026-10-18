@@ -28,12 +28,12 @@ export function createWebhookProcessor({
    */
   function validateSignature({ body, signature, secret, log }) {
     if (!secret || !signature) {
-      log.error("Forbidden: Missing secret or signature.");
-      throw new Error("Forbidden: Missing secret or signature.");
+      log.error("Request not permitted: Missing secret or signature.");
+      throw new Error("Request not permitted: Missing secret or signature.");
     }
     if (!SignatureValidatorMod.validate({ data: body, secret, signature })) {
-      log.error("Forbidden: Invalid signature.");
-      throw new Error("Forbidden: Invalid signature.");
+      log.error("Request not permitted: Invalid signature.");
+      throw new Error("Request not permitted: Invalid signature.");
     }
   }
   return {

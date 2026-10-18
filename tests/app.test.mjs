@@ -8,7 +8,13 @@ const request = (server, { method, path, body }) =>
   new Promise((resolve, reject) => {
     const { port } = server.address();
     const req = http.request(
-      { port, method, path, headers: { "content-type": "application/json" } },
+      {
+        hostname: "localhost",
+        port,
+        method,
+        path,
+        headers: { "content-type": "application/json" },
+      },
       (res) => {
         let data = "";
         res.on("data", (chunk) => {

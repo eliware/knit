@@ -3,10 +3,10 @@ import * as Notifier from "./notifier/send.mjs";
 import { registerSpecializedHandlers } from "./specializedHandlers.mjs";
 
 /**
- * Creates the default event handler registry.
+ * Creates the default event handler map.
  * @param {Object} [params]
  * @param {Object} [params.Notifier] - Injectable notifier module.
- * @returns {{register: Function, dispatch: Function}}
+ * @returns {Map} Event handler map.
  */
 export function createRegistry({ Notifier: NotifierMod = Notifier } = {}) {
   const handlers = new Map();

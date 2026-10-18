@@ -1,8 +1,8 @@
 {
   "name": "@eliware/knit",
-  "version": "12.0.1",
+  "version": "13.0.0",
   "type": "module",
-  "description": "GitHub webhook handler and SSH deployment automation service with Discord notifications, delivery-aware presence, and metadata-aware validation workflows.",
+  "description": "GitHub webhook handler and SSH deployment automation tool with Discord notifications, message status, and metadata-aware validation workflows.",
   "keywords": [
     "knit",
     "nodejs",
@@ -28,6 +28,7 @@
   },
   "files": [
     "src/",
+    "assets/",
     "docs/",
     "README.md",
     "AGENTS.md",
@@ -57,7 +58,7 @@
     "dotenv": "^18.0.8",
     "express": "^5.1.0",
     "inquirer": "^14.2.1",
-    "js-yaml": "^5.4.1"
+    "js-yaml": "^5.5.0"
   },
   "devDependencies": {
     "@eliware/test": "^12.0.0"

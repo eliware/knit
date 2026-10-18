@@ -12,7 +12,7 @@ describe("Discord embed size limits", () => {
     });
     expect(embed.description.length).toBeLessThanOrEqual(4096);
     expect(embed.description).toContain("FINAL ERROR LINE");
-    expect(embed.description).toContain("truncated; showing log tail");
+    expect(embed.description).toContain("truncated, showing log tail");
   });
 
   it("handles tail helper edge cases and limits field count and values", () => {

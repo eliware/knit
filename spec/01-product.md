@@ -1,16 +1,16 @@
-# Product
+# Application goals
 
 ## Positioning
 
-Knit is a deployment observability and recovery console, not a generic infrastructure dashboard.
+Knit is a console for deployment status and fault recovery. It is not a general infrastructure dashboard.
 
 ## Goals
 
 - Understand system state in seconds.
-- Trace every webhook to its deployment and notification.
-- Explain failures in plain language.
-- Recover safely with precise retry scopes.
-- Preserve operator trust through visible permissions and audit history.
+- Link each webhook to its deployment and notice.
+- Describe failures in plain language.
+- Restore work safely with accurate retry scopes.
+- Show permissions and audit history to build operator trust.
 
 ## Non-goals for MVP
 
@@ -21,9 +21,9 @@ Knit is a deployment observability and recovery console, not a generic infrastru
 
 ## Principles
 
-- Action-oriented over decorative.
+- Prioritize actions. Limit decoration.
 - Immutable event history.
-- Safe defaults; broad actions require confirmation.
+- Use safe defaults. Require confirmation for broad actions.
 - Server-side authorization.
-- Secrets never returned to the browser.
+- Do not return secrets to the browser.
 - Useful empty, loading, disconnected, and failure states.

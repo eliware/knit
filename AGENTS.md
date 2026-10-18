@@ -2,11 +2,11 @@
 
 ## Project
 
-Knit runs signed GitHub webhooks and SSH deployment commands.
+Knit accepts GitHub webhooks and runs approved SSH commands.
 
 ## Scope and boundaries
 
-Keep service and workflow changes in this repository. Use GitOps to deploy released container images.
+Keep application and workflow changes in this repository. Use GitOps to deploy released container images.
 
 ## Layout
 
@@ -14,11 +14,13 @@ Keep implementation in `src/`. Keep launchers in `bin/`. Keep tests in `tests/`.
 
 ## Development
 
-Use Node.js 26 and native ESM. Keep runtime secrets outside Git.
+Use Node.js 26 or later and npm 12 or later. Use native ESM. Keep runtime secrets outside Git.
 
 ## Validation
 
-Run `npm test`, `npm run lint`, `npm run audit`, `npm run format`, and `npm run format:check`.
+Run one test file with `npm test -- tests/path/to/example.test.mjs`.
+Run multiple test files with `npm test -- tests/path/to/first.test.mjs tests/path/to/second.test.mjs`.
+Run `npm run lint`, `npm run audit`, `npm run format`, and `npm run format:check` as separate checks.
 
 ## Security
 
@@ -30,7 +32,16 @@ Keep package metadata, lockfile data, docs, and workflows in sync. Do not deploy
 
 ## Application
 
-Validate targets before connections. Fetch workflows at the webhook commit. Keep launchers thin. Keep user documentation in `docs/`.
+- Document entry points, workflows, settings, startup, and shutdown in `README.md`.
+- Validate targets before connections.
+- Fetch workflows at the webhook commit.
+- Keep launchers for startup tasks.
+- Keep user documentation in `docs/`.
+- Run focused tests first during development.
+- Run one test file with `npm test -- tests/path/to/example.test.mjs`.
+- Run multiple test files with `npm test -- tests/path/to/first.test.mjs tests/path/to/second.test.mjs`.
+- Prevent repeated full-suite runs during development.
+- Run the full `npm test` suite for final validation before a commit, milestone, or release.
 
 ## Discord
 
@@ -40,8 +51,10 @@ Use only the `Guilds` intent. Document commands, events, intents, and permission
 
 Image: ghcr.io/eliware/knit
 
-Pull command: docker pull ghcr.io/eliware/knit:v12.0.1
+Pull command: docker pull ghcr.io/eliware/knit:v13.0.0
 
 Supported tags: vMAJOR.MINOR.PATCH
 
-Deployment boundary: publication does not deploy; deploy by immutable version tag and recorded sha256 digest.
+Deployment boundary: Publication does not deploy. Use an immutable version tag and record its SHA-256 digest.
+
+Document image purpose, access, and deployment use in `README.md`.

@@ -1,3 +1,3 @@
 export default function clientReady(context) {
-  context.log.info("Discord client is ready");
+  context.log.info("Discord client has started");
 }

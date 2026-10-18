@@ -5,7 +5,7 @@ import { log as logger } from "@eliware/common";
  * @param {Object} params
  * @param {Object} params.post - The webhook payload.
  * @param {Object} [params.log] - Logger instance to use.
- * @returns {boolean} True if valid, false otherwise.
+ * @returns {boolean} True if valid, false if invalid.
  */
 export function validate({ post, event = "push", log = logger }) {
   if (!post || typeof post !== "object") {

@@ -2,7 +2,7 @@
 
 ## @eliware/knit [![License](https://img.shields.io/github/license/eliware/knit)](https://github.com/eliware/knit/blob/main/LICENSE) [![CI](https://github.com/eliware/knit/actions/workflows/ci.yaml/badge.svg)](https://github.com/eliware/knit/actions/workflows/ci.yaml)
 
-GitHub webhook handler and SSH deployment automation service with Discord notifications, delivery-aware presence, and metadata-aware validation workflows.
+GitHub webhook handler and SSH deployment automation tool with Discord notifications, message status, and metadata-aware validation workflows.
 
 ## Table of Contents
 
@@ -37,11 +37,21 @@ Install dependencies with `npm ci`. Set the runtime variables in [the configurat
 
 ## Usage
 
-Run `npm start` to start Knit. Set the GitHub webhook URL to `https://<host>/`. Set the webhook content type to `application/json`. Use `GET /health` to check service status. Read the [docs index](docs/README.md) for end-user guides. Read [release notes](RELEASE_NOTES.md) for version changes. Read [specifications](specs/README.md) for repository requirements.
+Run `npm start` to start Knit. Set the GitHub webhook URL to `https://<host>/`.
+
+Set the webhook content type to `application/json`. Use `GET /health` to check the application status.
+
+Read the [docs index](docs/README.md) for user guides.
+
+Read [release notes](RELEASE_NOTES.md) for version changes. Read [specifications](specs/README.md) for repository rules.
 
 ## Development
 
-Use Node.js 26 and npm. Run `npm ci` to install locked packages. Keep runtime secrets and target credentials outside Git.
+Use Node.js 26 and npm.
+
+Run `npm ci` to install locked packages.
+
+Keep runtime secrets and target credentials outside Git.
 
 ## Testing
 
@@ -49,7 +59,7 @@ Run `npm test` for full validation. Run `npm run lint` for lint checks. Run `npm
 
 ## Troubleshooting
 
-Check webhook delivery status, signature settings, target access, and SSH host keys. Follow [the troubleshooting guide](docs/troubleshooting.md) for fault steps.
+Check webhook request status, signature settings, target access, and SSH host keys. Follow [the troubleshooting guide](docs/troubleshooting.md) for fault checks.
 
 ## Security
 
@@ -57,27 +67,53 @@ Knit checks the webhook signature before event processing. It reads workflows at
 
 ## Configuration
 
-Set `GITHUB_WEBHOOK_SECRET` as a runtime secret. Set `GITHUB_READ_TOKEN` for private GitHub repositories or higher API limits. Set `DISCORD_TOKEN` and `DISCORD_CLIENT_ID` together to enable Discord. Set `KNIT_CONFIG_PATH` or `KNIT_TARGETS_PATH` to select the target inventory. Set `PORT` to change the default port, `3456`. Read [the configuration guide](docs/knit-config-guide.md) for fields and examples.
+Set `GITHUB_WEBHOOK_SECRET` as a runtime secret. Set `GITHUB_READ_TOKEN` for private repositories or higher API limits.
+
+Set `DISCORD_TOKEN` and `DISCORD_CLIENT_ID` together to enable Discord. Set `KNIT_CONFIG_PATH` or `KNIT_TARGETS_PATH` to select the target inventory.
+
+Set `PORT` to use a different TCP endpoint. The default endpoint is `3456`.
+
+Read [the configuration guide](docs/knit-config-guide.md) for fields and examples.
 
 ## Operations
 
-Knit validates targets before it opens external connections. It gets `.knit/deploy.yaml` and `package.json` at the webhook commit. It runs deployment commands in order. A nonzero command result marks the deployment as failed. GHCR publication builds an image. GitOps controls image deployment. Read [usage](docs/usage.md) for start, health, and shutdown steps.
+Knit validates targets before it opens external connections. It gets `.knit/deploy.yaml` and `package.json` at the webhook commit.
+
+It runs deployment commands in order. A nonzero command result marks the run as failed.
+
+The GHCR image contains Knit. Set image access in GHCR package settings.
+
+GitOps deploys an immutable version tag and its recorded SHA-256 digest.
+
+Read [usage](docs/usage.md) for startup, health checks, and shutdown.
 
 ## Commands
 
-The `/help` command gives a short service summary. Knit requests only the Discord `Guilds` intent.
+The `/help` command gives a short application summary. Knit requests only the Discord `Guilds` intent.
 
 ## Events
 
-Knit handles repository `push` events. It sends special Discord notices for `release`, `workflow_run`, `pull_request`, `issues`, `deployment`, and `deployment_status` events. It sends a general notice for other repository events. It ignores events without a repository name.
+Knit handles repository `push` events. It sends special Discord notices for `release`, `workflow_run`, `pull_request`, `issues`, `deployment`, and `deployment_status` events.
+It sends a general notice for other repository events. It ignores events without a repository name.
 
-For each event, Knit uses the repository name after the owner slash as the announcement channel name. Knit encodes punctuation as `_xHEX_` so different names stay distinct. Knit does not add a hash or truncate a name. Names longer than 100 characters fail. Knit checks for a matching announcement channel. It creates one if no matching channel exists, including when another channel type has that name. Knit sets access from repository visibility, updates the topic from package metadata, and posts the notice. Long descriptions do not remove topic keywords.
+For each event, Knit uses the repository name after the owner slash for the announcement channel name.
 
-Knit returns HTTP 200 after it queues a valid signed webhook. Knit does not wait for event processing to finish.
+Knit represents punctuation with `_xHEX_`. This encoding keeps names distinct. Knit uses the full repository name without a hash.
+
+Names above 100 characters fail. Knit checks for a matching announcement channel.
+
+It creates an announcement channel if no match exists. It also creates one when a different channel type has that name.
+
+Knit sets access from repository visibility and updates the topic from package metadata before it posts.
+
+Long descriptions do not remove topic keywords.
+
+Knit returns HTTP 200 after it queues a valid signed webhook. Knit does not wait for event processing to complete.
 
 ## Intents and permissions
 
-Enable the `Guilds` intent. Grant the bot the `Administrator` permission. The bot can access all channels. Do not add the bot to channel allowlists. Knit does not request message, member, presence, reaction, typing, or scheduled event intents.
+Enable the `Guilds` intent. Grant the bot the `Administrator` permission. The bot can access all channels.
+Do not add the bot to channel allowlists. Knit does not request message, member, `GuildPresences`, reaction, typing, or scheduled event intents.
 
 ## Support
 

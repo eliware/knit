@@ -9,7 +9,7 @@ const errorHandlers = registerHandlers({ log });
 registerSignals({ log });
 
 export async function main() {
-  log.info("knit service starting...");
+  log.info("Knit is starting...");
   if (!(await defaultTargetLoader.validateAll()))
     throw new Error("Knit target configuration validation failed");
   const discordClient = await startDiscordClient({ log });
@@ -28,7 +28,7 @@ export async function main() {
 
 export function start() {
   return main().catch((err) => {
-    log.error("Failed to start knit service:", err);
+    log.error("Knit could not start:", err);
     process.exit(1);
   });
 }

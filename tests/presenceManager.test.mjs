@@ -1,13 +1,25 @@
 import { jest } from "@jest/globals";
 import { createPresenceManager } from "../src/presenceManager.mjs";
 
+const createManager = (options = {}) =>
+  createPresenceManager({
+    now: () => 0,
+    setTimeoutFn: () => ({ unref: jest.fn() }),
+    clearTimeoutFn: jest.fn(),
+    ...options,
+  });
+
+const flushUpdates = async () => {
+  for (let count = 0; count < 8; count += 1) await Promise.resolve();
+};
+
 test("starts with version presence and updates busy state", async () => {
   const setPresence = jest.fn().mockResolvedValue(undefined);
-  const manager = createPresenceManager({ client: { user: { setPresence } }, version: "2.2.0" });
+  const manager = createManager({ client: { user: { setPresence } }, version: "2.2.0" });
   manager.start();
   manager.begin("deploying eliware/knit");
   await manager.begin("deploying eliware/knit");
-  await new Promise((resolve) => setImmediate(resolve));
+  await flushUpdates();
   expect(setPresence).toHaveBeenNthCalledWith(
     1,
     expect.objectContaining({ activities: [{ name: "🧶 knit v2.2.0", type: 4 }] }),
@@ -23,7 +35,7 @@ test("starts with version presence and updates busy state", async () => {
 test("waits for the Discord gateway bucket instead of dropping updates", async () => {
   const setPresence = jest.fn().mockResolvedValue(undefined);
   let time = 0;
-  const manager = createPresenceManager({
+  const manager = createManager({
     client: { user: { setPresence } },
     version: "2.2.0",
     now: () => time,
@@ -39,14 +51,14 @@ test("waits for the Discord gateway bucket instead of dropping updates", async (
 
 test("reserves a final update for terminal failures", async () => {
   const setPresence = jest.fn().mockResolvedValue(undefined);
-  const manager = createPresenceManager({ client: { user: { setPresence } }, version: "2.2.0" });
+  const manager = createManager({ client: { user: { setPresence } }, version: "2.2.0" });
   manager.terminal("ignored while idle");
   manager.begin("received");
   manager.update("routing");
   manager.update("loading");
   manager.update("running");
   await manager.terminal("failed repository", true);
-  await new Promise((resolve) => setImmediate(resolve));
+  await flushUpdates();
   expect(setPresence).toHaveBeenLastCalledWith(
     expect.objectContaining({ activities: [{ name: "❌ failed repository", type: 4 }] }),
   );
@@ -55,7 +67,7 @@ test("reserves a final update for terminal failures", async () => {
 test("restores idle presence and ignores a stale timer after work resumes", async () => {
   const setPresence = jest.fn().mockResolvedValue(undefined);
   const timers = [];
-  const manager = createPresenceManager({
+  const manager = createManager({
     client: { user: { setPresence } },
     version: "2.2.0",
     setTimeoutFn: (callback) => {
@@ -68,7 +80,7 @@ test("restores idle presence and ignores a stale timer after work resumes", asyn
   manager.update("still working");
   manager.end();
   timers[0]();
-  await new Promise((resolve) => setImmediate(resolve));
+  await flushUpdates();
   const idleName = "🧶 knit v2.2.0";
   const idleCalls = () =>
     setPresence.mock.calls.filter(([presence]) => presence.activities?.[0]?.name === idleName)
@@ -87,7 +99,7 @@ test("ignores idle completion while another task is active and handles presence 
   const warn = jest.fn();
   const setPresence = jest.fn().mockRejectedValue(new Error("offline"));
   let timer;
-  const manager = createPresenceManager({
+  const manager = createManager({
     client: { user: { setPresence } },
     version: "2.2.0",
     log: { warn },
@@ -102,14 +114,14 @@ test("ignores idle completion while another task is active and handles presence 
   manager.end();
   manager.begin("again");
   timer();
-  await new Promise((resolve) => setImmediate(resolve));
+  await flushUpdates();
   expect(warn).toHaveBeenCalled();
 });
 
 test("supports missing Discord client, duplicate updates, and timers without unref", async () => {
   const clearTimeoutFn = jest.fn();
   let timer;
-  const manager = createPresenceManager({
+  const manager = createManager({
     version: "2.2.0",
     setTimeoutFn: (callback) => {
       timer = callback;
@@ -128,13 +140,13 @@ test("supports missing Discord client, duplicate updates, and timers without unr
   manager.end();
   timer();
   manager.stop();
-  await new Promise((resolve) => setImmediate(resolve));
+  await flushUpdates();
   expect(clearTimeoutFn).toHaveBeenCalled();
 });
 
 test("publishes a neutral ignored state while busy", async () => {
   const setPresence = jest.fn().mockResolvedValue(undefined);
-  const manager = createPresenceManager({ client: { user: { setPresence } }, version: "2.2.0" });
+  const manager = createManager({ client: { user: { setPresence } }, version: "2.2.0" });
   await manager.begin("tag");
   await manager.neutral("eliware/elera-lib ignored");
   expect(setPresence).toHaveBeenLastCalledWith(

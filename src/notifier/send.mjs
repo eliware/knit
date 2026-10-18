@@ -4,15 +4,7 @@ import { getNotifierState } from "./state.mjs";
 import { deliverDiscordMessage } from "./delivery.mjs";
 
 /**
- * Sends a notification to a Discord channel.
- * @param {Object} params
- * @param {string} params.channelId - The Discord channel snowflake.
- * @param {Object} params.post - The webhook payload.
- * @param {string} params.log - The log output.
- * @param {boolean} params.hasError - Whether an error occurred.
- * @param {string} [params.event] - GitHub event name.
- * @param {Object} [params.embed] - Optional pre-built embed.
- * @param {Object} [params.discordClient] - Optional Discord client for testing/injection.
+ * Send a notification to a Discord channel.
  */
 export async function send({
   channelId,

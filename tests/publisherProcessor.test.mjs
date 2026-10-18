@@ -1,3 +1,4 @@
+import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
 import { processPublisherTask } from "../src/publisherProcessor.mjs";
 
@@ -48,4 +49,13 @@ test("fails once when the consumer returns false", async () => {
     new Error("Consumer returned false"),
   );
   expect(metrics).toEqual({ processed: 1, succeeded: 0, failed: 1, retried: 0 });
+});
+
+test("uses the default task logger", async () => {
+  const task = makeTask();
+  delete task.log;
+  const ConsumerMod = { consume: jest.fn().mockResolvedValue(true) };
+  const { recordMetric } = makeRecorder();
+  await processPublisherTask({ task, ConsumerMod, recordMetric });
+  expect(ConsumerMod.consume).toHaveBeenCalledTimes(1);
 });

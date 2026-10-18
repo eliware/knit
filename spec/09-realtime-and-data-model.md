@@ -7,12 +7,12 @@ Use SSE initially. Authenticate the connection, authorize subscriptions, include
 ## Core entities
 
 - User: EliD subject, roles, scopes.
-- WebhookDelivery: ID, event, repository, received time, signature result, payload metadata.
-- RoutingDecision: selected config, fallback, ignored reason, handler.
+- WebhookRequest: ID, event, repository, received time, signature result, payload metadata.
+- RoutingDecision: selected config, fallback, cause for ignoring, handler.
 - QueueTask: attempts, state, timestamps, error.
-- Deployment: immutable run identity, delivery link, repository, ref, commit, actor, environment, state.
+- Deployment: immutable run identity, request link, repository, ref, commit, actor, environment, state.
 - TargetRun: target, phase, commands, output, exit code, timestamps.
-- NotificationDelivery: destination metadata, state, error, timestamps.
+- Notice: destination metadata, state, error, timestamps.
 - AuditEntry: actor, action, resource, correlation IDs, result.
 
 ## State values
@@ -21,8 +21,8 @@ queued, validating, routed, ignored, running, succeeded, failed, retrying, block
 
 ## Correlation
 
-Every UI trace must link delivery ID -> queue task -> deployment ID -> target runs -> notification -> operator actions.
+Link each request ID to its queue task, deployment ID, target runs, notice, and operator actions.
 
 ## Persistence
 
-History and logs must survive process restart. Define retention and pagination. Avoid loading unbounded payloads/logs into the browser.
+Keep history and logs after Knit starts again. Define retention and pagination. Do not load unlimited payloads or logs into a browser.

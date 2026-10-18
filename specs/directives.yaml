@@ -1,34 +1,34 @@
-version: "12.0"
-description: Defines committed requirements for the Knit service.
+version: "13.0"
+description: Requirements for the Knit application.
 directives:
   - id: E-1310.0
     dos:
-      - Accept signed GitHub webhook events through the service endpoint.
-      - Return HTTP 200 immediately after queueing each valid signed webhook.
+      - Accept signed GitHub webhook events at the application endpoint.
+      - Return HTTP 200 after Knit adds each valid signed webhook to its queue.
       - Do not wait for event processing before the HTTP acknowledgement.
-      - Validate trusted target profiles before the service opens external connections.
+      - Check trusted target profiles before the application opens external connections.
       - Read repository workflows at the webhook commit.
       - Run approved commands through verified SSH targets.
       - Require one or more deployments in every configured action.
       - Send supported event and deployment updates to Discord.
-      - Use the repository name as the Discord announcement channel name.
-      - Use only the repository name after the owner slash; do not add a hash or owner name.
-      - Keep repository names unique within the eliware organization.
-      - Encode punctuation in channel names so distinct repository names stay distinct.
-      - Reject channel names longer than 100 characters; do not truncate them.
-      - Check the guild channel list for that name on every event.
-      - Reuse the matching announcement channel or create it with that name and no suffix.
-      - Reuse only announcement channels; create an announcement channel when another type has that name.
+      - Use the repository name after its owner slash as the Discord announcement channel name.
+      - Do not add a hash or owner name to the channel name.
+      - Keep repository names unique in the eliware organization.
+      - Encode punctuation in channel names to keep different repository names distinct.
+      - Reject channel names longer than 100 characters. Keep their full length.
+      - Check the guild channel list for that name for each event.
+      - Use the matching announcement channel. Create one with that name if none exists.
+      - If a different channel type has that name, create an announcement channel.
       - Set channel access from repository visibility before Knit posts an event.
       - Set the channel topic from package metadata before Knit posts an event.
-      - Preserve keyword metadata when the channel topic reaches its length limit.
-      - Reject keyword metadata that exceeds the channel topic limit.
+      - Preserve keyword data when the channel topic reaches its length limit.
+      - Reject keyword data above the channel topic limit.
       - Preserve the current channel topic when an event has no package metadata.
       - Give the Discord bot the Administrator permission.
       - Do not require the Discord bot in channel allowlists.
       - Use the Administrator permission to access private announcement channels.
-      - Send each delivery to the consumer once.
-      - End failed deliveries without an automatic retry.
+      - Process each webhook request once.
+      - End failed webhook processing without an automatic retry.
       - Deploy released container images through GitOps.
     donts:
       - Do not store runtime credentials in this repository.
@@ -38,12 +38,12 @@ directives:
       - id: E-1310.0.0
         dos:
           - Require a valid GitHub webhook signature before event processing.
-          - Preserve delivery identifiers through event processing.
+          - Preserve request IDs during event processing.
           - Ignore events without a configured repository target.
-          - Treat unmatched tag events as ignored events with a neutral result.
+          - Give unmatched tag events a neutral ignored result.
         donts:
           - Do not execute deployment commands from unsigned events.
-          - Do not treat a missing repository target as a successful deployment.
+          - Do not report a deployment when the repository target is missing.
       - id: E-1310.0.1
         dos:
           - Load target profiles from the configured YAML inventory.

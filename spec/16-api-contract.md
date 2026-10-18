@@ -15,4 +15,4 @@ Required resource families:
 - `/api/audit`
 - `/api/events` (SSE)
 
-All list endpoints need pagination, filtering, stable cursors, authorization filtering, and structured errors. Mutations require idempotency keys and return correlation IDs. Payloads/logs are redacted server-side. SSE events include monotonically ordered IDs and support `Last-Event-ID`.
+All list endpoints must support pagination, filters, stable cursors, access checks, and structured errors. Mutations require idempotency keys and return correlation IDs. Remove secrets from payloads and logs on the server. SSE events include ordered IDs and support `Last-Event-ID`.

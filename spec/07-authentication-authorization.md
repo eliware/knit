@@ -4,12 +4,12 @@
 
 Integrate EliD using OIDC Authorization Code + PKCE.
 
-Validate issuer, audience, state, nonce, code, token signature/key rotation, exp, and nbf.
+Validate issuer, audience, state, nonce, code, token signature/key updates, exp, and nbf.
 
 Prefer a backend-for-frontend with server-side session cookies:
 
 - HttpOnly
-- Secure
+- `Secure`
 - SameSite=Lax or Strict
 - idle and absolute expiry
 - CSRF protection
@@ -29,6 +29,6 @@ Support repository and environment scopes. Production actions may require step-u
 
 ## Enforcement
 
-Authorization is checked server-side on every route, API action, SSE subscription, download, retry, replay, and notification test. Frontend hiding is not security.
+Check authorization on the server for each route, API action, SSE subscription, download, retry, replay, and notification test. Hiding an item in the user interface does not control access.
 
-Show effective permissions and denial reasons where useful.
+Show granted permissions and why access was denied when useful.

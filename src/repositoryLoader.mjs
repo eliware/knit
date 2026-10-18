@@ -26,7 +26,7 @@ export async function get({
       const target = targets.targets?.[deployment.target];
       if (!target) throw new Error(`Unknown deployment target: ${deployment.target}`);
       if (target.allowedRepositories && !target.allowedRepositories.includes(name))
-        throw new Error(`Repository is not authorized for target: ${deployment.target}`);
+        throw new Error(`Repository is not approved for target: ${deployment.target}`);
     }
     return createSshRepo({
       config: { ...action, stopOnError: action.stopOnError },

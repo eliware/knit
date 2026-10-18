@@ -21,6 +21,7 @@ export function publish({
   deliveryId = null,
   log,
   ConsumerMod = Consumer,
+  schedule = setImmediate,
 }) {
   const activeLog = log ?? logger;
   const task = {
@@ -32,12 +33,12 @@ export function publish({
   };
   if (!enqueuePublisherTask(task)) {
     recordPublisherMetric("duplicates");
-    activeLog.info("[Publisher] Duplicate delivery ignored", deliveryId);
+    activeLog.info("[Publisher] Duplicate request ignored", deliveryId);
     return false;
   }
   recordPublisherMetric("queued");
   activeLog.info("[Publisher] Queuing payload for publish");
-  setImmediate(() => processTasks(ConsumerMod));
+  schedule(() => processTasks(ConsumerMod));
   return true;
 }
 

@@ -37,7 +37,7 @@ describe("main.mjs", () => {
 
     expect(registerHandlers).toHaveBeenCalledWith({ log });
     expect(registerSignals).toHaveBeenCalledWith({ log });
-    expect(log.info).toHaveBeenCalledWith("knit service starting...");
+    expect(log.info).toHaveBeenCalledWith("Knit is starting...");
     expect(createApp).toHaveBeenCalledWith({ log });
     expect(startDiscordClient).toHaveBeenCalledWith({ log });
     expect(startApp).toHaveBeenCalledWith({ appInstance: app, log });
@@ -55,7 +55,7 @@ describe("main.mjs", () => {
 
     await import("../src/main.mjs?startup");
 
-    expect(log.info).toHaveBeenCalledWith("knit service starting...");
+    expect(log.info).toHaveBeenCalledWith("Knit is starting...");
     process.env.NODE_ENV = "test";
   });
 
@@ -81,7 +81,7 @@ describe("main.mjs", () => {
 
     await (await import("../src/main.mjs")).start();
 
-    expect(log.error).toHaveBeenCalledWith("Failed to start knit service:", error);
+    expect(log.error).toHaveBeenCalledWith("Knit could not start:", error);
     expect(exit).toHaveBeenCalledWith(1);
     exit.mockRestore();
   });

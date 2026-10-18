@@ -1,10 +1,10 @@
 # Webhooks and Events
 
-## Delivery list
+## Request list
 
-Columns: received time, repository, event, action, delivery ID, signature status, routing status, deployment status, notification status.
+Show received time, repository, event, action, request ID, signature status, routing status, deployment status, and notice status.
 
-Filters: repository, event, status, failures, date range, delivery ID.
+Allow filters for repository, event, status, failures, date range, and request ID.
 
 ## Routing explanation
 
@@ -12,9 +12,9 @@ For each event show:
 
 - repository match or organization fallback
 - selected config
-- ignored/matched reason
+- why the event matched or was ignored
 - handler type
-- delivery and deployment correlation
+- request and deployment links
 
 ## Payload viewer
 
@@ -22,4 +22,4 @@ Show sanitized, collapsible JSON. Redact authorization headers, signatures, webh
 
 ## Duplicate handling
 
-Display duplicate status and original delivery correlation. Expose bounded deduplication/queue state to operators without exposing internals unnecessarily.
+Show duplicate status and link the first request. Show queue state without exposing internal data.

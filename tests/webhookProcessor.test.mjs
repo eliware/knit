@@ -94,7 +94,7 @@ describe("webhookProcessor.mjs", () => {
       res,
     );
     expect(SignatureValidator.validate).not.toHaveBeenCalled();
-    expect(log.error).toHaveBeenCalledWith("Forbidden: Missing secret or signature.");
+    expect(log.error).toHaveBeenCalledWith("Request not permitted: Missing secret or signature.");
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.send).toHaveBeenCalledWith("Webhook processing failed.");
   });
@@ -114,7 +114,7 @@ describe("webhookProcessor.mjs", () => {
       { rawBody: "payload", body: {}, headers: { "x-hub-signature-256": "sig" } },
       res,
     );
-    expect(log.error).toHaveBeenCalledWith("Forbidden: Invalid signature.");
+    expect(log.error).toHaveBeenCalledWith("Request not permitted: Invalid signature.");
   });
 
   it("handles publisher errors with an error message", async () => {

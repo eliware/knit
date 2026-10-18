@@ -1,14 +1,14 @@
 # Configuration UX
 
-Show effective validated YAML-derived configuration without exposing secrets.
+Show validated YAML settings in use. Do not expose secrets.
 
-Display:
+List these values:
 
 - source file/path
 - source revision
 - repository and git ref
 - targets and execution policy
-- notify key metadata, never URL/value
+- notification key details. Do not show the URL or value.
 - validation errors/warnings
 
-Current runtime configs are mounted and source-controlled. They are loaded once per process; GitOps content-hashed ConfigMap changes roll the pod so the next process reads the new files. Do not offer direct save. Future edits must create a reviewed source-controlled proposal with a rendered diff and validation result.
+Keep runtime config files in source control. Load each file once when Knit starts. A content-hashed ConfigMap change in GitOps rolls the pod. The new process reads the changed files. Do not offer direct save. Require a reviewed source-controlled proposal with a diff and validation result for each edit.

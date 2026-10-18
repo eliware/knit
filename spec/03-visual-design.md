@@ -1,4 +1,4 @@
-# Visual Design
+# Visual Style
 
 ## Direction
 
@@ -8,14 +8,14 @@
 
 - Light-first: warm off-white canvas, charcoal text, cobalt primary, coral/orange failure.
 - Dark mode: near-black blue-gray canvas, mint success, cyan active, amber warning, coral failure.
-- Use color with icons, labels, and shapes; never color alone.
-- Avoid neon, excessive gradients, dense cards, and continuously moving dashboards.
+- Use color with icons, labels, and shapes. Do not use color alone.
+- Do not use neon, many gradients, dense cards, or moving dashboards.
 
 ## Layout
 
-- Editorial hierarchy, generous whitespace, compact data tables.
+- Use a strong text hierarchy, an open layout, and compact data tables.
 - Large page title and one-sentence status summary.
-- Dense detail where needed; progressive disclosure everywhere else.
+- Put secondary information behind a control.
 - Production environment must have an unmistakable visual label.
 
 ## Components
@@ -24,4 +24,4 @@ StatusBadge, RunTimeline, TargetStage, LogPanel, EventTable, DataTable, FilterBa
 
 ## Accessibility
 
-WCAG AA contrast, keyboard navigation, visible focus, semantic labels, reduced motion, screen-reader status updates, mobile-responsive logs.
+Use WCAG AA contrast, keyboard navigation, a focus marker, semantic labels, a reduced-motion mode, screen-reader status updates, and mobile-ready logs.

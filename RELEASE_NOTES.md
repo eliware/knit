@@ -1,39 +1,40 @@
 # Release Notes
 
-## 12.0.1 — 2026-10-14
+## 13.0.0 — 2026-10-17
 
 ### Added
 
-- Knit returns HTTP 200 after it queues a valid signed webhook. Event processing runs after the response.
-- Knit sends commit, repository, ref, event, and delivery values through SSH environment requests.
+- Knit returns HTTP 200 after it queues a valid signed webhook. Event work runs after the response.
+- Knit sends commit, repository, ref, event, and request ID values through SSH environment requests.
 - Knit cross-posts version-tagged release notices in Discord announcement channels.
 - Knit adds focused source modules and matching test suites for webhook, channel, publisher, and notice rules.
 
 ### Changed
 
-- Knit uses the repository name after the owner slash for its Discord announcement channel. It encodes punctuation and rejects names over 100 characters.
-- Knit checks for an existing announcement channel on each event. It reuses a match or creates the repository name without a suffix.
-- Knit sets channel access from repository visibility and sets the topic from package description and keywords before it posts.
-- Knit keeps the current channel topic when an event has no package metadata. It rejects keyword text over Discord's topic limit.
-- Knit runs tag deployments only when a configured tag pattern matches. It treats unmatched tags as ignored events with a neutral result.
+- Knit names each Discord channel with the repository name after the owner name. It encodes punctuation and rejects names above 100 characters.
+- Knit checks for an announcement channel for each event. It uses a match or creates the repository name without a suffix.
+- Knit sets channel access from repository visibility and sets the topic from package text before it posts.
+- Knit keeps the current channel topic when an event has no package data. It rejects keyword text above Discord's topic limit.
+- Knit runs tag deployments only when a configured tag pattern matches. It gives unmatched tags a neutral ignored result.
 - Knit requires at least one deployment in each configured action.
-- Knit tracks pending and completed webhook deliveries. It ignores duplicate delivery IDs and does not retry failed deliveries.
-- Knit updates the GHCR image tag to `v12.0.1` and verifies its attestation with the GitHub token.
-- Knit updates `dotenv` to `18.0.8` and the package version to `12.0.1`.
+- Knit tracks pending and completed webhook requests. It ignores duplicate request IDs and does not retry failed requests.
+- Knit updates the GHCR image tag to `v13.0.0` and verifies its attestation with the GitHub token.
+- Knit updates package metadata to version `13.0.0` and aligns its description with the repository map.
+- Knit updates dependencies to available releases and uses the canonical GHCR publication workflow.
 
 ### Fixed
 
-- Knit keeps success and failure results consistent across webhook processing and Discord activity updates.
-- Knit preserves active activity state when deliveries overlap or a completion has the wrong delivery ID.
-- Knit keeps Discord embeds within field and total text limits, including when fields exceed the total limit.
-- Knit encodes GitHub actor names in profile links and GitHub file paths in Contents requests.
-- Knit escapes repository text in Discord notices and escapes the version in the service page.
+- Knit reports correct and failed webhook results in Discord status updates.
+- Knit preserves active status when webhook requests overlap or an end request has an incorrect ID.
+- Knit keeps Discord embeds in the field and total text limits.
+- Knit encodes GitHub actor names in profile links and file paths in GitHub Contents requests.
+- Knit escapes repository text in Discord notices and escapes the version on the landing page.
 
 ## 12.0.0 — 2026-10-14
 
 ### Added
 
-- Added user guides for service use, configuration, and troubleshooting.
+- Added user guides for application use, configuration, and troubleshooting.
 - Added requirement specs, directive specs, and a runnable example.
 - Added a localized Discord `/help` command and interaction handlers.
 - Added CI and GHCR workflows for validation and image publication.
@@ -43,20 +44,20 @@
 
 - Updated Knit to the Eliware v12 conventions and release checks.
 - Organized source code and tests into focused modules and suites.
-- Set the package entry point to `bin/knit.mjs` and kept the launcher thin.
+- Set the package entry point to `bin/knit.mjs` and kept launcher logic small.
 - Kept release publication on GHCR. Removed npm package publication.
 - Updated the deployment example to pull `main` from `/eliware/knit`.
 - Clarified that Knit checks SSH files when it opens an SSH connection.
-- Removed the tracked `repos/.gitkeep` placeholder. Local checkouts no longer need it.
+- Removed the tracked `repos/.gitkeep` placeholder. Local checkouts do not require it.
 
 ### Fixed
 
 - Kept webhook event names during target routing.
-- Improved target validation, webhook signature checks, rate limiting, and delivery retries.
-- Returned a clear client error for malformed JSON webhook requests.
+- Improved target checks, webhook signatures, request limits, and request handling.
+- Returned a direct client error for malformed JSON webhook requests.
 - Encoded repository path components in GitHub Contents requests.
 - Escaped repository-controlled Markdown and mentions in Discord event embeds.
-- Rejected stale presence updates during later or anonymous work.
+- Rejected stale status updates during later or anonymous work.
 
 ### Security
 
