@@ -26,3 +26,27 @@ test("redacts credential text from command output before returning it", async ()
   expect(result.output).not.toContain("sample-secret");
   expect(result.output).not.toContain("sample-token");
 });
+
+test("returns formatted output and records an SSH execution failure", async () => {
+  const sshExec = jest
+    .fn()
+    .mockRejectedValue(
+      Object.assign(new Error("connection failed"), { stderr: "offline", code: 2 }),
+    );
+  const log = { error: jest.fn() };
+  const result = await runDeployments({
+    deployments: [deployment()],
+    targets: { dev: target },
+    body,
+    event: "push",
+    sshExec,
+    stopOnError: true,
+    log,
+  });
+
+  expect(result).toEqual({ output: expect.stringContaining("Exit Code: 2"), failed: true });
+  expect(log.error).toHaveBeenCalledWith(
+    "[Repo] Deployment failed",
+    expect.objectContaining({ stage: "ssh_execution", error: "connection failed" }),
+  );
+});

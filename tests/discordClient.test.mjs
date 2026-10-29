@@ -23,19 +23,16 @@ test("starts and registers the Discord client with minimal intents", async () =>
   expect(client.shutdown).toHaveBeenCalled();
 });
 
-test("leaves Discord disabled when credentials are absent", async () => {
-  const log = { info: jest.fn(), warn: jest.fn() };
-  await expect(startDiscordClient({ token: "", clientId: "", log })).resolves.toBeNull();
-  expect(log.warn).toHaveBeenCalled();
-});
-
-test("uses safe defaults when started without options", async () => {
+test("leaves Discord disabled when credentials are empty or absent", async () => {
   const previousToken = process.env.DISCORD_TOKEN;
   const previousClientId = process.env.DISCORD_CLIENT_ID;
   delete process.env.DISCORD_TOKEN;
   delete process.env.DISCORD_CLIENT_ID;
+  const log = { info: jest.fn(), warn: jest.fn() };
   try {
+    await expect(startDiscordClient({ token: "", clientId: "", log })).resolves.toBeNull();
     await expect(startDiscordClient()).resolves.toBeNull();
+    expect(log.warn).toHaveBeenCalledTimes(1);
   } finally {
     if (previousToken === undefined) delete process.env.DISCORD_TOKEN;
     else process.env.DISCORD_TOKEN = previousToken;

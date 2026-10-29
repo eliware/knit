@@ -3,7 +3,8 @@ import { createPushDescription } from "./pushDescription.mjs";
 import { escapeDiscordMarkdown } from "./discordMarkdown.mjs";
 import { createPushAuthor } from "./pushAuthor.mjs";
 
-export function createPushEmbed({ post, logOutput, hasError }) {
+export function createPushEmbed({ post = {}, logOutput, hasError }) {
+  if (!post.commits) return null;
   const repository = post.repository?.full_name || "Unknown Repository";
 
   const embed = {

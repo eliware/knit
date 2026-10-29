@@ -1,7 +1,6 @@
-import { formatCommandOutput } from "../commandOutput.mjs";
 import { createWebhookEnvironment } from "../webhookEnvironment.mjs";
 import { logDeploymentCommand, logDeploymentFailure } from "./deploymentLog.mjs";
-import { redactText } from "@eliware/common";
+import { createDeploymentOutput } from "./deployment-output.mjs";
 
 export async function runDeployments({
   deployments,
@@ -13,7 +12,7 @@ export async function runDeployments({
   stopOnError,
   log,
 }) {
-  let output = "";
+  const output = createDeploymentOutput();
   let failed = false;
   const context = {
     repository: body?.repository?.full_name || null,
@@ -59,24 +58,14 @@ export async function runDeployments({
       });
       for (const result of results) {
         logDeploymentCommand({ log, context, deployment, result });
-        output += formatCommandOutput({
-          cmd: redactText(result.command),
-          stdout: redactText(result.result),
-          stderr: redactText(result.stderr),
-          exitCode: result.code,
-        });
+        output.appendResult(result);
         if (result.code !== 0) {
           failed = true;
           break;
         }
       }
     } catch (error) {
-      output += formatCommandOutput({
-        cmd: redactText(deployment.commands.at(-1)),
-        stdout: redactText(error.stdout),
-        stderr: redactText(error.stderr),
-        exitCode: error.code || 1,
-      });
+      output.appendError(deployment.commands.at(-1), error);
       logDeploymentFailure({
         log,
         context,
@@ -89,5 +78,5 @@ export async function runDeployments({
     }
     if (failed && stopOnError) break;
   }
-  return { output, failed };
+  return { output: output.toString(), failed };
 }

@@ -1,5 +1,4 @@
 import { log as logger } from "@eliware/common";
-export { validateTargets } from "./targetValidator.mjs";
 
 const string = (value) => typeof value === "string" && value.length > 0;
 const commands = (value) => Array.isArray(value) && value.length > 0 && value.every(string);

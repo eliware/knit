@@ -17,21 +17,13 @@ test("cross-posts versioned release tags and records the tag", async () => {
   });
 });
 
-test.each(["refs/heads/main", "refs/tags/test"])("does not cross-post %s", async (ref) => {
-  const message = { crosspost: jest.fn() };
+test.each([
+  ["refs/heads/main", { crosspost: jest.fn() }],
+  ["refs/tags/test", { crosspost: jest.fn() }],
+  ["refs/tags/v1.2.3", {}],
+])("does not cross-post %s when a prerequisite is missing", async (ref, message) => {
   const log = { info: jest.fn() };
   await crosspostReleaseAnnouncement({ message, post: { ref }, channelId: "channel", log });
-  expect(message.crosspost).not.toHaveBeenCalled();
-  expect(log.info).not.toHaveBeenCalled();
-});
-
-test("does not cross-post a message without crosspost support", async () => {
-  const log = { info: jest.fn() };
-  await crosspostReleaseAnnouncement({
-    message: {},
-    post: { ref: "refs/tags/v1.2.3" },
-    channelId: "channel",
-    log,
-  });
+  if (typeof message.crosspost === "function") expect(message.crosspost).not.toHaveBeenCalled();
   expect(log.info).not.toHaveBeenCalled();
 });

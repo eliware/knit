@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import * as yaml from "js-yaml";
-import { validateTargets } from "./configValidator.mjs";
+import { validateTargets } from "./targetValidator.mjs";
 
 const defaultPath =
   process.env.KNIT_TARGETS_PATH ||

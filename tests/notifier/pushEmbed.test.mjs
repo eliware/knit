@@ -1,5 +1,10 @@
 import { createPushEmbed } from "../../src/notifier/pushEmbed.mjs";
 
+test("returns no push embed when the event has no commits", () => {
+  expect(createPushEmbed({})).toBeNull();
+  expect(createPushEmbed({ post: { action: "opened" } })).toBeNull();
+});
+
 test("creates a push embed with file changes", () => {
   const embed = createPushEmbed({
     post: {
