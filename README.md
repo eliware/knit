@@ -25,95 +25,67 @@ GitHub webhook handler and SSH deployment automation tool with Discord notificat
 
 ## Features
 
-Knit validates GitHub signatures and target profiles. It reads each repository workflow at the event commit. It runs approved commands on verified SSH targets. It sends event and deployment results to Discord.
+Knit validates GitHub signatures and trusted targets. It runs repository commands through SSH and sends event results to Discord.
 
 ## Requirements
 
-Use Node.js 26 or later. Provide a GitHub webhook secret and a valid target inventory. Provide a Discord bot and guild settings to enable Discord notices.
+Use Node.js 26 or later and npm 12 or later. Provide a GitHub webhook secret and a target inventory. Configure Discord to enable notices.
 
 ## Setup
 
-Install dependencies with `npm ci`. Set the runtime variables in [the configuration guide](docs/knit-config-guide.md). Create the target inventory. Add a version 1 workflow to each repository. Read the [docs index](docs/README.md) for the end-user guides.
+Run `npm ci` to install packages. Set runtime values and create the target inventory as shown in the [configuration guide](docs/knit-config-guide.md). Read the [docs index](docs/README.md) for user guides.
 
 ## Usage
 
-Run `npm start` to start Knit. Set the GitHub webhook URL to `https://<host>/`.
-
-Set the webhook content type to `application/json`. Use `GET /health` to check the application status.
-
-Read the [docs index](docs/README.md) for user guides.
-
-Read [release notes](RELEASE_NOTES.md) for version changes. Read [specifications](specs/README.md) for repository rules.
+Run `npm start` to start Knit. Configure the GitHub webhook as described in the [usage guide](docs/usage.md). Read [release notes](RELEASE_NOTES.md) for version changes.
 
 ## Development
 
-Use Node.js 26 and npm.
-
-Run `npm ci` to install locked packages.
-
-Keep runtime secrets and target credentials outside Git.
+Read [AGENTS.md](AGENTS.md) and the [specifications index](specs/README.md) before you change files. Keep documentation and records in this repository.
 
 ## Testing
 
-Run `npm test` for full validation. Run `npm run lint` for lint checks. Run `npm run audit` for dependency checks. Run `npm run format` to format files. Run `npm run format:check` to check file format.
+Run `npm test` for full validation. It runs the repository checks through `eliware-test`.
 
 ## Troubleshooting
 
-Check webhook request status, signature settings, target access, and SSH host keys. Follow [the troubleshooting guide](docs/troubleshooting.md) for fault checks.
+Read the [troubleshooting guide](docs/troubleshooting.md) to check startup, webhook, target, SSH, and Discord faults.
 
 ## Security
 
-Knit checks the webhook signature before event processing. It reads workflows at the signed commit. It checks target access and SSH host keys before remote commands.
+Keep secrets, credentials, private data, and runtime state out of Git. Knit verifies webhook signatures and SSH host keys before it runs commands.
 
 ## Configuration
 
-Set `GITHUB_WEBHOOK_SECRET` as a runtime secret. Set `GITHUB_READ_TOKEN` for private repositories or higher API limits.
+Set `GITHUB_WEBHOOK_SECRET` at runtime. Set `GITHUB_READ_TOKEN` to read private repository contents. Set both `DISCORD_TOKEN` and `DISCORD_CLIENT_ID` to enable Discord notices.
 
-Set `DISCORD_TOKEN` and `DISCORD_CLIENT_ID` together to enable Discord. Set `KNIT_CONFIG_PATH` or `KNIT_TARGETS_PATH` to select the target inventory.
+Set `KNIT_CONFIG_PATH` or `KNIT_TARGETS_PATH` to select the target inventory. Set `PORT` to change the default port, `3456`.
 
-Set `PORT` to use a different TCP endpoint. The default endpoint is `3456`.
-
-Read [the configuration guide](docs/knit-config-guide.md) for fields and examples.
+Read the [configuration guide](docs/knit-config-guide.md) for all settings and examples.
 
 ## Operations
 
-Knit validates targets before it opens external connections. It gets `.knit/deploy.yaml` and `package.json` at the webhook commit.
+Knit validates targets before it connects. For a branch push, it reads `.knit/deploy.yaml` at the webhook commit and runs the configured commands. It returns HTTP 200 after it verifies and queues a valid request.
 
-It runs deployment commands in order. A nonzero command result marks the run as failed.
+The GHCR image runs Knit. The publish workflow runs on version tags and builds `linux/amd64`. GHCR package settings define image visibility and pull access. The publish job uses `GITHUB_TOKEN` with `packages: write`. This permission does not set pull access.
 
-The GHCR image contains Knit. Set image access in GHCR package settings.
+GitOps deploys the published image by immutable version tag and recorded SHA-256 digest. Image publication does not deploy Knit.
 
-GitOps deploys an immutable version tag and its recorded SHA-256 digest.
-
-Read [usage](docs/usage.md) for startup, health checks, and shutdown.
+Read the [usage guide](docs/usage.md) for startup, webhook behavior, health checks, and shutdown.
 
 ## Commands
 
-The `/help` command gives a short application summary. Knit requests only the Discord `Guilds` intent.
+The `/help` command replies with a localized summary of Knit. Knit handles signed GitHub events and deployment notices.
 
 ## Events
 
-Knit handles repository `push` events. It sends special Discord notices for `release`, `workflow_run`, `pull_request`, `issues`, `deployment`, and `deployment_status` events.
-It sends a general notice for other repository events. It ignores events without a repository name.
+The `clientReady` event logs that the Discord client started. The `interactionCreate` event routes chat input commands and ignores other interaction types.
 
-For each event, Knit uses the repository name after the owner slash for the announcement channel name.
-
-Knit represents punctuation with `_xHEX_`. This encoding keeps names distinct. Knit uses the full repository name without a hash.
-
-Names above 100 characters fail. Knit checks for a matching announcement channel.
-
-It creates an announcement channel if no match exists. It also creates one when a different channel type has that name.
-
-Knit sets access from repository visibility and updates the topic from package metadata before it posts.
-
-Long descriptions do not remove topic keywords.
-
-Knit returns HTTP 200 after it queues a valid signed webhook. Knit does not wait for event processing to complete.
+For GitHub push events, Knit runs configured branch deployments and sends a result notice. Matching tag pushes send a notice without running commands. Knit also sends specialized notices for release, workflow, pull request, issue, and deployment events when GitHub sends them.
 
 ## Intents and permissions
 
-Enable the `Guilds` intent. Grant the bot the `Administrator` permission. The bot can access all channels.
-Do not add the bot to channel allowlists. Knit does not request message, member, `GuildPresences`, reaction, typing, or scheduled event intents.
+Knit uses only the `Guilds` intent. Grant the bot the `Administrator` permission so it can access all channels. Do not add the bot to channel allowlists.
 
 ## Support
 
