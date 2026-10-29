@@ -20,16 +20,19 @@ test("uses sender or owner avatars and fallback repository data", () => {
     sender: { avatar_url: "sender.png" },
   });
   expect(sender.author).toEqual({ name: "unknown", icon_url: "sender.png" });
-  expect(sender.url).toContain("v1%20beta");
+  expect(sender.url).toBe("");
   const owner = createReleaseEmbed({
     ref: "refs/tags/v1",
     repository: { full_name: "o/r", owner: { avatar_url: "owner.png" } },
   });
   expect(owner.author.icon_url).toBe("owner.png");
-  const fallback = createReleaseEmbed({ ref: "refs/tags/v1", repository: {} });
+  const fallback = createReleaseEmbed({
+    ref: "refs/tags/v1",
+    repository: { html_url: "https://github.com/owner/repository" },
+  });
   expect(fallback).toMatchObject({
     title: "Unknown Repository v1 has been released! 🎉",
-    url: "https://github.com/Unknown Repository/releases/tag/v1",
+    url: "https://github.com/owner/repository",
     author: { name: "unknown" },
   });
   expect(fallback.author).not.toHaveProperty("icon_url");

@@ -1,4 +1,5 @@
 const IDLE_MS = 10 * 60 * 1_000;
+import { log as logger } from "@eliware/common";
 import { createPresenceDeliveryCorrelation } from "./presence/delivery-correlation.mjs";
 
 export function createPresenceLifecycle({
@@ -7,6 +8,7 @@ export function createPresenceLifecycle({
   busyPresence,
   setTimeoutFn,
   clearTimeoutFn,
+  log = logger,
 }) {
   let idleTimer;
   let busy = 0;
@@ -15,7 +17,13 @@ export function createPresenceLifecycle({
   function scheduleIdle() {
     clearTimeoutFn(idleTimer);
     idleTimer = setTimeoutFn(() => {
-      if (!busy) void send(versionPresence());
+      if (busy) return;
+      return Promise.resolve()
+        .then(() => send(versionPresence()))
+        .catch((error) => {
+          log.warn?.("[Discord] Failed to restore idle status", error);
+          return false;
+        });
     }, IDLE_MS);
     idleTimer?.unref?.();
   }

@@ -27,6 +27,7 @@ export function createPresenceManager({
     busyPresence,
     setTimeoutFn,
     clearTimeoutFn,
+    log,
   });
 }
 

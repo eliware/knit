@@ -1,9 +1,9 @@
 import { escapeDiscordMarkdown } from "./discordMarkdown.mjs";
 
 export function createReleaseEmbed(post) {
-  const repository = post.repository?.full_name || "Unknown Repository";
+  const repository = post.repository?.full_name;
   const tag = post.ref.replace("refs/tags/", "");
-  const name = escapeDiscordMarkdown(repository.split("/").pop());
+  const name = escapeDiscordMarkdown(repository?.split("/").pop() || "Unknown Repository");
   const url =
     repository && tag
       ? `https://github.com/${repository}/releases/tag/${encodeURIComponent(tag)}`

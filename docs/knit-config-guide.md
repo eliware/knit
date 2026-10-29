@@ -58,7 +58,7 @@ Use a trusted host CA and known-hosts file. Configure the target to accept the u
 
 Set `allowedCwdRoot` to the smallest safe root.
 
-Knit checks target fields before it opens network connections. A missing inventory, invalid YAML, missing guild ID, or incomplete target stops startup. Knit reads SSH files when it opens an SSH connection. Correct each path and start Knit again.
+Knit checks target fields and verifies that SSH files are readable regular files before it opens network connections. A missing inventory, invalid YAML, missing guild ID, incomplete target, or unusable SSH path stops startup. Correct each path and start Knit again.
 
 ## Repository workflow
 

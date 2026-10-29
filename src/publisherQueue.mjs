@@ -39,7 +39,7 @@ export function completePublisherDelivery(deliveryId) {
     processedDeliveries[processedHead] = undefined;
     processedHead += 1;
   }
-  if (processedHead >= 256 && processedHead * 2 >= processedDeliveries.length) {
+  if (processedHead >= 256) {
     processedDeliveries.splice(0, processedHead);
     processedHead = 0;
   }

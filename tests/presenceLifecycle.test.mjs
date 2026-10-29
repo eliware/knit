@@ -46,6 +46,34 @@ test("schedules idle state and refuses updates while idle", async () => {
   expect(clearTimeoutFn).toHaveBeenCalled();
 });
 
+test("handles a rejected idle status update", async () => {
+  let timer;
+  const send = jest
+    .fn()
+    .mockResolvedValueOnce(true)
+    .mockRejectedValueOnce(new Error("clock failed"));
+  const log = { warn: jest.fn() };
+  const lifecycle = createPresenceLifecycle({
+    send,
+    versionPresence: () => ({ status: "idle" }),
+    busyPresence: (name) => ({ name }),
+    setTimeoutFn: (callback) => {
+      timer = callback;
+      return {};
+    },
+    clearTimeoutFn: jest.fn(),
+    log,
+  });
+  await lifecycle.begin("work");
+  lifecycle.end();
+  await timer();
+  expect(send).toHaveBeenLastCalledWith({ status: "idle" });
+  expect(log.warn).toHaveBeenCalledWith(
+    "[Discord] Failed to restore idle status",
+    expect.any(Error),
+  );
+});
+
 test("does not restore idle state after work starts again", async () => {
   let idleTimer;
   const { lifecycle, send } = makeLifecycle({
