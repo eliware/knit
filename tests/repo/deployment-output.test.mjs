@@ -9,7 +9,7 @@ test("formats and redacts output from successful and failed commands", () => {
     code: 0,
   });
   output.appendError("deploy --token=sample-secret", {
-    stdout: "",
+    stdout: "connection diagnostic sample-secret",
     stderr: "Authorization: Bearer sample-token",
     code: 2,
   });
@@ -20,4 +20,5 @@ test("formats and redacts output from successful and failed commands", () => {
   expect(output.toString()).toContain("Exit Code: 1");
   expect(output.toString()).not.toContain("sample-secret");
   expect(output.toString()).not.toContain("sample-token");
+  expect(output.toString()).not.toContain("connection diagnostic");
 });

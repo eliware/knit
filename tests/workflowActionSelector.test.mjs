@@ -18,6 +18,16 @@ test("ignores tags when release actions are not configured", () => {
   ).toBeNull();
 });
 
+test("matches version tags with the v shorthand", () => {
+  const release = { deployments: [{ target: "dev", cwd: "/opt/release", commands: ["release"] }] };
+  expect(
+    selectWorkflowAction({
+      config: { on: { tags: { v: release } } },
+      post: { ref: "refs/tags/v1.2.3" },
+    }),
+  ).toBe(release);
+});
+
 test("uses the push action and requires workflow configuration", () => {
   expect(selectWorkflowAction({ config: { on: { push: [] } } })).toEqual([]);
   expect(() => selectWorkflowAction()).toThrow();

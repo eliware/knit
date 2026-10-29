@@ -83,12 +83,13 @@ Knit does not retry a failed webhook request. Knit ignores a repeated webhook ID
 
 Push logs show the repository, ref, GitHub webhook ID, stage, and elapsed time. Command logs show the command, exit code, and elapsed time.
 Knit redacts detected credentials in command logs and Discord notices.
+Knit does not include raw SSH error output in Discord notices.
 
 Set `stopOnError: false` on the push action to continue to later deployments after a failure. The default value stops later deployments after the first failure.
 
 Set `timeoutMs` to a value from `1` to `300000` milliseconds. The timeout applies to each remote command. Use a script with its own overall deadline for longer work.
 
-Knit accepts `tags` entries with the keys `v` or `v*`. A matching tag push sends a Discord notice. Knit does not run tag commands. Each tag entry must contain a valid `deployments` list because the workflow format requires one.
+Knit accepts `tags` entries with the keys `v` or `v*`. Both keys match tags that start with `v`. A matching tag push sends a Discord notice. Knit does not run tag commands. Each tag entry must contain a valid `deployments` list because the workflow format requires one.
 
 For example, this workflow runs commands for branch pushes and sends a notice for matching version tags:
 

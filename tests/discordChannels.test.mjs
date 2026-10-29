@@ -77,11 +77,11 @@ test("uses the repository name without its owner or a hash suffix", async () => 
   expect(created[0].options.name).not.toMatch(/-[a-f0-9]{12}$/u);
 });
 
-test("synchronizes a channel without overwrite support", async () => {
+test("rejects a channel without overwrite support", async () => {
   const { client } = clientWith([{ id: "channel", name: channelName("eliware/plain"), type: 5 }]);
   await expect(
     createChannelResolver({ client, guildId: "guild" })({ repository: "eliware/plain" }),
-  ).resolves.toBe("channel");
+  ).rejects.toThrow("Repository channel permissions cannot be synchronized");
 });
 
 test("requires a valid repository and Discord client", () => {
@@ -91,7 +91,13 @@ test("requires a valid repository and Discord client", () => {
   return expect(resolve({ repository: "invalid" })).rejects.toThrow();
 });
 test("uses default channel resolver options", async () => {
-  const { client } = clientWith([{ name: channelName("eliware/app"), type: 5 }]);
+  const { client } = clientWith([
+    {
+      name: channelName("eliware/app"),
+      type: 5,
+      permissionOverwrites: { edit: jest.fn() },
+    },
+  ]);
   const resolve = createChannelResolver({ client, guildId: "guild" });
   await expect(resolve({ repository: "eliware/app" })).resolves.toBeUndefined();
   await expect(resolve()).rejects.toThrow("Repository is required");

@@ -3,7 +3,9 @@ export function selectWorkflowAction({ config, post = {} } = {}) {
     const tag = post.ref.slice("refs/tags/".length);
     const pattern = Object.keys(config.on.tags || {}).find(
       (candidate) =>
-        candidate === tag || (candidate.endsWith("*") && tag.startsWith(candidate.slice(0, -1))),
+        candidate === tag ||
+        (candidate === "v" && tag.startsWith("v")) ||
+        (candidate.endsWith("*") && tag.startsWith(candidate.slice(0, -1))),
     );
     return pattern ? config.on.tags[pattern] : null;
   }

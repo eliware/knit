@@ -15,8 +15,6 @@ export function createDeploymentOutput() {
     appendError(command, error) {
       output += formatCommandOutput({
         cmd: redactText(command),
-        stdout: redactText(error.stdout),
-        stderr: redactText(error.stderr),
         exitCode: error.code || 1,
       });
     },
