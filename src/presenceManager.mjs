@@ -1,3 +1,4 @@
+import { log as logger } from "@eliware/common";
 import { createPresenceRateLimiter } from "./presenceRateLimiter.mjs";
 import { createPresenceLifecycle } from "./presenceLifecycle.mjs";
 
@@ -7,7 +8,7 @@ export function createPresenceManager({
   now = () => Date.now(),
   setTimeoutFn = setTimeout,
   clearTimeoutFn = clearTimeout,
-  log = console,
+  log = logger,
 } = {}) {
   const versionPresence = () => ({
     activities: [{ name: `🧶 knit v${version}`, type: 4 }],

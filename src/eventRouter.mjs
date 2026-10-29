@@ -1,3 +1,4 @@
+import { log as logger } from "@eliware/common";
 import * as Repo from "./repositoryLoader.mjs";
 import { defaultTargetLoader } from "./targetLoader.mjs";
 
@@ -10,7 +11,7 @@ export async function resolveEventTarget({
   event = "push",
   RepoMod = Repo,
   targetLoader = defaultTargetLoader,
-  log = console,
+  log = logger,
 } = {}) {
   const name = repositoryName(post);
   if (name) {

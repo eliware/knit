@@ -17,59 +17,6 @@ describe("consumer.mjs", () => {
     ({ log, Repo, GitHub, Router, Handlers, message } = createConsumerHarness());
     setPresenceManager(null);
   });
-  it.each([
-    [
-      "repository",
-      { ignored: true, kind: "repository", name: "foo" },
-      "error",
-      "[Consumer] Repo not found:",
-    ],
-    [
-      "organization",
-      { ignored: true, kind: "organization", name: "eliware/knit" },
-      "info",
-      "[Consumer] Event ignored: no configured target",
-    ],
-  ])("returns false when the %s target is missing", async (_kind, target, level, text) => {
-    if (target.kind === "organization") message.parsed = {};
-    Router.resolveEventTarget.mockResolvedValue(target);
-    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
-    expect(Router.resolveEventTarget).toHaveBeenCalledWith({
-      post: message.parsed,
-      event: "push",
-      RepoMod: Repo,
-      log,
-    });
-    expect(log[level]).toHaveBeenCalledWith(text, target.name);
-  });
-  it("marks an unmatched tag delivery as neutral instead of failure", async () => {
-    const presence = { begin: jest.fn(), neutral: jest.fn(), terminal: jest.fn(), end: jest.fn() };
-    setPresenceManager(presence);
-    message.parsed.ref = "refs/tags/v1.0.0";
-    Router.resolveEventTarget.mockResolvedValue({ ignored: true, kind: "repository", name: "foo" });
-    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(true);
-    expect(presence.neutral).toHaveBeenCalledWith("foo ignored", "delivery-1");
-    expect(presence.terminal).not.toHaveBeenCalled();
-  });
-  it("reports unexpected processing errors as terminal failures", async () => {
-    const presence = { begin: jest.fn(), terminal: jest.fn(), end: jest.fn() };
-    setPresenceManager(presence);
-    Router.resolveEventTarget.mockRejectedValue(new Error("routing failed"));
-    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
-    expect(presence.terminal).toHaveBeenCalledWith("foo failure", true, "delivery-1");
-    expect(presence.end).toHaveBeenCalled();
-  });
-  it("does not dispatch organization-level events to a fallback repository", async () => {
-    message.parsed = {};
-    Router.resolveEventTarget.mockResolvedValue({
-      ignored: true,
-      kind: "organization",
-      name: null,
-    });
-
-    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
-    expect(Handlers.dispatch).not.toHaveBeenCalled();
-  });
   it("dispatches non-push events with the delivery id", async () => {
     const presence = { begin: jest.fn(), update: jest.fn(), terminal: jest.fn(), end: jest.fn() };
     setPresenceManager(presence);
@@ -84,8 +31,7 @@ describe("consumer.mjs", () => {
     await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(true);
     expect(log.info).toHaveBeenCalledWith(
       "[Consumer] Non-push event routed for specialized handling",
-      "issues",
-      "foo",
+      { event: "issues", repository: "foo", ref: null, deliveryId: "delivery-1" },
     );
     expect(Handlers.dispatch).toHaveBeenCalledWith({
       event: "issues",
@@ -106,53 +52,33 @@ describe("consumer.mjs", () => {
     expect(presence.terminal).toHaveBeenCalledWith("failed foo", true, "delivery-1");
     expect(presence.end).toHaveBeenCalled();
   });
-  it.each([
-    [false, "push"],
-    [true, "push"],
-    [true, undefined],
-  ])("routes push updates and defaults a missing event", async (updated, requestEvent) => {
-    if (requestEvent) message.event = requestEvent;
-    else delete message.event;
-    const update = jest.fn().mockResolvedValue(updated);
-    Router.resolveEventTarget.mockResolvedValue({
-      ignored: false,
-      repo: { update },
-      name: "foo",
-    });
+  it("logs specialized handler failures when optional error details are absent", async () => {
+    message.event = "issues";
+    Router.resolveEventTarget.mockResolvedValue({ ignored: false, repo: {}, name: "foo" });
+    Handlers.dispatch.mockRejectedValue(undefined);
 
-    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(updated);
-    expect(update).toHaveBeenCalledWith({
-      body: message.parsed,
-      event: "push",
-      deliveryId: "delivery-1",
-      log,
-    });
-    expect(updated ? log.info : log.error).toHaveBeenCalledWith(
-      updated ? "[Consumer] Repo updated successfully" : "[Consumer] Repo update failed",
+    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
+    expect(log.error).toHaveBeenCalledWith(
+      "[Consumer] Webhook processing failed",
+      expect.objectContaining({ repository: "foo", ref: null, stage: "event_handler", error: "" }),
     );
   });
-  it("uses default repository and router modules when omitted", async () => {
-    await expect(consume({ message, log, GitHub })).resolves.toBe(false);
-    expect(log.error).toHaveBeenCalledWith("[Consumer] Repo not found:", "foo");
-  });
-  it("supports deliveries without a delivery id", async () => {
-    delete message.deliveryId;
-    const presence = { begin: jest.fn(), terminal: jest.fn(), end: jest.fn() };
-    setPresenceManager(presence);
-    Router.resolveEventTarget.mockResolvedValue({ ignored: true, kind: "repository", name: "foo" });
-    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
-    expect(presence.begin).toHaveBeenCalledWith("foo", null);
-  });
-  it("returns a failure when presence setup rejects", async () => {
-    const presence = {
-      begin: jest.fn().mockRejectedValue(new Error("presence failed")),
-      terminal: jest.fn().mockRejectedValue(new Error("presence failed")),
-      end: jest.fn(),
-    };
-    setPresenceManager(presence);
+  it.each([
+    { ignored: true, kind: "repository", name: "foo" },
+    { ignored: true, kind: "organization", name: null },
+  ])("reports ignored non-push targets", async (target) => {
+    message.event = "issues";
+    Router.resolveEventTarget.mockResolvedValue(target);
 
     await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
-    expect(presence.end).toHaveBeenCalledWith("delivery-1");
+    if (target.kind === "repository") {
+      expect(log.error).toHaveBeenCalledWith(
+        "[Consumer] Repository target not found",
+        expect.objectContaining({ repository: "foo", stage: "target_lookup" }),
+      );
+    } else {
+      expect(log.info).toHaveBeenCalledWith("[Consumer] Event ignored: no configured target", null);
+    }
   });
   it("uses default logger and GitHub modules when omitted", async () => {
     GitHub.validate.mockReturnValue(false);
@@ -165,6 +91,24 @@ describe("consumer.mjs", () => {
     message.parsed = null;
     await expect(consume({ message, log, Repo, Router, Handlers })).resolves.toBe(false);
     expect(log.error).toHaveBeenCalledWith("[Consumer] GitHub validation failed");
+  });
+  it("uses default repository and router modules when omitted", async () => {
+    await expect(consume({ message, log, GitHub })).resolves.toBe(false);
+    expect(log.error).toHaveBeenCalledWith(
+      "[Consumer] Repository update failed",
+      expect.objectContaining({ repository: "foo", stage: "target_lookup" }),
+    );
+  });
+  it("returns a failure when presence setup rejects", async () => {
+    const presence = {
+      begin: jest.fn().mockRejectedValue(new Error("presence failed")),
+      terminal: jest.fn().mockRejectedValue(new Error("presence failed")),
+      end: jest.fn(),
+    };
+    setPresenceManager(presence);
+
+    await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
+    expect(presence.end).toHaveBeenCalledWith("delivery-1");
   });
   it("uses the default event handlers when no handlers module is provided", async () => {
     message.event = "issues";

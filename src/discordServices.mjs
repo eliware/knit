@@ -1,3 +1,4 @@
+import { log as logger } from "@eliware/common";
 import * as Notifier from "./notifier/state.mjs";
 import { createChannelResolver } from "./discordChannels.mjs";
 import { defaultTargetLoader } from "./targetLoader.mjs";
@@ -8,7 +9,7 @@ export function registerDiscordServices({
   client,
   guildId,
   targetLoader = defaultTargetLoader,
-  log = console,
+  log = logger,
   NotifierMod = Notifier,
   createChannelResolverFn = createChannelResolver,
   createPresenceManagerFn = createPresenceManager,

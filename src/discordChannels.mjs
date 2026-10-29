@@ -1,8 +1,9 @@
+import { log as logger } from "@eliware/common";
 import { channelName } from "./discordChannelName.mjs";
 import { syncChannelPermissions } from "./discordChannelPermissions.mjs";
 import { provisionAnnouncementChannel } from "./discordChannelProvisioning.mjs";
 import { syncChannelTopic } from "./discordChannelTopic.mjs";
-export function createChannelResolver({ client, guildId, log = console } = {}) {
+export function createChannelResolver({ client, guildId, log = logger } = {}) {
   if (!client || !guildId) throw new Error("Discord client and guild ID are required");
   return async function resolveChannel({
     repository,

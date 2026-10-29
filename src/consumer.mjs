@@ -1,4 +1,4 @@
-import { log as logger } from "@eliware/common";
+import { log as logger, redactText } from "@eliware/common";
 import * as Repo from "./repositoryLoader.mjs";
 import * as GitHub from "./gitHub.mjs";
 import * as EventRouter from "./eventRouter.mjs";
@@ -7,6 +7,8 @@ import { getPresenceManager } from "./presenceManager.mjs";
 import { validateConsumerMessage } from "./consumerValidation.mjs";
 import { resolveConsumerTarget } from "./consumerRouting.mjs";
 import { finishConsumerOutcome } from "./consumerOutcomePresence.mjs";
+import { processRepositoryPush } from "./consumerPush.mjs";
+import { processSpecializedEvent } from "./consumerSpecializedEvent.mjs";
 
 export async function consume({
   message,
@@ -21,6 +23,7 @@ export async function consume({
   const presence = getPresenceManager();
   const repository = post?.repository?.full_name || "webhook";
   const deliveryId = message.deliveryId ?? null;
+  let stage = "validation";
   try {
     await presence?.begin(repository, deliveryId);
     if (!validateConsumerMessage({ GitHubMod, post, event, log })) {
@@ -32,9 +35,32 @@ export async function consume({
       });
       return false;
     }
+    if (event === "push") {
+      const outcome = await processRepositoryPush({
+        post,
+        deliveryId,
+        log,
+        RepoMod,
+        RouterMod,
+      });
+      return await finishConsumerOutcome({
+        presence,
+        outcome,
+        repository,
+        deliveryId,
+        post,
+      });
+    }
+    stage = "target_lookup";
     const target = await resolveConsumerTarget({ RouterMod, RepoMod, post, event, log });
     if (target.ignored) {
-      if (target.kind === "repository") log.error("[Consumer] Repo not found:", target.name);
+      if (target.kind === "repository")
+        log.error("[Consumer] Repository target not found", {
+          repository,
+          ref: post?.ref || null,
+          deliveryId,
+          stage,
+        });
       else log.info("[Consumer] Event ignored: no configured target", target.name);
       const isTag = await finishConsumerOutcome({
         presence,
@@ -45,43 +71,25 @@ export async function consume({
       });
       return isTag;
     }
-    if (event !== "push") {
-      log.info("[Consumer] Non-push event routed for specialized handling", event, target.name);
-      const result = await HandlersMod.dispatch({
-        event,
-        post,
-        target,
-        deliveryId: message.deliveryId,
-        log,
-      });
-      await finishConsumerOutcome({
-        presence,
-        outcome: { type: "specialized", result },
-        repository,
-        deliveryId,
-      });
-      return result;
-    }
-    const updated = await target.repo.update({
-      body: post,
+    stage = "event_handler";
+    return await processSpecializedEvent({
       event,
-      deliveryId: message.deliveryId,
-      log,
-    });
-    await finishConsumerOutcome({
-      presence,
-      outcome: { type: "push", result: updated },
-      repository,
+      post,
+      target,
       deliveryId,
+      repository,
+      log,
+      HandlersMod,
+      presence,
     });
-    if (!updated) {
-      log.error("[Consumer] Repo update failed");
-      return false;
-    }
-    log.info("[Consumer] Repo updated successfully");
-    return true;
   } catch (error) {
-    log.error("[Consumer] Webhook processing failed", error);
+    log.error("[Consumer] Webhook processing failed", {
+      repository,
+      ref: post?.ref || null,
+      deliveryId,
+      stage,
+      error: redactText(error?.message || error, { maxOutputLength: 300 }),
+    });
     await finishConsumerOutcome({
       presence,
       outcome: { type: "processing-error" },

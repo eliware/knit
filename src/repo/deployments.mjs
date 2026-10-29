@@ -1,5 +1,7 @@
 import { formatCommandOutput } from "../commandOutput.mjs";
 import { createWebhookEnvironment } from "../webhookEnvironment.mjs";
+import { logDeploymentCommand, logDeploymentFailure } from "./deploymentLog.mjs";
+import { redactText } from "@eliware/common";
 
 export async function runDeployments({
   deployments,
@@ -13,12 +15,35 @@ export async function runDeployments({
 }) {
   let output = "";
   let failed = false;
+  const context = {
+    repository: body?.repository?.full_name || null,
+    ref: body?.ref || null,
+    deliveryId: deliveryId ?? null,
+  };
   for (const deployment of deployments) {
     const target = targets[deployment.target];
-    if (!target) throw new Error(`Unknown deployment target: ${deployment.target}`);
+    if (!target) {
+      logDeploymentFailure({
+        log,
+        context,
+        target: deployment.target,
+        stage: "target_validation",
+        durationMs: 0,
+      });
+      throw new Error(`Unknown deployment target: ${deployment.target}`);
+    }
     const root = target.allowedCwdRoot?.replace(/\/+$/, "") || "";
-    if (root && !(deployment.cwd === root || deployment.cwd.startsWith(`${root}/`)))
+    if (root && !(deployment.cwd === root || deployment.cwd.startsWith(`${root}/`))) {
+      logDeploymentFailure({
+        log,
+        context,
+        target: deployment.target,
+        stage: "target_validation",
+        durationMs: 0,
+      });
       throw new Error(`Deployment cwd is outside target root: ${deployment.target}`);
+    }
+    const startedAt = Date.now();
     try {
       const environment = createWebhookEnvironment({ body, event, deliveryId });
       const results = await sshExec({
@@ -33,26 +58,33 @@ export async function runDeployments({
         commandTimeout: deployment.timeoutMs,
       });
       for (const result of results) {
+        logDeploymentCommand({ log, context, deployment, result });
         output += formatCommandOutput({
-          cmd: result.command,
-          stdout: result.result,
-          stderr: "",
+          cmd: redactText(result.command),
+          stdout: redactText(result.result),
+          stderr: redactText(result.stderr),
           exitCode: result.code,
         });
         if (result.code !== 0) {
-          log.error(`[Repo] SSH command failed: ${result.command}`, result);
           failed = true;
           break;
         }
       }
     } catch (error) {
       output += formatCommandOutput({
-        cmd: deployment.commands.at(-1),
-        stdout: error.stdout,
-        stderr: error.stderr,
+        cmd: redactText(deployment.commands.at(-1)),
+        stdout: redactText(error.stdout),
+        stderr: redactText(error.stderr),
         exitCode: error.code || 1,
       });
-      log.error("[Repo] SSH connection failed", error);
+      logDeploymentFailure({
+        log,
+        context,
+        target: deployment.target,
+        stage: "ssh_execution",
+        durationMs: Date.now() - startedAt,
+        error,
+      });
       failed = true;
     }
     if (failed && stopOnError) break;

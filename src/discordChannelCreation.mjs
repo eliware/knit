@@ -1,3 +1,4 @@
+import { log as logger } from "@eliware/common";
 import { createChannelPermissionOverwrites } from "./discordChannelPermissionRules.mjs";
 import { GUILD_ANNOUNCEMENT } from "./discordChannelTypes.mjs";
 
@@ -6,7 +7,7 @@ export async function createAnnouncementChannel({
   name,
   privateRepository,
   repository,
-  log = console,
+  log = logger,
 }) {
   const channel = await guild.channels.create({
     name,

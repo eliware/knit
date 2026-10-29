@@ -1,4 +1,5 @@
 import { jest } from "@jest/globals";
+import { log as logger } from "@eliware/common";
 import { repositoryName, resolveEventTarget } from "../src/eventRouter.mjs";
 import { get } from "../src/repositoryLoader.mjs";
 
@@ -25,7 +26,7 @@ describe("eventRouter", () => {
       body: post,
       event: "push",
       targetLoader,
-      log: console,
+      log: logger,
     });
   });
 

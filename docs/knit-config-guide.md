@@ -85,6 +85,9 @@ Knit runs deployments and commands in order. A nonzero command result fails that
 Knit stops after the first failed deployment by default. Set `stopOnError: false` to run later deployments after a failure.
 Knit sends each webhook request to the consumer once. A failed request ends without an automatic retry.
 
+Push logs show the repository, ref, GitHub request ID, stage, and elapsed time. Command logs show the command, exit code, and elapsed time.
+Knit redacts detected credentials in command logs and Discord notices.
+
 Each push or tag action must list one or more deployments.
 
 Set `timeoutMs` to a value from `1` to `300000` milliseconds. The timeout applies to each remote command. Use a script with its own overall deadline for longer work.

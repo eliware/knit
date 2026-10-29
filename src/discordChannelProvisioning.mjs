@@ -1,3 +1,4 @@
+import { log as logger } from "@eliware/common";
 import { createAnnouncementChannel } from "./discordChannelCreation.mjs";
 import { GUILD_ANNOUNCEMENT } from "./discordChannelTypes.mjs";
 
@@ -6,7 +7,7 @@ export async function provisionAnnouncementChannel({
   name,
   privateRepository,
   repository,
-  log = console,
+  log = logger,
 }) {
   const channels = await guild.channels.fetch();
   const existing = channels.find(
