@@ -92,7 +92,7 @@ Configure the SSH server to accept these values with `AcceptEnv KNIT_*`. Knit se
 
 Use `/help` to read the short application summary. Knit uses the `Guilds` intent.
 
-Knit uses the repository name after the owner slash as the channel name. Knit encodes punctuation as `_xHEX_`. Knit does not add a hash suffix. Knit reuses a matching announcement channel. If no matching announcement channel exists, Knit creates one with that repository name. Knit sets channel permissions from repository visibility and sets the topic from package metadata before it posts.
+Knit uses the repository name after the owner slash as the channel name. It lowercases the name and keeps only letters, numbers, and hyphens. It drops unsupported characters without replacement text and adds no hash suffix. Repositories with the same normalized name share a channel. Knit checks for a matching announcement channel for each event and creates one when no match exists. Knit sets channel permissions from repository visibility and sets the topic from package metadata before it posts.
 
 The bot needs the `Administrator` permission. This permission lets the bot access all channels. Do not add the bot to channel allowlists.
 

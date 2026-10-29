@@ -127,7 +127,7 @@ Enable the `Guilds` intent only.
 
 Knit uses the required `guildId` from the target inventory. It does not read message content or member lists.
 
-Knit uses the repository name after the owner slash as the channel name. It encodes punctuation as `_xHEX_` and does not add a hash suffix. Knit reuses a matching announcement channel or creates one when no match exists. It sets permissions from repository visibility and sets the topic from package metadata before it posts. A repository name that exceeds Discord's channel name limit cannot be used.
+Knit uses the lowercased repository name after the owner slash as the channel name. It keeps letters, numbers, and hyphens, and drops unsupported characters without replacement text. Repositories with the same normalized name share a channel. Knit reuses a matching announcement channel or creates one when no match exists. It sets permissions from repository visibility and sets the topic from package metadata before it posts. A normalized repository name longer than 100 characters cannot be used.
 
 ## Image and deployment boundary
 

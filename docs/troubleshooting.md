@@ -32,7 +32,7 @@ Confirm that the event has `repository.full_name`. Confirm that the repository h
 
 The current GitHub webhook setup uses push events only. Knit ignores a tag push unless its tag matches a `tags` entry in `.knit/deploy.yaml`.
 
-Knit uses the repository name after the owner slash for its channel name. Use unique repository names in the organization.
+Knit uses the repository name after the owner slash for its channel name. Different repository names can share a channel when they normalize to the same name.
 
 ## Knit cannot read a repository workflow
 

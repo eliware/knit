@@ -14,8 +14,10 @@ directives:
       - Send supported event and deployment updates to Discord.
       - Use the repository name after its owner slash as the Discord announcement channel name.
       - Do not add a hash or owner name to the channel name.
-      - Keep repository names unique in the eliware organization.
-      - Encode punctuation in channel names to keep different repository names distinct.
+      - Lowercase repository names for channel names.
+      - Keep letters, numbers, and hyphens in channel names.
+      - Drop unsupported characters from channel names without replacement text.
+      - Allow repositories with the same normalized channel name to share a channel.
       - Reject channel names longer than 100 characters. Keep their full length.
       - Check the guild channel list for that name for each event.
       - Use the matching announcement channel. Create one with that name if none exists.

@@ -53,6 +53,22 @@ test("checks the guild channel list and reuses the repo channel on each event", 
   expect(existing.edit).toHaveBeenCalled();
 });
 
+test("shares a channel when repository names normalize to the same name", async () => {
+  const shared = {
+    id: "shared-channel",
+    name: channelName("eliware/a.b"),
+    type: GUILD_ANNOUNCEMENT,
+    edit: jest.fn(),
+    permissionOverwrites: { edit: jest.fn() },
+  };
+  const { client, guild, created } = clientWith([shared]);
+  const resolve = createChannelResolver({ client, guildId: "guild" });
+  await expect(resolve({ repository: "eliware/a.b" })).resolves.toBe("shared-channel");
+  await expect(resolve({ repository: "other-owner/a_b" })).resolves.toBe("shared-channel");
+  expect(guild.channels.fetch).toHaveBeenCalledTimes(2);
+  expect(created).toHaveLength(0);
+});
+
 test("creates public and private repository channels", async () => {
   const publicClient = clientWith();
   await expect(
