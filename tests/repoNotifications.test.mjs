@@ -3,7 +3,7 @@ import { isTagUpdate, notifyPush, notifyTag, notifyUpdate } from "../src/repoNot
 
 const values = {
   repo: {},
-  body: { ref: "refs/tags/v12.0.0" },
+  body: { ref: "refs/tags/v15.0.1" },
   event: "push",
   packageJson: {},
   log: {},

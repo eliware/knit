@@ -24,7 +24,7 @@ Keep the process manager or container active so Knit can receive webhook request
 Use the GHCR image after release publication:
 
 ```sh
-docker pull ghcr.io/eliware/knit:v13.0.0
+docker pull ghcr.io/eliware/knit:v15.0.1
 docker run --rm -p 3456:3456 \
   --env GITHUB_WEBHOOK_SECRET \
   --env GITHUB_READ_TOKEN \
@@ -35,7 +35,7 @@ docker run --rm -p 3456:3456 \
   --mount type=bind,src=/path/to/ssh/id_rsa,dst=/run/secrets/eliware/ssh/id_rsa,readonly \
   --mount type=bind,src=/path/to/ssh/known_hosts,dst=/run/secrets/eliware/ssh/known_hosts,readonly \
   --mount type=bind,src=/path/to/ssh/eliware_host_ca_ed25519.pub,dst=/run/secrets/eliware/ssh/eliware_host_ca_ed25519.pub,readonly \
-  ghcr.io/eliware/knit:v13.0.0
+  ghcr.io/eliware/knit:v15.0.1
 ```
 
 Replace each source path with a host file or directory. Put `targets.yaml` in `/path/to/config`.

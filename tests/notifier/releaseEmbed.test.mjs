@@ -2,12 +2,12 @@ import { createReleaseEmbed } from "../../src/notifier/releaseEmbed.mjs";
 
 test("creates a release embed with a tag link", () => {
   const embed = createReleaseEmbed({
-    ref: "refs/tags/v12.0.0",
+    ref: "refs/tags/v15.0.1",
     repository: { full_name: "eliware/knit" },
   });
 
-  expect(embed.title).toContain("knit v12.0.0");
-  expect(embed.url).toContain("releases/tag/v12.0.0");
+  expect(embed.title).toContain("knit v15.0.1");
+  expect(embed.url).toContain("releases/tag/v15.0.1");
 });
 test("uses a repository fallback when no repository name exists", () => {
   expect(createReleaseEmbed({ ref: "refs/tags/" }).url).toBe("");
