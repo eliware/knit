@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readLandingPageTemplate } from "./landing-page/template-reader.mjs";
 
 const htmlEscapes = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
 
@@ -7,6 +7,6 @@ function escapeHtml(value) {
 }
 
 export function renderLandingPage(version) {
-  const template = readFileSync(new URL("../assets/landing-page.html", import.meta.url), "utf8");
+  const template = readLandingPageTemplate();
   return template.replace("{{VERSION}}", escapeHtml(version));
 }

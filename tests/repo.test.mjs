@@ -16,7 +16,14 @@ test("executes each deployment with its trusted target commands and directory", 
     targets: { dev: target, nas: { ...target, host: "nas" } },
     sshExec,
   });
-  await expect(repo.update({ body })).resolves.toBe(true);
+  const commitSha = "a".repeat(40);
+  const pushBody = {
+    ...body,
+    after: commitSha,
+    ref: "refs/heads/main",
+    repository: { full_name: "eliware/app" },
+  };
+  await expect(repo.update({ body: pushBody, deliveryId: "delivery-1" })).resolves.toBe(true);
   expect(sshExec).toHaveBeenCalledWith(
     expect.objectContaining({
       host: "host",
@@ -26,6 +33,13 @@ test("executes each deployment with its trusted target commands and directory", 
       privateKeyPath: "/key",
       knownHostsPath: "/known",
       hostCaPath: "/ca",
+      env: {
+        KNIT_COMMIT_SHA: commitSha,
+        KNIT_REPOSITORY: "eliware/app",
+        KNIT_REF: "refs/heads/main",
+        KNIT_EVENT: "push",
+        KNIT_DELIVERY_ID: "delivery-1",
+      },
     }),
   );
   expect(sshExec).toHaveBeenNthCalledWith(
