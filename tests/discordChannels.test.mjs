@@ -1,6 +1,7 @@
 import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
 import { channelName } from "../src/discordChannelName.mjs";
+import { GUILD_ANNOUNCEMENT } from "../src/discordChannelCreation.mjs";
 import { createChannelResolver } from "../src/discordChannels.mjs";
 
 function clientWith(channels = []) {
@@ -25,6 +26,10 @@ function clientWith(channels = []) {
     created,
   };
 }
+
+test("uses Discord's announcement channel type", () => {
+  expect(GUILD_ANNOUNCEMENT).toBe(5);
+});
 
 test("checks the guild channel list and reuses the repo channel on each event", async () => {
   const existing = {

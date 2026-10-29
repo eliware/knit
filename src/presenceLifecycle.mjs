@@ -1,5 +1,5 @@
 const IDLE_MS = 10 * 60 * 1_000;
-import { createPresenceDeliveryCorrelation } from "./presenceDeliveryCorrelation.mjs";
+import { createPresenceDeliveryCorrelation } from "./presence/delivery-correlation.mjs";
 
 export function createPresenceLifecycle({
   send,

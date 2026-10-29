@@ -1,4 +1,4 @@
-import { createPresenceDeliveryCorrelation } from "../src/presenceDeliveryCorrelation.mjs";
+import { createPresenceDeliveryCorrelation } from "../../src/presence/delivery-correlation.mjs";
 
 test("matches active deliveries before and after an uncorrelated update", () => {
   const correlation = createPresenceDeliveryCorrelation();

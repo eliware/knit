@@ -1,6 +1,5 @@
 import { log as logger } from "@eliware/common";
-import { createAnnouncementChannel } from "./discordChannelCreation.mjs";
-import { GUILD_ANNOUNCEMENT } from "./discordChannelTypes.mjs";
+import { createAnnouncementChannel, GUILD_ANNOUNCEMENT } from "./discordChannelCreation.mjs";
 
 export async function provisionAnnouncementChannel({
   guild,

@@ -1,6 +1,7 @@
 import { log as logger } from "@eliware/common";
 import { createChannelPermissionOverwrites } from "./discordChannelPermissionRules.mjs";
-import { GUILD_ANNOUNCEMENT } from "./discordChannelTypes.mjs";
+
+export const GUILD_ANNOUNCEMENT = 5;
 
 export async function createAnnouncementChannel({
   guild,
