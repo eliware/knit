@@ -1,4 +1,4 @@
-import { exec as realExec } from "child_process";
+import { execFile as realExecFile } from "child_process";
 import { log as logger } from "@eliware/common";
 
 /**
@@ -8,9 +8,9 @@ import { log as logger } from "@eliware/common";
  * @param {Object} [params.log] - Logger instance to use.
  * @returns {Promise<string>} The stdout from git add.
  */
-export function add({ filePath, log = logger, exec = realExec }) {
+export function add({ filePath, log = logger, execFile = realExecFile }) {
   return new Promise((resolve, reject) => {
-    exec(`git add "${filePath}"`, (error, stdout, stderr) => {
+    execFile("git", ["add", "--", filePath], (error, stdout, stderr) => {
       if (error) {
         log.error(`git add error: ${stderr}`);
         reject(new Error(`git add error: ${stderr}`));
@@ -29,9 +29,9 @@ export function add({ filePath, log = logger, exec = realExec }) {
  * @param {Object} [params.log] - Logger instance to use.
  * @returns {Promise<string>} The stdout from git commit.
  */
-export function commit({ message, log = logger, exec = realExec }) {
+export function commit({ message, log = logger, execFile = realExecFile }) {
   return new Promise((resolve, reject) => {
-    exec(`git commit --quiet -m "${message.replace(/"/g, '\\"')}"`, (error, stdout, stderr) => {
+    execFile("git", ["commit", "--quiet", "-m", message], (error, stdout, stderr) => {
       if (error) {
         log.error(`git commit error: ${stderr}`);
         reject(new Error(`git commit error: ${stderr}`));
@@ -47,9 +47,9 @@ export function commit({ message, log = logger, exec = realExec }) {
  * Pushes committed changes to the remote repository.
  * @returns {Promise<string>} The stdout from git push.
  */
-export function push({ exec = realExec } = {}) {
+export function push({ execFile = realExecFile } = {}) {
   return new Promise((resolve, reject) => {
-    exec("git push --quiet", (error, stdout, stderr) => {
+    execFile("git", ["push", "--quiet"], (error, stdout, stderr) => {
       if (error) {
         reject(new Error(`git push error: ${stderr}`));
       } else {

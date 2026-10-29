@@ -1,3 +1,4 @@
+export const MAX_PENDING_PUBLISHER_TASKS = 1000;
 const MAX_DELIVERIES = 1000;
 const tasks = [];
 const deliveryStates = new Map();
@@ -7,6 +8,7 @@ let processedHead = 0;
 
 export function enqueuePublisherTask(task) {
   if (task.deliveryId && deliveryStates.has(task.deliveryId)) return false;
+  if (getPendingPublisherTasks() >= MAX_PENDING_PUBLISHER_TASKS) return null;
   if (task.deliveryId) deliveryStates.set(task.deliveryId, "pending");
   tasks.push(task);
   return true;

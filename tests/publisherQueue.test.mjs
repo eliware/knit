@@ -5,6 +5,7 @@ import {
   enqueuePublisherTask,
   forgetPublisherDelivery,
   getPendingPublisherTasks,
+  MAX_PENDING_PUBLISHER_TASKS,
 } from "../src/publisherQueue.mjs";
 
 afterEach(() => clearPublisherQueue());
@@ -20,14 +21,15 @@ test("queues distinct tasks and rejects duplicate delivery IDs", () => {
 });
 
 test("keeps delivery IDs while their tasks remain queued", () => {
-  for (let index = 0; index <= 1000; index += 1)
+  for (let index = 0; index < MAX_PENDING_PUBLISHER_TASKS; index += 1)
     enqueuePublisherTask({ deliveryId: `id-${index}` });
   expect(enqueuePublisherTask({ deliveryId: "id-0" })).toBe(false);
-  expect(getPendingPublisherTasks()).toBe(1001);
+  expect(enqueuePublisherTask({ deliveryId: "overflow" })).toBe(null);
+  expect(getPendingPublisherTasks()).toBe(MAX_PENDING_PUBLISHER_TASKS);
 });
 
 test("keeps pending delivery IDs outside the completed history limit", () => {
-  for (let index = 0; index <= 1000; index += 1)
+  for (let index = 0; index < MAX_PENDING_PUBLISHER_TASKS; index += 1)
     enqueuePublisherTask({ deliveryId: `pending-${index}` });
   dequeuePublisherTask();
   completePublisherDelivery("pending-0");

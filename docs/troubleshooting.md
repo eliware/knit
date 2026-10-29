@@ -24,6 +24,7 @@ Do not share secrets or private keys in logs or support requests.
 7. Confirm that the GitHub webhook subscribes to the `push` event.
 
 Knit rejects unsigned requests with HTTP 400. It does not queue a rejected request. Knit returns HTTP 200 after it verifies and queues a valid request. It does not wait for processing to complete.
+Knit returns HTTP 503 immediately when its 1,000-task pending queue is full. Check that Knit can process queued tasks before GitHub sends more events.
 
 ## Knit ignores a webhook request
 

@@ -68,7 +68,8 @@ export function createWebhookProcessor({
         res.sendStatus(200);
       } catch (err) {
         log.error("[WebhookProcessor] Error:", err.message || err);
-        res.status(400).send("Webhook processing failed.");
+        const status = err?.code === "PUBLISHER_QUEUE_FULL" ? 503 : 400;
+        res.status(status).send("Webhook processing failed.");
       }
     },
   };

@@ -62,6 +62,7 @@ Knit also has handlers for other GitHub event types. The current installation us
 Open `GET /health`. A healthy response contains `status` set to `ok` and the running version. Open `GET /` to view the application page. GitHub sends events to `POST /`.
 
 Knit returns HTTP 200 after it verifies and queues a valid request. It does not wait for event processing to complete. Knit rejects a missing or invalid signature with HTTP 400. It rejects malformed JSON with HTTP 400.
+If the 1,000-task pending queue is full, Knit returns HTTP 503 immediately and does not queue the request.
 
 ## Event behavior
 

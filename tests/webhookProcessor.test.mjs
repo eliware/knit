@@ -132,6 +132,25 @@ describe("webhookProcessor.mjs", () => {
     expect(log.error).toHaveBeenCalledWith("[WebhookProcessor] Error:", "publish failed");
   });
 
+  it("returns HTTP 503 immediately when the publisher queue is full", async () => {
+    const publisher = {
+      publish: jest.fn(() => {
+        throw Object.assign(new Error("Publisher queue is full"), {
+          code: "PUBLISHER_QUEUE_FULL",
+        });
+      }),
+    };
+    SignatureValidator.validate.mockReturnValue(true);
+    await createWebhookProcessor({
+      log,
+      publisher,
+      SignatureValidatorMod: SignatureValidator,
+    }).process({ rawBody: "payload", body: {}, headers: { "x-hub-signature-256": "sig" } }, res);
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(res.send).toHaveBeenCalledWith("Webhook processing failed.");
+    expect(res.sendStatus).not.toHaveBeenCalled();
+  });
+
   it("handles thrown values without a message", async () => {
     const publisher = {
       publish: jest.fn(() => {

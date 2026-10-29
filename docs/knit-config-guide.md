@@ -89,7 +89,7 @@ Set `stopOnError: false` on the push action to continue to later deployments aft
 
 Set `timeoutMs` to a value from `1` to `300000` milliseconds. The timeout applies to each remote command. Use a script with its own overall deadline for longer work.
 
-Knit accepts `tags` entries with the keys `v` or `v*`. Both keys match tags that start with `v`. A matching tag push sends a Discord notice. Knit does not run tag commands. Each tag entry must contain a valid `deployments` list because the workflow format requires one.
+Knit accepts `tags` entries with the keys `v` or `v*`. Both keys match tags in the `vMAJOR.MINOR.PATCH` format. A matching tag push sends a Discord notice. Knit does not run tag commands. Each tag entry must contain a valid `deployments` list because the workflow format requires one.
 
 For example, this workflow runs commands for branch pushes and sends a notice for matching version tags:
 
@@ -131,7 +131,7 @@ Knit uses the repository name after the owner slash as the channel name. It enco
 
 ## Image and deployment boundary
 
-The GHCR image runs Knit. The publication workflow builds the `linux/amd64` image and pushes a version tag after validation.
+The GHCR image runs Knit. The publication workflow builds and pushes a version tag after validation. The workflow does not set a target platform.
 
 GHCR package settings control image access. Users require package access to pull the image.
 

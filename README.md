@@ -67,7 +67,7 @@ Read the [configuration guide](docs/knit-config-guide.md) for all settings and e
 
 Knit validates targets before it connects. For a branch push, it reads `.knit/deploy.yaml` at the webhook commit and runs the configured commands. It returns HTTP 200 after it verifies and queues a valid request.
 
-The GHCR image runs Knit. The publish workflow runs on version tags and builds `linux/amd64`. GHCR package settings define image visibility and pull access. The publish job uses `GITHUB_TOKEN` with `packages: write`. This permission does not set pull access.
+The GHCR image runs Knit. The publish workflow runs on version tags and does not set a target platform. GHCR package settings define image visibility and pull access. The publish job uses `GITHUB_TOKEN` with `packages: write`. This permission does not set pull access.
 
 GitOps deploys the published image by immutable version tag and recorded SHA-256 digest. Image publication does not deploy Knit.
 

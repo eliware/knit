@@ -2,6 +2,7 @@ import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
 import { publish } from "../src/publisher.mjs";
 import { getPublisherMetrics, _resetPublisherState } from "../src/publisherState.mjs";
+import { MAX_PENDING_PUBLISHER_TASKS } from "../src/publisherQueue.mjs";
 
 const payload = { raw: "raw", parsed: "parsed" };
 const noSchedule = () => {};
@@ -61,7 +62,7 @@ it("deduplicates deliveries", () => {
 it("keeps pending delivery IDs when the queue grows", () => {
   const Consumer = { consume: jest.fn().mockResolvedValue(true) };
   const log = { info: jest.fn(), error: jest.fn() };
-  for (let i = 0; i <= 1000; i += 1)
+  for (let i = 0; i < MAX_PENDING_PUBLISHER_TASKS; i += 1)
     publish({
       ...payload,
       deliveryId: `id-${i}`,
@@ -72,6 +73,18 @@ it("keeps pending delivery IDs when the queue grows", () => {
   expect(
     publish({ ...payload, deliveryId: "id-0", log, ConsumerMod: Consumer, schedule: noSchedule }),
   ).toBe(false);
+});
+
+it("rejects a new task immediately when the pending queue is full", () => {
+  const log = { info: jest.fn(), error: jest.fn() };
+  for (let index = 0; index < MAX_PENDING_PUBLISHER_TASKS; index += 1)
+    publish({ ...payload, deliveryId: `id-${index}`, log, schedule: noSchedule });
+  expect(() => publish({ ...payload, deliveryId: "overflow", log, schedule: noSchedule })).toThrow(
+    expect.objectContaining({ code: "PUBLISHER_QUEUE_FULL" }),
+  );
+  expect(log.error).toHaveBeenCalledWith("[Publisher] Pending task limit reached", {
+    maxPending: MAX_PENDING_PUBLISHER_TASKS,
+  });
 });
 
 it("normalizes zero attempts and tolerates concurrent scheduling", async () => {

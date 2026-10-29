@@ -50,3 +50,24 @@ test("returns formatted output and records an SSH execution failure", async () =
     expect.objectContaining({ stage: "ssh_execution", error: "connection failed" }),
   );
 });
+
+test("rejects repositories outside the target allowlist before SSH execution", async () => {
+  const sshExec = jest.fn();
+  const log = { error: jest.fn() };
+  await expect(
+    runDeployments({
+      deployments: [deployment()],
+      targets: { dev: { ...target, allowedRepositories: ["eliware/approved"] } },
+      body: { ...body, repository: { full_name: "eliware/other" } },
+      event: "push",
+      sshExec,
+      stopOnError: true,
+      log,
+    }),
+  ).rejects.toThrow("Repository is not approved for target: dev");
+  expect(sshExec).not.toHaveBeenCalled();
+  expect(log.error).toHaveBeenCalledWith(
+    "[Repo] Deployment failed",
+    expect.objectContaining({ stage: "target_validation", target: "dev" }),
+  );
+});

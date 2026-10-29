@@ -1,6 +1,6 @@
 import { log as logger } from "@eliware/common";
 import * as Consumer from "./consumer.mjs";
-import { enqueuePublisherTask } from "./publisherQueue.mjs";
+import { enqueuePublisherTask, MAX_PENDING_PUBLISHER_TASKS } from "./publisherQueue.mjs";
 import { recordPublisherMetric } from "./publisherState.mjs";
 import { processTasks } from "./publisher/task-drainer.mjs";
 
@@ -23,7 +23,17 @@ export function publish({
     deliveryId,
     ...(log ? { log } : {}),
   };
-  if (!enqueuePublisherTask(task)) {
+  const queued = enqueuePublisherTask(task);
+  if (queued === null) {
+    const error = Object.assign(new Error("Publisher queue is full"), {
+      code: "PUBLISHER_QUEUE_FULL",
+    });
+    activeLog.error?.("[Publisher] Pending task limit reached", {
+      maxPending: MAX_PENDING_PUBLISHER_TASKS,
+    });
+    throw error;
+  }
+  if (!queued) {
     recordPublisherMetric("duplicates");
     activeLog.info("[Publisher] Duplicate request ignored", deliveryId);
     return false;

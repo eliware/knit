@@ -28,12 +28,12 @@ test("matches version tags with the v shorthand", () => {
   ).toBe(release);
 });
 
-test("does not treat unsupported tag keys as wildcard patterns", () => {
+test.each(["v-beta", "x1.2.3"])("ignores unsupported tags %s", (tag) => {
   const release = { deployments: [] };
   expect(
     selectWorkflowAction({
-      config: { on: { tags: { "x*": release } } },
-      post: { ref: "refs/tags/x1.2.3" },
+      config: { on: { tags: { "v*": release } } },
+      post: { ref: `refs/tags/${tag}` },
     }),
   ).toBeNull();
 });

@@ -31,6 +31,16 @@ export async function runDeployments({
       });
       throw new Error(`Unknown deployment target: ${deployment.target}`);
     }
+    if (target.allowedRepositories && !target.allowedRepositories.includes(context.repository)) {
+      logDeploymentFailure({
+        log,
+        context,
+        target: deployment.target,
+        stage: "target_validation",
+        durationMs: 0,
+      });
+      throw new Error(`Repository is not approved for target: ${deployment.target}`);
+    }
     const root = target.allowedCwdRoot?.replace(/\/+$/, "") || "";
     if (root && !(deployment.cwd === root || deployment.cwd.startsWith(`${root}/`))) {
       logDeploymentFailure({

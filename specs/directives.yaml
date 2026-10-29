@@ -5,6 +5,7 @@ directives:
     dos:
       - Accept signed GitHub webhook events at the application endpoint.
       - Return HTTP 200 after Knit adds each valid signed webhook to its queue.
+      - Return HTTP 503 immediately when the pending task queue is full.
       - Do not wait for event processing before the HTTP acknowledgement.
       - Check trusted target profiles before the application opens external connections.
       - Read repository workflows at the webhook commit.
