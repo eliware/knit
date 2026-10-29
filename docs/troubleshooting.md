@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Use the symptom and checks in each section to find the fault. Read application logs after each check.
+Use the symptom and checks in each section to find the fault. Read the application logs after each check.
 Do not share secrets or private keys in logs or support requests.
 
 ## Knit exits during startup
@@ -13,7 +13,7 @@ Do not share secrets or private keys in logs or support requests.
 6. Check that both Discord settings exist, or keep both unset.
 7. Run `npm test` after you correct the settings.
 
-## GitHub returns an error for a webhook
+## GitHub reports a webhook error
 
 1. Check the GitHub request page for the response code and response body.
 2. Confirm that the webhook uses `application/json`.
@@ -21,20 +21,22 @@ Do not share secrets or private keys in logs or support requests.
 4. Confirm that the request includes a valid `X-Hub-Signature-256` header.
 5. Confirm that the endpoint accepts `POST /` from GitHub.
 6. Confirm that `GET /health` returns status `ok`.
+7. Confirm that the GitHub webhook subscribes to the `push` event.
 
-Knit rejects unsigned requests. It does not run commands for a rejected request.
+Knit rejects unsigned requests with HTTP 400. It does not queue a rejected request. Knit returns HTTP 200 after it verifies and queues a valid request. It does not wait for processing to complete.
 
 ## Knit ignores a webhook request
 
-Confirm that the event has `repository.full_name`. Confirm that the repository has an allowed target.
-Confirm that the event type has a configured handler. Events without repository names do not run repository workflows.
-Knit uses the repository name after the owner slash for its channel name. Keep repository names unique in eliware.
+Confirm that the event has `repository.full_name`. Confirm that the repository has an allowed target. Confirm that the event type has a configured handler. Events without repository names do not run repository workflows.
+
+The current GitHub webhook setup uses push events only. Knit ignores a tag push unless its tag matches a `tags` entry in `.knit/deploy.yaml`.
+
+Knit uses the repository name after the owner slash for its channel name. Use unique repository names in the organization.
 
 ## Knit cannot read a repository workflow
 
 Confirm that `.knit/deploy.yaml` exists at the webhook commit. Confirm that the webhook commit SHA is valid.
-For a private repository, confirm that `GITHUB_READ_TOKEN` can read repository contents.
-Confirm that the token has no write access unless a different application requires it.
+For a private repository, confirm that `GITHUB_READ_TOKEN` can read repository contents. Confirm that the token has no write access unless a separate application requires it.
 
 ## A deployment fails
 
@@ -47,12 +49,17 @@ Confirm that the token has no write access unless a different application requir
 7. Run each command by hand with the same user and working directory.
 8. Return a nonzero exit code when a command detects a fault.
 
-Knit runs commands in order. The first nonzero result fails the deployment. By default, Knit stops before later deployments.
-Knit sends each webhook request to the consumer once. A failed request ends without an automatic retry.
+Knit runs commands in order. The first nonzero result fails the deployment. By default, Knit stops before later deployments. Knit does not retry a failed webhook request.
 
-## Discord notices do not appear
+## A webhook processes but Discord has no notice
 
-Confirm that both Discord variables are set. Confirm that the bot joined the guild in `guildId`. Grant the bot the `Administrator` permission. The bot can access all channels. Do not add the bot to channel allowlists. Knit requires the `Guilds` intent.
+1. Confirm that both Discord settings are set.
+2. Confirm that the bot joined the guild in `guildId`.
+3. Confirm that the bot has the `Administrator` permission.
+4. Confirm that the event has a repository name and a resolved target.
+5. Confirm that the encoded repository name is no more than 100 characters.
+
+The bot can access all channels because it has the `Administrator` permission. Do not add it to channel allowlists. Knit creates or reuses a channel with the repository name after the owner slash.
 
 ## GitHub API limit or access fault
 
@@ -60,5 +67,5 @@ Set `GITHUB_READ_TOKEN` when GitHub requires authentication. Grant read access t
 
 ## If the fault continues
 
-Record the request time, GitHub request ID, repository name, event type, and safe error text.
+Record the request time, GitHub webhook ID, repository name, event type, processing stage, and safe error text.
 Remove tokens, signatures, private URLs, and key data. Open an [issue](https://github.com/eliware/knit/issues) with safe details.

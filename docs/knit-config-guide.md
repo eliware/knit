@@ -1,6 +1,6 @@
 # Configuration guide
 
-Knit reads runtime settings from environment variables. It reads trusted targets from `targets.yaml`. It reads each repository workflow from `.knit/deploy.yaml` at the webhook commit. Do not put runtime secrets or private keys in a repository.
+Knit reads runtime settings from environment variables. It reads trusted SSH targets from `targets.yaml`. It reads each push workflow from `.knit/deploy.yaml` at the webhook commit. Do not put runtime secrets or private keys in a repository.
 
 ## Environment variables
 
@@ -16,8 +16,7 @@ Knit reads runtime settings from environment variables. It reads trusted targets
 
 Keep both Discord values unset to disable Discord notices. Set both values to enable Discord. Knit stops at startup if only one value exists.
 
-The target inventory remains required when Discord is off. Set a read token when GitHub must read a private repository.
-Knit can read public repositories without a token, at the GitHub API limit.
+The target inventory remains required when Discord is off. Set a read token when GitHub must read a private repository. Knit can read public repositories without a token, subject to the GitHub API limit.
 
 Use this example with placeholder values. Replace each required value in your secret store.
 Keep optional values unset when you do not use them.
@@ -37,8 +36,7 @@ Do not commit filled values. Use the container or host secret store for producti
 ## Target inventory
 
 Create `repos/targets.yaml`, or set `KNIT_TARGETS_PATH` to a different file. Knit requires a `guildId` and at least one target.
-Each target requires `host`, `user`, `identity`, `knownHosts`, and `hostCa` values. Use absolute paths for SSH files.
-Use `allowedCwdRoot` to set the allowed working directory. Use `allowedRepositories` to set repository access.
+Each target requires `host`, `user`, `identity`, `knownHosts`, and `hostCa` values. Use absolute paths for SSH files. `allowedCwdRoot` limits the working directory. `allowedRepositories` limits the repositories that can use the target.
 
 ```yaml
 guildId: "000000000000000000"
@@ -60,12 +58,11 @@ Use a trusted host CA and known-hosts file. Configure the target to accept the u
 
 Set `allowedCwdRoot` to the smallest safe root.
 
-Knit checks target fields before it opens network connections. A missing `targets.yaml` file, invalid YAML, missing guild ID, or incomplete target stops startup.
-Knit reads SSH files when it opens an SSH connection. Correct each path and start Knit again.
+Knit checks target fields before it opens network connections. A missing inventory, invalid YAML, missing guild ID, or incomplete target stops startup. Knit reads SSH files when it opens an SSH connection. Correct each path and start Knit again.
 
 ## Repository workflow
 
-Commit `.knit/deploy.yaml` to each repository. Use version `1`. Set an absolute `cwd` under the allowed target root. Name an existing target. Add one or more commands.
+Commit `.knit/deploy.yaml` to each repository. Use version `1`. Set an absolute `cwd`. Keep it under `allowedCwdRoot` when the target sets that value. Name an existing target. Add one or more commands.
 
 ```yaml
 version: 1
@@ -81,18 +78,19 @@ on:
           - npm test
 ```
 
-Knit runs deployments and commands in order. A nonzero command result fails that deployment.
-Knit stops after the first failed deployment by default. Set `stopOnError: false` to run later deployments after a failure.
-Knit sends each webhook request to the consumer once. A failed request ends without an automatic retry.
+Knit runs deployments and commands in order. A nonzero command result fails that deployment. Knit stops after the first failed deployment by default. Set `stopOnError: false` to run later deployments after a failure.
+Knit does not retry a failed webhook request. Knit ignores a repeated webhook ID after it queues that request.
 
-Push logs show the repository, ref, GitHub request ID, stage, and elapsed time. Command logs show the command, exit code, and elapsed time.
+Push logs show the repository, ref, GitHub webhook ID, stage, and elapsed time. Command logs show the command, exit code, and elapsed time.
 Knit redacts detected credentials in command logs and Discord notices.
 
-Each push or tag action must list one or more deployments.
+Set `stopOnError: false` on the push action to continue to later deployments after a failure. The default value stops later deployments after the first failure.
 
 Set `timeoutMs` to a value from `1` to `300000` milliseconds. The timeout applies to each remote command. Use a script with its own overall deadline for longer work.
 
-Use `tags` for a separate release action when needed:
+Knit accepts `tags` entries with the keys `v` or `v*`. A matching tag push sends a Discord notice. Knit does not run tag commands. Each tag entry must contain a valid `deployments` list because the workflow format requires one.
+
+For example, this workflow runs commands for branch pushes and sends a notice for matching version tags:
 
 ```yaml
 version: 1
@@ -107,20 +105,19 @@ on:
       deployments:
         - target: production
           cwd: /opt/services/example
-          commands: [.knit/release.sh]
+          commands: [.knit/deploy.sh]
 ```
 
-A tag does not use the push action. Knit selects a matching tag action only. Use keys `v` or `v*`. Add only deployment steps that the trusted target permits.
+The tag entry does not run its listed command. Add valid target names, working directories, and commands because Knit validates the workflow before it handles the tag.
 
 ## GitHub workflow access
 
-Knit reads `.knit/deploy.yaml` at the webhook commit SHA. It also reads `package.json` at that commit when the file exists.
-It checks the GitHub Contents response and file digest. Set `GITHUB_READ_TOKEN` when GitHub must read private repository contents.
-Grant read access to repository contents only.
+Knit reads `.knit/deploy.yaml` at the webhook commit SHA. It also reads `package.json` at that commit when the file exists. Knit checks the GitHub Contents response and file digest.
+Set `GITHUB_READ_TOKEN` when GitHub must read private repository contents. Grant read access to repository contents only.
 
 ## Discord setup
 
-Create a Discord application and bot. Invite the bot to the target guild.
+Create a Discord application and bot. Invite the bot to the guild named by `guildId`.
 Copy the bot token and application ID into the runtime secret store. Set both `DISCORD_TOKEN` and `DISCORD_CLIENT_ID`.
 
 Grant the bot the `Administrator` permission. The bot can access all channels. Do not add the bot to channel allowlists.
@@ -128,6 +125,8 @@ Grant the bot the `Administrator` permission. The bot can access all channels. D
 Enable the `Guilds` intent only.
 
 Knit uses the required `guildId` from the target inventory. It does not read message content or member lists.
+
+Knit uses the repository name after the owner slash as the channel name. It encodes punctuation as `_xHEX_` and does not add a hash suffix. Knit reuses a matching announcement channel or creates one when no match exists. It sets permissions from repository visibility and sets the topic from package metadata before it posts. A repository name that exceeds Discord's channel name limit cannot be used.
 
 ## Image and deployment boundary
 
