@@ -28,6 +28,16 @@ test("matches version tags with the v shorthand", () => {
   ).toBe(release);
 });
 
+test("does not treat unsupported tag keys as wildcard patterns", () => {
+  const release = { deployments: [] };
+  expect(
+    selectWorkflowAction({
+      config: { on: { tags: { "x*": release } } },
+      post: { ref: "refs/tags/x1.2.3" },
+    }),
+  ).toBeNull();
+});
+
 test("uses the push action and requires workflow configuration", () => {
   expect(selectWorkflowAction({ config: { on: { push: [] } } })).toEqual([]);
   expect(() => selectWorkflowAction()).toThrow();

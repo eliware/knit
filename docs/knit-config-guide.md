@@ -135,6 +135,6 @@ The GHCR image runs Knit. The publication workflow builds the `linux/amd64` imag
 
 GHCR package settings control image access. Users require package access to pull the image.
 
-The workflow creates an attestation and checks the image digest.
+The workflow compares the published image digest with the build output and records the digest in its summary.
 
 GitOps deploys images by immutable version tag and recorded digest. Image publication does not deploy Knit.
