@@ -5,10 +5,12 @@
 ### Added
 
 - Knit returns HTTP 200 after it queues a valid signed webhook. Event work starts after the response.
+- When its 1,000-task queue is full, Knit returns HTTP 503 immediately.
 - Knit sends commit, repository, ref, event, and request ID values through SSH environment requests.
 - Knit posts release notices in Discord announcement channels.
-- Knit uses the repository name after the owner slash for its announcement channel. It encodes punctuation and does not add a hash.
-- Knit checks the channel list for each event. It reuses a matching announcement channel or creates one with the repository name.
+- Knit uses the lowercased repository name after the owner slash for its announcement channel. It keeps letters, numbers, and hyphens, and drops other characters.
+- Repositories that resolve to the same channel name share a channel. Knit does not add a hash or owner name.
+- Knit checks the channel list for each event. It reuses a matching announcement channel or creates one with the resolved name.
 - Knit sets channel access from repository visibility and updates the topic before it posts.
 - Knit adds focused source modules and matching test suites for webhook, channel, publisher, and notice rules.
 
@@ -19,9 +21,11 @@
 - Knit updates CI and GHCR publication workflows to the canonical workflow files.
 - The GHCR workflow checks the version tag, pushes the image, verifies its registry digest, inspects the immutable image, and records the digest.
 - Knit updates its guides, requirements, and development instructions for current application behavior.
-- Knit runs tag deployments only when a configured tag pattern matches. It gives unmatched tags a neutral ignored result.
+- Knit matches release actions only for tags in the `vMAJOR.MINOR.PATCH` format. It gives unmatched tags a neutral ignored result.
 - Knit requires at least one deployment in each configured action.
 - Knit processes each webhook request once. It ignores duplicate request IDs and does not retry failed requests.
+- Knit checks that SSH identity, known-hosts, and host CA paths point to readable files before it opens a connection.
+- Knit checks repository access rules before it starts a deployment.
 
 ### Fixed
 
@@ -31,6 +35,9 @@
 - Knit encodes GitHub actor names in profile links and file paths in GitHub Contents requests.
 - Knit escapes repository text in Discord notices and escapes the version on the landing page.
 - Knit keeps the channel topic when an event has no package metadata and preserves keywords under Discord limits.
+- Knit uses the repository URL when a release notice has no repository name.
+- Knit retains no more than 1,000 completed request IDs and logs idle status update errors.
+- Knit passes Git paths and commit messages as separate command arguments to prevent shell interpretation.
 
 ## 12.0.1 — 2026-10-14
 
