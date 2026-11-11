@@ -48,7 +48,7 @@ Use only the `Guilds` intent. Document commands, events, intents, and permission
 
 Image: ghcr.io/eliware/knit
 
-Pull command: docker pull ghcr.io/eliware/knit:v15.0.1
+Pull command: docker pull ghcr.io/eliware/knit:v15.1.0
 
 Supported tags: vMAJOR.MINOR.PATCH
 

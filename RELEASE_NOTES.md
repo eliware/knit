@@ -1,5 +1,11 @@
 # Release Notes
 
+## 15.1.0 — 2026-11-11
+
+### Changed
+
+- Updated the package version and refreshed dependencies.
+
 ## 15.0.1 — 2026-10-29
 
 ### Added
