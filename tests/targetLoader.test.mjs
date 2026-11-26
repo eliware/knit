@@ -1,21 +1,17 @@
 import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
+import { target } from "../test-fixtures/repo.mjs";
 import __knitModule0 from "../src/targetLoader.mjs";
 const { createTargetLoader } = __knitModule0;
-const target = {
-  host: "dev",
-  user: "root",
-  identity: "/key",
-  knownHosts: "/known",
-  hostCa: "/ca",
-};
+const inventoryYaml = [
+  "guildId: guild",
+  "targets:",
+  "  dev:",
+  ...Object.entries(target).map(([field, value]) => `    ${field}: ${value}`),
+].join("\n");
 test("loads and caches the trusted target inventory", () => {
   const fsModule = {
-    readFileSync: jest
-      .fn()
-      .mockReturnValue(
-        "guildId: guild\ntargets:\n  dev:\n    host: dev\n    user: root\n    identity: /key\n    knownHosts: /known\n    hostCa: /ca",
-      ),
+    readFileSync: jest.fn().mockReturnValue(inventoryYaml),
     accessSync: jest.fn(),
     statSync: jest.fn().mockReturnValue({
       isFile: () => true,
@@ -36,11 +32,7 @@ test("loads and caches the trusted target inventory", () => {
 });
 test("checks that SSH paths are readable files before startup", () => {
   const fsModule = {
-    readFileSync: jest
-      .fn()
-      .mockReturnValue(
-        "guildId: guild\ntargets:\n  dev:\n    host: dev\n    user: root\n    identity: /key\n    knownHosts: /known\n    hostCa: /ca",
-      ),
+    readFileSync: jest.fn().mockReturnValue(inventoryYaml),
     accessSync: jest.fn(),
     statSync: jest.fn().mockReturnValue({
       isFile: () => true,
@@ -56,11 +48,7 @@ test("checks that SSH paths are readable files before startup", () => {
 });
 test("rejects unreadable or non-file SSH paths", () => {
   const fsModule = {
-    readFileSync: jest
-      .fn()
-      .mockReturnValue(
-        "guildId: guild\ntargets:\n  dev:\n    host: dev\n    user: root\n    identity: /key\n    knownHosts: /known\n    hostCa: /ca",
-      ),
+    readFileSync: jest.fn().mockReturnValue(inventoryYaml),
     accessSync: jest.fn((file) => {
       if (file === "/known") throw new Error("unreadable");
     }),

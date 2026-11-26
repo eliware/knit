@@ -1,9 +1,9 @@
 import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
-import __knitModule0 from "../src/discordChannelName.mjs";
+import __knitModule0 from "../src/discord/channel/name.mjs";
 import __knitModule1 from "../src/discordChannelCreation.mjs";
 import __knitModule2 from "../src/discordChannels.mjs";
-const { channelName } = __knitModule0;
+const { normalizeChannelName: channelName } = __knitModule0;
 const { GUILD_ANNOUNCEMENT } = __knitModule1;
 const { createChannelResolver } = __knitModule2;
 function clientWith(channels = []) {

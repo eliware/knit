@@ -1,21 +1,15 @@
+import { target } from "../test-fixtures/repo.mjs";
 import __knitModule0 from "../src/targetRules.mjs";
 const { isValidTarget } = __knitModule0;
-const validTarget = {
-  host: "dev",
-  user: "root",
-  identity: "/key",
-  knownHosts: "/known",
-  hostCa: "/ca",
-};
 test("accepts a target with all required string fields", () => {
-  expect(isValidTarget(validTarget)).toBe(true);
+  expect(isValidTarget(target)).toBe(true);
 });
 test.each(["host", "user", "identity", "knownHosts", "hostCa"])(
   "rejects a target with an empty %s field",
   (field) => {
     expect(
       isValidTarget({
-        ...validTarget,
+        ...target,
         [field]: "",
       }),
     ).toBe(false);
@@ -26,7 +20,7 @@ test.each([
   null,
   false,
   {
-    ...validTarget,
+    ...target,
     host: 1,
   },
 ])("rejects an invalid target value", (target) => {

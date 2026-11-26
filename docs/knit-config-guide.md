@@ -60,6 +60,8 @@ Set `allowedCwdRoot` to the smallest safe root.
 
 Knit checks target fields and verifies that SSH files are readable regular files before it opens network connections. A missing inventory, invalid YAML, missing guild ID, incomplete target, or unusable SSH path stops startup. Correct each path and start Knit again.
 
+For container startup instructions, read [Start Knit from a container](usage.md#start-knit-from-a-container) in the usage guide.
+
 ## Repository workflow
 
 Commit `.knit/deploy.yaml` to each repository. Use version `1`. Set an absolute `cwd`. Keep it under `allowedCwdRoot` when the target sets that value. Name an existing target. Add one or more commands.
@@ -128,13 +130,3 @@ Enable the `Guilds` intent only.
 Knit uses the required `guildId` from the target inventory. It does not read message content or member lists.
 
 Knit uses the lowercased repository name after the owner slash as the channel name. It keeps letters, numbers, and hyphens, and drops unsupported characters without replacement text. Repositories with the same normalized name share a channel. Knit reuses a matching announcement channel or creates one when no match exists. It sets permissions from repository visibility and sets the topic from package metadata before it posts. A normalized repository name longer than 100 characters cannot be used.
-
-## Image and deployment boundary
-
-The GHCR image runs Knit. The publication workflow builds and pushes a version tag after validation. The workflow does not set a target platform.
-
-GHCR package settings control image access. Users require package access to pull the image.
-
-The workflow compares the published image digest with the build output and records the digest in its summary.
-
-GitOps deploys images by immutable version tag and recorded digest. Image publication does not deploy Knit.

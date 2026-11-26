@@ -1,13 +1,7 @@
 import { jest } from "@jest/globals";
+import { target } from "../test-fixtures/repo.mjs";
 import __knitModule0 from "../src/targetValidator.mjs";
 const { validateTargets } = __knitModule0;
-const target = {
-  host: "dev",
-  user: "root",
-  identity: "/key",
-  knownHosts: "/known",
-  hostCa: "/ca",
-};
 test("accepts a complete trusted target inventory", () => {
   expect(
     validateTargets({

@@ -1,9 +1,11 @@
 import __knitModule0 from "../webhookEnvironment.mjs";
 import __knitModule1 from "./deploymentLog.mjs";
 import __knitModule2 from "./deployment-output.mjs";
+import __knitModule3 from "./target-policy.mjs";
 const { createWebhookEnvironment } = __knitModule0;
 const { logDeploymentCommand, logDeploymentFailure } = __knitModule1;
 const { createDeploymentOutput } = __knitModule2;
+const { validateDeploymentTarget } = __knitModule3;
 async function runDeployments({
   deployments,
   targets,
@@ -22,38 +24,7 @@ async function runDeployments({
     deliveryId: deliveryId ?? null,
   };
   for (const deployment of deployments) {
-    const target = targets[deployment.target];
-    if (!target) {
-      logDeploymentFailure({
-        log,
-        context,
-        target: deployment.target,
-        stage: "target_validation",
-        durationMs: 0,
-      });
-      throw new Error(`Unknown deployment target: ${deployment.target}`);
-    }
-    if (target.allowedRepositories && !target.allowedRepositories.includes(context.repository)) {
-      logDeploymentFailure({
-        log,
-        context,
-        target: deployment.target,
-        stage: "target_validation",
-        durationMs: 0,
-      });
-      throw new Error(`Repository is not approved for target: ${deployment.target}`);
-    }
-    const root = target.allowedCwdRoot?.replace(/\/+$/, "") || "";
-    if (root && !(deployment.cwd === root || deployment.cwd.startsWith(`${root}/`))) {
-      logDeploymentFailure({
-        log,
-        context,
-        target: deployment.target,
-        stage: "target_validation",
-        durationMs: 0,
-      });
-      throw new Error(`Deployment cwd is outside target root: ${deployment.target}`);
-    }
+    const target = validateDeploymentTarget({ deployment, targets, context, log });
     const startedAt = Date.now();
     try {
       const environment = createWebhookEnvironment({
