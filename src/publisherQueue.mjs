@@ -1,10 +1,10 @@
+import __knitModule0 from "./publisher/delivery-history.mjs";
+const { createDeliveryHistory } = __knitModule0;
 const MAX_PENDING_PUBLISHER_TASKS = 1000;
-const MAX_DELIVERIES = 1000;
 const tasks = [];
 const deliveryStates = new Map();
-const processedDeliveries = [];
 let head = 0;
-let processedHead = 0;
+const deliveryHistory = createDeliveryHistory(deliveryStates);
 function enqueuePublisherTask(task) {
   if (task.deliveryId && deliveryStates.has(task.deliveryId)) return false;
   if (getPendingPublisherTasks() >= MAX_PENDING_PUBLISHER_TASKS) return null;
@@ -24,21 +24,10 @@ function dequeuePublisherTask() {
   return task;
 }
 function forgetPublisherDelivery(deliveryId) {
-  if (deliveryId) deliveryStates.delete(deliveryId);
+  deliveryHistory.forget(deliveryId);
 }
 function completePublisherDelivery(deliveryId) {
-  if (!deliveryId || !deliveryStates.has(deliveryId)) return;
-  deliveryStates.set(deliveryId, "processed");
-  processedDeliveries.push(deliveryId);
-  if (processedDeliveries.length - processedHead > MAX_DELIVERIES) {
-    deliveryStates.delete(processedDeliveries[processedHead]);
-    processedDeliveries[processedHead] = undefined;
-    processedHead += 1;
-  }
-  if (processedHead >= 256) {
-    processedDeliveries.splice(0, processedHead);
-    processedHead = 0;
-  }
+  deliveryHistory.complete(deliveryId);
 }
 function getPendingPublisherTasks() {
   return tasks.length - head;
@@ -47,8 +36,7 @@ function clearPublisherQueue() {
   tasks.length = 0;
   head = 0;
   deliveryStates.clear();
-  processedDeliveries.length = 0;
-  processedHead = 0;
+  deliveryHistory.clear();
 }
 export default enqueuePublisherTask;
 Object.assign(enqueuePublisherTask, {

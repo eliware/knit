@@ -1,7 +1,17 @@
 import { redactText } from "@eliware/common";
 import __knitModule0 from "./consumerRouting.mjs";
+import __knitModule1 from "./consumerOutcomePresence.mjs";
 const { resolveConsumerTarget } = __knitModule0;
-async function processRepositoryPush({ post, deliveryId, log, RepoMod, RouterMod }) {
+const { finishConsumerOutcome } = __knitModule1;
+async function processRepositoryPush({
+  post,
+  deliveryId,
+  log,
+  RepoMod,
+  RouterMod,
+  presence,
+  repository,
+}) {
   const context = {
     repository: post?.repository?.full_name || null,
     ref: post?.ref || null,
@@ -33,9 +43,15 @@ async function processRepositoryPush({ post, deliveryId, log, RepoMod, RouterMod
       } else {
         log.info("[Consumer] Event ignored: no configured target", target.name);
       }
-      return {
-        type: "ignored-target",
-      };
+      return finishConsumerOutcome({
+        presence,
+        outcome: {
+          type: "ignored-target",
+        },
+        repository,
+        deliveryId,
+        post,
+      });
     }
     stage = post?.ref?.startsWith("refs/tags/") ? "tag_notice" : "deployment";
     const result = await target.repo.update({
@@ -52,10 +68,13 @@ async function processRepositoryPush({ post, deliveryId, log, RepoMod, RouterMod
       stage,
       durationMs: Date.now() - startedAt,
     });
-    return {
-      type: "push",
-      result,
-    };
+    return finishConsumerOutcome({
+      presence,
+      outcome: { type: "push", result },
+      repository,
+      deliveryId,
+      post,
+    });
   } catch (error) {
     log.error("[Consumer] Repository update failed", {
       ...context,
@@ -67,9 +86,12 @@ async function processRepositoryPush({ post, deliveryId, log, RepoMod, RouterMod
         maxOutputLength: 300,
       }),
     });
-    return {
-      type: "processing-error",
-    };
+    return finishConsumerOutcome({
+      presence,
+      outcome: { type: "processing-error" },
+      repository,
+      deliveryId,
+    });
   }
 }
 export default processRepositoryPush;

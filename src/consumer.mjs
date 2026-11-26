@@ -50,19 +50,14 @@ async function consume({
       return false;
     }
     if (event === "push") {
-      const outcome = await processRepositoryPush({
+      return await processRepositoryPush({
         post,
         deliveryId,
         log,
         RepoMod,
         RouterMod,
-      });
-      return await finishConsumerOutcome({
         presence,
-        outcome,
         repository,
-        deliveryId,
-        post,
       });
     }
     stage = "target_lookup";
