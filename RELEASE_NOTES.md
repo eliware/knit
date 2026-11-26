@@ -5,10 +5,15 @@
 ### Changed
 
 - Knit updates its package version and lockfile to 15.2.1.
+- Knit documents the v15.2.1 container image in its usage guide.
+- Knit separates application middleware, push routing, Discord setup, and notification escaping into focused modules.
 
 ### Fixed
 
-- Knit preserves ordinary punctuation in Discord embeds and removes encoded spaces.
+- Knit preserves ordinary punctuation in Discord embeds and converts encoded spaces.
+- Knit validates and authorizes all workflow deployments before it handles an unmatched tag.
+- Knit stops its idle-status timer during Discord shutdown.
+- Knit limits Discord channel topics to 1,024 characters when keywords use the full limit.
 
 ## 15.2.0 — 2026-11-26
 
