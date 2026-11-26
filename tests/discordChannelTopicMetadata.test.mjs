@@ -24,6 +24,13 @@ test("builds bounded channel topics from package metadata", () => {
   });
   expect(topic).toHaveLength(1024);
   expect(topic.endsWith("\nKeywords: web, deploy")).toBe(true);
+  const maximumKeywordText = `Keywords: ${"x".repeat(1014)}`;
+  const maximumKeywordTopic = channelTopic({
+    description: "Description",
+    keywords: ["x".repeat(1014)],
+  });
+  expect(maximumKeywordTopic).toBe(maximumKeywordText);
+  expect(maximumKeywordTopic).toHaveLength(1024);
   expect(() =>
     channelTopic({
       keywords: ["x".repeat(1024)],

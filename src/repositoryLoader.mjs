@@ -38,17 +38,20 @@ async function get({
       })
     )
       throw new Error("Invalid repository workflow");
+    const workflowActions = [workflow.on.push, ...Object.values(workflow.on.tags || {})];
+    for (const workflowAction of workflowActions) {
+      for (const deployment of workflowAction.deployments) {
+        const target = targets.targets?.[deployment.target];
+        if (!target) throw new Error(`Unknown deployment target: ${deployment.target}`);
+        if (target.allowedRepositories && !target.allowedRepositories.includes(name))
+          throw new Error(`Repository is not approved for target: ${deployment.target}`);
+      }
+    }
     const action = selectWorkflowAction({
       config: workflow,
       post: body,
     });
     if (!action) return null;
-    for (const deployment of action.deployments) {
-      const target = targets.targets?.[deployment.target];
-      if (!target) throw new Error(`Unknown deployment target: ${deployment.target}`);
-      if (target.allowedRepositories && !target.allowedRepositories.includes(name))
-        throw new Error(`Repository is not approved for target: ${deployment.target}`);
-    }
     return createSshRepo({
       config: {
         ...action,

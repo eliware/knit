@@ -9,6 +9,7 @@ function channelTopic(packageJson = {}) {
   if (keywordText.length > 1024)
     throw new Error("Package keywords are above the Discord channel topic limit");
   const descriptionLimit = Math.max(0, 1023 - keywordText.length);
+  if (!descriptionLimit) return keywordText;
   const boundedDescription = description.slice(0, descriptionLimit);
   return boundedDescription ? `${boundedDescription}\n${keywordText}` : keywordText;
 }

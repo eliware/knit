@@ -6,7 +6,7 @@ import __knitModule1 from "./targetLoader.mjs";
 import __knitModule2 from "./presenceManager.mjs";
 const { createChannelResolver } = __knitModule0;
 const { defaultTargetLoader } = __knitModule1;
-const { createPresenceManager, setPresenceManager } = __knitModule2;
+const { createPresenceManager, getPresenceManager, setPresenceManager } = __knitModule2;
 function registerDiscordServices({
   client,
   guildId,
@@ -38,8 +38,10 @@ function registerDiscordServices({
 function unregisterDiscordServices({
   client,
   NotifierMod = Notifier,
+  getPresenceManagerFn = getPresenceManager,
   setPresenceManagerFn = setPresenceManager,
 }) {
+  getPresenceManagerFn()?.stop?.();
   setPresenceManagerFn(null);
   NotifierMod.clearDiscordClient(client);
 }

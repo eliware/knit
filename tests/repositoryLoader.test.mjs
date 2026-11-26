@@ -62,6 +62,21 @@ test("loads, validates, and authorizes a repository workflow", async () => {
     commit: "a".repeat(40),
   });
 });
+test("loads a push-only workflow without a tags section", async () => {
+  await expect(
+    get({
+      name: "eliware/app",
+      body: { after: "a".repeat(40), ref: "refs/heads/main" },
+      targetLoader: { load: () => ({ targets: { dev: target } }) },
+      workflowLoader: async () => ({
+        workflow: {
+          version: 1,
+          on: { push: { deployments: [deployment()] } },
+        },
+      }),
+    }),
+  ).resolves.toBeDefined();
+});
 test("rejects malformed and unknown-target workflows", async () => {
   const targetLoader = {
     load: () => ({
@@ -210,6 +225,39 @@ test("ignores unmatched tags", async () => {
       }),
     }),
   ).resolves.toBeNull();
+});
+test("rejects unmatched tags when another workflow action is unauthorized", async () => {
+  const log = { error: jest.fn() };
+  await expect(
+    get({
+      name: "eliware/app",
+      body: { after: "a".repeat(40), ref: "refs/tags/beta" },
+      log,
+      targetLoader: {
+        load: () => ({
+          targets: {
+            restricted: { ...target, allowedRepositories: ["eliware/other"] },
+            dev: target,
+          },
+        }),
+      },
+      workflowLoader: async () => ({
+        workflow: {
+          version: 1,
+          on: {
+            push: { deployments: [deployment({ target: "restricted" })] },
+            tags: { "v*": { deployments: [deployment()] } },
+          },
+        },
+      }),
+    }),
+  ).resolves.toBeNull();
+  expect(log.error).toHaveBeenCalledWith(
+    "[Repo] Workflow load failed",
+    expect.objectContaining({
+      error: "Repository is not approved for target: restricted",
+    }),
+  );
 });
 test("uses an empty target map for notification events without target configuration", async () => {
   await expect(

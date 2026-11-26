@@ -54,12 +54,14 @@ test("uses the supplied guild ID and unregisters services", () => {
   const client = {};
   const manager = {
     start: jest.fn(),
+    stop: jest.fn(),
   };
   const createChannelResolverFn = jest.fn();
   const targetLoader = {
     load: jest.fn(),
   };
   const setPresenceManagerFn = jest.fn();
+  const getPresenceManagerFn = jest.fn(() => manager);
   const NotifierMod = {
     setDiscordClient: jest.fn(),
     setChannelResolver: jest.fn(),
@@ -83,8 +85,11 @@ test("uses the supplied guild ID and unregisters services", () => {
   unregisterDiscordServices({
     client,
     NotifierMod,
+    getPresenceManagerFn,
     setPresenceManagerFn,
   });
+  expect(getPresenceManagerFn).toHaveBeenCalled();
+  expect(manager.stop).toHaveBeenCalled();
   expect(setPresenceManagerFn).toHaveBeenLastCalledWith(null);
   expect(NotifierMod.clearDiscordClient).toHaveBeenCalledWith(client);
 });

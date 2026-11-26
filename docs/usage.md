@@ -28,7 +28,7 @@ Knit listens on TCP port `3456` by default. Set `PORT` to select a different por
 Use the GHCR image after release publication:
 
 ```sh
-docker pull ghcr.io/eliware/knit:v15.0.1
+docker pull ghcr.io/eliware/knit:v15.2.1
 docker run --rm -p 3456:3456 \
   --env GITHUB_WEBHOOK_SECRET \
   --env GITHUB_READ_TOKEN \
@@ -39,7 +39,7 @@ docker run --rm -p 3456:3456 \
   --mount type=bind,src=/path/to/ssh/id_rsa,dst=/run/secrets/eliware/ssh/id_rsa,readonly \
   --mount type=bind,src=/path/to/ssh/known_hosts,dst=/run/secrets/eliware/ssh/known_hosts,readonly \
   --mount type=bind,src=/path/to/ssh/eliware_host_ca_ed25519.pub,dst=/run/secrets/eliware/ssh/eliware_host_ca_ed25519.pub,readonly \
-  ghcr.io/eliware/knit:v15.0.1
+  ghcr.io/eliware/knit:v15.2.1
 ```
 
 Replace each source path with a host file or directory. Put `targets.yaml` in `/path/to/config`. Use the container paths in that file. Set secrets in your container secret store. Do not put secret values in shell history.
