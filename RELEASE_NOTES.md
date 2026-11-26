@@ -1,5 +1,11 @@
 # Release Notes
 
+## 15.2.1 — 2026-11-26
+
+### Changed
+
+- Knit updates its package version and lockfile to 15.2.1.
+
 ## 15.2.0 — 2026-11-26
 
 ### Added
