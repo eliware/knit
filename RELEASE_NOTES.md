@@ -2,12 +2,21 @@
 
 ## 15.2.0 — 2026-11-26
 
+### Added
+
+- Knit provides complete localized `/help` text and useful fallback messages for all 32 supported locales.
+
 ### Changed
 
 - Knit updates its development and command-line dependencies.
-- Knit preserves hyphens and converts encoded spaces in Discord embed text.
-- Knit provides complete localized help text and useful fallback messages for all 32 supported locales.
 - Knit builds its container image from the Eliware CentOS 10 Node.js 26 base image.
+- Knit links the configuration guide to container startup instructions.
+- Knit organizes deployment, channel, event, publisher, and webhook processing into focused native ESM modules with matching tests.
+
+### Fixed
+
+- Knit preserves hyphens and converts encoded spaces in Discord embed text.
+- Knit escapes repository-controlled names and commit messages in Discord embeds.
 
 ## 15.1.0 — 2026-11-11
 
