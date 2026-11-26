@@ -1,12 +1,8 @@
-FROM node:26-bookworm-slim
+FROM ghcr.io/eliware/centos10-node26:latest
 
-WORKDIR /opt/knit
+WORKDIR /home/node/knit
 ENV NODE_ENV=production \
     PORT=3456
-
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts

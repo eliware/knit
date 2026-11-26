@@ -7,6 +7,7 @@
 - Knit updates its development and command-line dependencies.
 - Knit preserves hyphens and converts encoded spaces in Discord embed text.
 - Knit provides complete localized help text and useful fallback messages for all 32 supported locales.
+- Knit builds its container image from the Eliware CentOS 10 Node.js 26 base image.
 
 ## 15.1.0 — 2026-11-11
 
