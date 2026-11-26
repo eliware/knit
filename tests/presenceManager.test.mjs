@@ -13,7 +13,7 @@ const createManager = (options = {}) =>
 const flushUpdates = async () => {
   for (let count = 0; count < 8; count += 1) await Promise.resolve();
 };
-test("starts with version presence and updates busy state", async () => {
+test("starts with version presence and updates busy and neutral states", async () => {
   const setPresence = jest.fn().mockResolvedValue(undefined);
   const manager = createManager({
     client: {
@@ -44,6 +44,19 @@ test("starts with version presence and updates busy state", async () => {
       activities: [
         {
           name: "⏳ knitting deploying eliware/knit",
+          type: 4,
+        },
+      ],
+    }),
+  );
+  await manager.neutral("eliware/elera-lib ignored");
+  await flushUpdates();
+  expect(setPresence).toHaveBeenNthCalledWith(
+    3,
+    expect.objectContaining({
+      activities: [
+        {
+          name: "ℹ️ eliware/elera-lib ignored",
           type: 4,
         },
       ],
@@ -185,29 +198,6 @@ test("supports missing Discord client, duplicate updates, and timers without unr
   manager.stop();
   await flushUpdates();
   expect(clearTimeoutFn).toHaveBeenCalled();
-});
-test("publishes a neutral ignored state while busy", async () => {
-  const setPresence = jest.fn().mockResolvedValue(undefined);
-  const manager = createManager({
-    client: {
-      user: {
-        setPresence,
-      },
-    },
-    version: "2.2.0",
-  });
-  await manager.begin("tag");
-  await manager.neutral("eliware/elera-lib ignored");
-  expect(setPresence).toHaveBeenLastCalledWith(
-    expect.objectContaining({
-      activities: [
-        {
-          name: "ℹ️ eliware/elera-lib ignored",
-          type: 4,
-        },
-      ],
-    }),
-  );
 });
 test("uses default presence manager inputs", () => {
   expect(createPresenceManager()).toBeDefined();

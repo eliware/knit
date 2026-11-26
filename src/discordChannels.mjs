@@ -1,6 +1,5 @@
 import { log as logger } from "@eliware/common";
-import normalizeChannelName from "./discord/channel/name.mjs";
-import validateChannelNameLength from "./discord/channel/name-policy.mjs";
+import createChannelIdentity from "./discord/channel/identity.mjs";
 import __knitModule0 from "./discordChannelPermissions.mjs";
 import __knitModule1 from "./discordChannelProvisioning.mjs";
 import __knitModule2 from "./discordChannelTopic.mjs";
@@ -14,7 +13,7 @@ function createChannelResolver({ client, guildId, log = logger } = {}) {
     privateRepository = false,
     packageJson,
   } = {}) {
-    const name = validateChannelNameLength(normalizeChannelName(repository));
+    const name = createChannelIdentity(repository);
     const guild = await client.guilds.fetch(guildId);
     const channel = await provisionAnnouncementChannel({
       guild,

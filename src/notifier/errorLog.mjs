@@ -1,10 +1,11 @@
 import __knitModule0 from "./embedLimits.mjs";
 import __knitModule1 from "./discordMarkdown.mjs";
-const { DISCORD_EMBED_DESCRIPTION_LIMIT, tail } = __knitModule0;
+import textLimit from "./text-limit.mjs";
+const { DISCORD_EMBED_DESCRIPTION_LIMIT } = __knitModule0;
 const { escapeDiscordCode } = __knitModule1;
 const ERROR_LOG_WRAPPER_LENGTH = 12;
 function renderErrorLog(logOutput, available) {
-  return `\`\`\`text\n${escapeDiscordCode(tail(logOutput, available))}\n\`\`\``;
+  return `\`\`\`text\n${escapeDiscordCode(textLimit(logOutput, available))}\n\`\`\``;
 }
 function appendErrorLog(description, logOutput) {
   const available = Math.max(

@@ -14,9 +14,7 @@ describe("Discord embed size limits", () => {
     expect(embed.description).toContain("FINAL ERROR LINE");
     expect(embed.description).toContain("truncated, showing log tail");
   });
-  it("handles tail helper edge cases and limits field count and values", () => {
-    expect(limits.tail("short", 20)).toBe("short");
-    expect(limits.tail("abcdef", 2)).toBe("ef");
+  it("limits field count and values", () => {
     const embed = limits.limitEmbed({
       title: "x",
       description: "short",
@@ -74,8 +72,7 @@ describe("Discord embed size limits", () => {
     expect(total).toBeLessThanOrEqual(6000);
   });
 });
-test("covers empty and null values in embed limit helpers", () => {
-  expect(limits.tail(null, 10)).toBe("");
+test("keeps empty embed field values", () => {
   const embed = limits.limitEmbed({
     fields: [
       {
