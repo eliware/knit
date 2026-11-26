@@ -5,6 +5,7 @@
 ### Changed
 
 - Knit updates its development and command-line dependencies.
+- Knit preserves hyphens and converts encoded spaces in Discord embed text.
 
 ## 15.1.0 — 2026-11-11
 

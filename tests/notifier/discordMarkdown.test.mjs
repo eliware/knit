@@ -5,6 +5,11 @@ test("escapes Discord markdown and special mentions", () => {
     "\\[hello\\]\\(https://example.test\\) @\u200beveryone",
   );
 });
+test("preserves hyphens and converts encoded spaces", () => {
+  expect(escapeDiscordMarkdown("Release v15.2.0 - 2026-11-26&#x20;ready&#32;now")).toBe(
+    "Release v15.2.0 - 2026-11-26 ready now",
+  );
+});
 test("protects code blocks and link targets", () => {
   expect(escapeDiscordCode("before```after")).toBe("beforeˋˋˋafter");
   expect(escapeDiscordLinkTarget("https://example.test/a) b")).toBe(

@@ -11,14 +11,14 @@ const markdownCharacters = new Set([
   ")",
   "#",
   "+",
-  "-",
   "!",
   "|",
   "~",
   ">",
 ]);
 function escapeDiscordMarkdown(value) {
-  const escaped = [...String(value)]
+  const normalized = String(value).replace(/&#(?:x0*20|0*32);/giu, " ");
+  const escaped = [...normalized]
     .map((character) => (markdownCharacters.has(character) ? `\\${character}` : character))
     .join("");
   return escaped.replace(/@(everyone|here)\b/giu, "@\u200b$1");
