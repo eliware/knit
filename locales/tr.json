@@ -1,3 +1,3 @@
 {
-  "help": "Knit yardımını gösterir."
+  "help": "Knit, imzalı GitHub webhook'larını doğrular, onaylı iş akışlarını SSH üzerinden çalıştırır ve Discord'a güncellemeler gönderir. Kurulum ve kullanım kılavuzları için https://github.com/eliware/knit/tree/main/docs adresini ziyaret edin."
 }

@@ -1,3 +1,3 @@
 {
-  "help": "Toont de hulp van Knit."
+  "help": "Knit controleert ondertekende GitHub-webhooks, voert goedgekeurde workflows met SSH uit en stuurt updates naar Discord. Bekijk de handleidingen voor installatie en gebruik op https://github.com/eliware/knit/tree/main/docs."
 }

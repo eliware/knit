@@ -90,7 +90,7 @@ Configure the SSH server to accept these values with `AcceptEnv KNIT_*`. Knit se
 
 ## Discord channels and status
 
-Use `/help` to read the short application summary. Knit uses the `Guilds` intent.
+Use `/help` to learn how Knit verifies signed GitHub webhooks, runs approved workflows through SSH, and sends updates to Discord. The command links to setup and usage guides. Knit uses the `Guilds` intent.
 
 Knit uses the repository name after the owner slash as the channel name. It lowercases the name and keeps only letters, numbers, and hyphens. It drops unsupported characters without replacement text and adds no hash suffix. Repositories with the same normalized name share a channel. Knit checks for a matching announcement channel for each event and creates one when no match exists. Knit sets channel permissions from repository visibility and sets the topic from package metadata before it posts.
 

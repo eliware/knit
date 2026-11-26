@@ -1,3 +1,3 @@
 {
-  "help": "Knit 도움말을 표시합니다."
+  "help": "Knit은 서명된 GitHub 웹훅을 확인하고 승인된 워크플로를 SSH로 실행하며 Discord에 업데이트를 보냅니다. 설정 및 사용 안내는 https://github.com/eliware/knit/tree/main/docs에서 확인하세요."
 }

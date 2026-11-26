@@ -1,3 +1,3 @@
 {
-  "help": "Näyttää Knit-ohjeen."
+  "help": "Knit vahvistaa allekirjoitetut GitHub-webhookit, suorittaa hyväksytyt työnkulut SSH:n kautta ja lähettää päivityksiä Discordiin. Käyttöönotto- ja käyttöoppaat ovat osoitteessa https://github.com/eliware/knit/tree/main/docs."
 }

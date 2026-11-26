@@ -1,3 +1,3 @@
 {
-  "help": "แสดงวิธีใช้ Knit"
+  "help": "Knit ตรวจสอบ GitHub webhook ที่ลงลายเซ็น. Knit เรียกใช้เวิร์กโฟลว์ที่อนุมัติด้วย SSH. Knit ส่งการอัปเดตไป Discord. คู่มือการตั้งค่า: https://github.com/eliware/knit/tree/main/docs."
 }

@@ -1,3 +1,3 @@
 {
-  "help": "Hiển thị trợ giúp Knit."
+  "help": "Knit xác minh webhook GitHub có chữ ký, chạy quy trình đã được phê duyệt qua SSH và gửi cập nhật đến Discord. Xem hướng dẫn thiết lập và sử dụng tại https://github.com/eliware/knit/tree/main/docs."
 }

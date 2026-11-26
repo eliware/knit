@@ -6,6 +6,7 @@
 
 - Knit updates its development and command-line dependencies.
 - Knit preserves hyphens and converts encoded spaces in Discord embed text.
+- Knit provides complete localized help text and useful fallback messages for all 32 supported locales.
 
 ## 15.1.0 — 2026-11-11
 

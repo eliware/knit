@@ -1,3 +1,3 @@
 {
-  "help": "显示 Knit 帮助。"
+  "help": "Knit 会验证经过签名的 GitHub webhook，通过 SSH 运行获准的工作流，并向 Discord 发送更新。请访问 https://github.com/eliware/knit/tree/main/docs 查看设置和使用指南。"
 }

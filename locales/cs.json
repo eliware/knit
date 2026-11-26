@@ -1,3 +1,3 @@
 {
-  "help": "Zobrazí nápovědu Knit."
+  "help": "Knit ověřuje podepsané webhooky GitHubu, spouští schválené pracovní postupy přes SSH a posílá oznámení do Discordu. Návody k nastavení a používání najdete na https://github.com/eliware/knit/tree/main/docs."
 }
