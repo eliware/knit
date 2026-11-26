@@ -1,19 +1,21 @@
-import {
-  clearDiscordClient,
-  getNotifierState,
-  setChannelResolver,
-  setDiscordClient,
-} from "../../src/notifier/state.mjs";
-
+import __knitModule0 from "../../src/notifier/state.mjs";
+const { clearDiscordClient, getNotifierState, setChannelResolver, setDiscordClient } =
+  __knitModule0;
 test("stores and clears the Discord client and channel resolver", () => {
   const client = {};
   const otherClient = {};
   const resolver = () => "channel";
   setDiscordClient(client);
   setChannelResolver(resolver);
-  expect(getNotifierState()).toEqual({ discordClient: client, resolveRepositoryChannel: resolver });
+  expect(getNotifierState()).toEqual({
+    discordClient: client,
+    resolveRepositoryChannel: resolver,
+  });
   clearDiscordClient(otherClient);
-  expect(getNotifierState()).toEqual({ discordClient: client, resolveRepositoryChannel: resolver });
+  expect(getNotifierState()).toEqual({
+    discordClient: client,
+    resolveRepositoryChannel: resolver,
+  });
   clearDiscordClient(client);
   expect(getNotifierState()).toEqual({
     discordClient: undefined,
@@ -21,7 +23,6 @@ test("stores and clears the Discord client and channel resolver", () => {
   });
   clearDiscordClient();
 });
-
 test("clears only the registered Discord client", () => {
   const client = {};
   const otherClient = {};

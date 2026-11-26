@@ -1,16 +1,9 @@
 import { log as logger } from "@eliware/common";
-import * as Notifier from "./notifier/send.mjs";
-import { registerSpecializedHandlers } from "./specializedHandlers.mjs";
-
-/**
- * Creates the default event handler map.
- * @param {Object} [params]
- * @param {Object} [params.Notifier] - Injectable notifier module.
- * @returns {Map} Event handler map.
- */
-export function createRegistry({ Notifier: NotifierMod = Notifier } = {}) {
+import Notifier from "./notifier/send.mjs";
+import __knitModule0 from "./specializedHandlers.mjs";
+const { registerSpecializedHandlers } = __knitModule0;
+function createRegistry({ Notifier: NotifierMod = Notifier } = {}) {
   const handlers = new Map();
-
   return {
     register(event, handler) {
       if (!event || typeof handler !== "function")
@@ -21,7 +14,13 @@ export function createRegistry({ Notifier: NotifierMod = Notifier } = {}) {
     async dispatch({ event, post, target, deliveryId = null, log = logger }) {
       const handler = handlers.get(event) || handlers.get("*");
       if (!handler) return false;
-      return handler({ event, post, target, deliveryId, log });
+      return handler({
+        event,
+        post,
+        target,
+        deliveryId,
+        log,
+      });
     },
     has(event) {
       return handlers.has(event) || handlers.has("*");
@@ -32,15 +31,7 @@ export function createRegistry({ Notifier: NotifierMod = Notifier } = {}) {
     notifier: NotifierMod,
   };
 }
-
-/**
- * Creates a generic Discord notification handler for events without a specialized handler.
- * @param {Object} params
- * @param {Object} [params.Notifier] - Injectable notifier module.
- * @param {string} [params.eventName] - Optional fixed event name.
- * @returns {Function}
- */
-export function createGenericHandler({ Notifier: NotifierMod = Notifier, eventName } = {}) {
+function createGenericHandler({ Notifier: NotifierMod = Notifier, eventName } = {}) {
   return async ({ event, post, _target, log = logger }) => {
     if (!post?.repository?.full_name) return true;
     await NotifierMod.send({
@@ -53,11 +44,25 @@ export function createGenericHandler({ Notifier: NotifierMod = Notifier, eventNa
     return true;
   };
 }
-
-export function createDefaultRegistry({ Notifier: NotifierMod = Notifier } = {}) {
-  const registry = createRegistry({ Notifier: NotifierMod });
-  registerSpecializedHandlers(registry, { Notifier: NotifierMod });
-  return registry.register("*", createGenericHandler({ Notifier: NotifierMod }));
+function createDefaultRegistry({ Notifier: NotifierMod = Notifier } = {}) {
+  const registry = createRegistry({
+    Notifier: NotifierMod,
+  });
+  registerSpecializedHandlers(registry, {
+    Notifier: NotifierMod,
+  });
+  return registry.register(
+    "*",
+    createGenericHandler({
+      Notifier: NotifierMod,
+    }),
+  );
 }
-
-export const defaultRegistry = createDefaultRegistry();
+const defaultRegistry = createDefaultRegistry();
+export default createRegistry;
+Object.assign(createRegistry, {
+  createRegistry,
+  createGenericHandler,
+  createDefaultRegistry,
+  defaultRegistry,
+});

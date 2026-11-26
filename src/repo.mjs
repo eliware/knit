@@ -1,9 +1,13 @@
 import { log as logger } from "@eliware/common";
 import { sshExec as realSshExec } from "@eliware/ssh-client";
-import { runDeployments } from "./repo/deployments.mjs";
-import { isTagUpdate, notifyUpdate } from "./repoNotifications.mjs";
-export function createSshRepo({
-  config = { deployments: [] },
+import __knitModule0 from "./repo/deployments.mjs";
+import __knitModule1 from "./repoNotifications.mjs";
+const { runDeployments } = __knitModule0;
+const { isTagUpdate, notifyUpdate } = __knitModule1;
+function createSshRepo({
+  config = {
+    deployments: [],
+  },
   targets = {},
   packageJson,
   sshExec: injectedSshExec,
@@ -55,3 +59,7 @@ export function createSshRepo({
     },
   };
 }
+export default createSshRepo;
+Object.assign(createSshRepo, {
+  createSshRepo,
+});

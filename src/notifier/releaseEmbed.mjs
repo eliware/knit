@@ -1,6 +1,6 @@
-import { escapeDiscordMarkdown } from "./discordMarkdown.mjs";
-
-export function createReleaseEmbed(post) {
+import __knitModule0 from "./discordMarkdown.mjs";
+const { escapeDiscordMarkdown } = __knitModule0;
+function createReleaseEmbed(post) {
   const repository = post.repository?.full_name;
   const tag = post.ref.replace("refs/tags/", "");
   const name = escapeDiscordMarkdown(repository?.split("/").pop() || "Unknown Repository");
@@ -13,13 +13,23 @@ export function createReleaseEmbed(post) {
     url,
     color: 0xffd700,
     timestamp: new Date().toISOString(),
-    thumbnail: { url: "https://eliware.org/logos/eliware_64.png" },
-    footer: { text: "GitHub Tag Push Event" },
+    thumbnail: {
+      url: "https://eliware.org/logos/eliware_64.png",
+    },
+    footer: {
+      text: "GitHub Tag Push Event",
+    },
   };
   const icon = post.sender?.avatar_url || post.repository?.owner?.avatar_url;
-  const author = { name: escapeDiscordMarkdown(post.pusher?.name || "unknown") };
+  const author = {
+    name: escapeDiscordMarkdown(post.pusher?.name || "unknown"),
+  };
   if (icon) author.icon_url = icon;
   if (post.pusher?.name) author.url = `https://github.com/${encodeURIComponent(post.pusher.name)}`;
   embed.author = author;
   return embed;
 }
+export default createReleaseEmbed;
+Object.assign(createReleaseEmbed, {
+  createReleaseEmbed,
+});

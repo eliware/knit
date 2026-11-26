@@ -1,21 +1,48 @@
 import { jest } from "@jest/globals";
 import { log as logger } from "@eliware/common";
-import { repositoryName, resolveEventTarget } from "../src/eventRouter.mjs";
-import { get } from "../src/repositoryLoader.mjs";
-
+import __knitModule0 from "../src/eventRouter.mjs";
+import __knitModule1 from "../src/repositoryLoader.mjs";
+const { repositoryName, resolveEventTarget } = __knitModule0;
+const { get } = __knitModule1;
 describe("eventRouter", () => {
   test("extracts repository names", () => {
-    expect(repositoryName({ repository: { full_name: "eliware/knit" } })).toBe("eliware/knit");
-    expect(repositoryName({ repository: {} })).toBeNull();
+    expect(
+      repositoryName({
+        repository: {
+          full_name: "eliware/knit",
+        },
+      }),
+    ).toBe("eliware/knit");
+    expect(
+      repositoryName({
+        repository: {},
+      }),
+    ).toBeNull();
     expect(repositoryName()).toBeNull();
   });
-
   test("routes repository events with the webhook body", async () => {
-    const repo = { update: jest.fn() };
-    const RepoMod = { get: jest.fn().mockResolvedValue(repo) };
-    const targetLoader = { load: jest.fn() };
-    const post = { after: "a".repeat(40), repository: { full_name: "eliware/knit" } };
-    await expect(resolveEventTarget({ post, RepoMod, targetLoader })).resolves.toEqual({
+    const repo = {
+      update: jest.fn(),
+    };
+    const RepoMod = {
+      get: jest.fn().mockResolvedValue(repo),
+    };
+    const targetLoader = {
+      load: jest.fn(),
+    };
+    const post = {
+      after: "a".repeat(40),
+      repository: {
+        full_name: "eliware/knit",
+      },
+    };
+    await expect(
+      resolveEventTarget({
+        post,
+        RepoMod,
+        targetLoader,
+      }),
+    ).resolves.toEqual({
       kind: "repository",
       name: "eliware/knit",
       repo,
@@ -29,23 +56,39 @@ describe("eventRouter", () => {
       log: logger,
     });
   });
-
   test("resolves non-push events without loading a deployment workflow", async () => {
-    const targetLoader = { load: jest.fn().mockReturnValue({ targets: {} }) };
+    const targetLoader = {
+      load: jest.fn().mockReturnValue({
+        targets: {},
+      }),
+    };
     const workflowLoader = jest.fn();
     const RepoMod = {
-      get: (options) => get({ ...options, targetLoader, workflowLoader }),
+      get: (options) =>
+        get({
+          ...options,
+          targetLoader,
+          workflowLoader,
+        }),
     };
-    const post = { repository: { full_name: "eliware/knit" } };
-
-    await expect(resolveEventTarget({ post, event: "issues", RepoMod })).resolves.toMatchObject({
+    const post = {
+      repository: {
+        full_name: "eliware/knit",
+      },
+    };
+    await expect(
+      resolveEventTarget({
+        post,
+        event: "issues",
+        RepoMod,
+      }),
+    ).resolves.toMatchObject({
       kind: "repository",
       name: "eliware/knit",
       ignored: false,
     });
     expect(workflowLoader).not.toHaveBeenCalled();
   });
-
   test("rejects events without a repository instead of using a fallback", async () => {
     await expect(resolveEventTarget({})).resolves.toEqual({
       kind: "organization",

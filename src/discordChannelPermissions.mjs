@@ -1,4 +1,4 @@
-export async function syncChannelPermissions(channel, guild, privateRepository) {
+async function syncChannelPermissions(channel, guild, privateRepository) {
   if (!channel.permissionOverwrites?.edit || !guild.roles?.everyone?.id)
     throw new Error("Repository channel permissions cannot be synchronized");
   await channel.permissionOverwrites.edit(guild.roles.everyone.id, {
@@ -9,3 +9,7 @@ export async function syncChannelPermissions(channel, guild, privateRepository) 
     CreatePrivateThreads: false,
   });
 }
+export default syncChannelPermissions;
+Object.assign(syncChannelPermissions, {
+  syncChannelPermissions,
+});

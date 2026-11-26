@@ -1,5 +1,5 @@
-import { channelName } from "../src/discordChannelName.mjs";
-
+import __knitModule0 from "../src/discordChannelName.mjs";
+const { channelName } = __knitModule0;
 test("normalizes repository names and requires an owner and repository", () => {
   expect(channelName("eliware/agentx-cli")).toBe("agentx-cli");
   expect(channelName("eliware/eliware.org")).toBe("eliwareorg");

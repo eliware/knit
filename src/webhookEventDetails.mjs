@@ -1,4 +1,4 @@
-export function projectWebhookEventDetails({ data, event, deliveryId }) {
+function projectWebhookEventDetails({ data, event, deliveryId }) {
   return {
     event,
     deliveryId,
@@ -14,3 +14,7 @@ export function projectWebhookEventDetails({ data, event, deliveryId }) {
     conclusion: data?.workflow_run?.conclusion || data?.workflow_job?.conclusion || null,
   };
 }
+export default projectWebhookEventDetails;
+Object.assign(projectWebhookEventDetails, {
+  projectWebhookEventDetails,
+});

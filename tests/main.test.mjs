@@ -1,86 +1,109 @@
 import { jest } from "@jest/globals";
-
 describe("main.mjs", () => {
-  const log = { info: jest.fn(), debug: jest.fn(), error: jest.fn() };
+  const log = {
+    info: jest.fn(),
+    debug: jest.fn(),
+    error: jest.fn(),
+  };
   const createApp = jest.fn();
   const startApp = jest.fn();
-  const errorHandlers = { removeHandlers: jest.fn() };
+  const errorHandlers = {
+    removeHandlers: jest.fn(),
+  };
   const registerHandlers = jest.fn(() => errorHandlers);
   const registerSignals = jest.fn();
   const startDiscordClient = jest.fn().mockResolvedValue(null);
   const stopDiscordClient = jest.fn().mockResolvedValue(undefined);
   const validateAll = jest.fn().mockResolvedValue(true);
-
   beforeAll(async () => {
-    jest.unstable_mockModule("@eliware/common", () => ({ log, registerHandlers, registerSignals }));
-    jest.unstable_mockModule("../src/app.mjs", () => ({ createApp }));
-    jest.unstable_mockModule("../src/server.mjs", () => ({ startApp }));
+    jest.unstable_mockModule("@eliware/common", () => ({
+      log,
+      registerHandlers,
+      registerSignals,
+    }));
+    jest.unstable_mockModule("../src/app.mjs", () => ({
+      default: Object.assign(createApp, { createApp }),
+    }));
+    jest.unstable_mockModule("../src/server.mjs", () => ({
+      default: Object.assign(startApp, { startApp }),
+    }));
     jest.unstable_mockModule("../src/discordClient.mjs", () => ({
-      startDiscordClient,
-      stopDiscordClient,
+      default: Object.assign(startDiscordClient, { startDiscordClient, stopDiscordClient }),
     }));
     jest.unstable_mockModule("../src/targetLoader.mjs", () => ({
-      defaultTargetLoader: { validateAll },
+      default: Object.assign(jest.fn(), {
+        defaultTargetLoader: {
+          validateAll,
+        },
+      }),
     }));
     process.env.NODE_ENV = "test";
     await import("../src/main.mjs");
   });
-
   test("registers process handlers and main starts the service", async () => {
-    const server = { close: jest.fn() };
+    const server = {
+      close: jest.fn(),
+    };
     const app = {};
     createApp.mockResolvedValue(app);
     startApp.mockReturnValue(server);
-    const { main } = await import("../src/main.mjs");
-
+    const { default: mainModule } = await import("../src/main.mjs");
+    const { main } = mainModule;
     await main();
-
-    expect(registerHandlers).toHaveBeenCalledWith({ log });
-    expect(registerSignals).toHaveBeenCalledWith({ log });
+    expect(registerHandlers).toHaveBeenCalledWith({
+      log,
+    });
+    expect(registerSignals).toHaveBeenCalledWith({
+      log,
+    });
     expect(log.info).toHaveBeenCalledWith("Knit is starting...");
-    expect(createApp).toHaveBeenCalledWith({ log });
-    expect(startDiscordClient).toHaveBeenCalledWith({ log });
-    expect(startApp).toHaveBeenCalledWith({ appInstance: app, log });
-    expect(registerSignals).toHaveBeenCalledWith({ log, shutdownHook: expect.any(Function) });
+    expect(createApp).toHaveBeenCalledWith({
+      log,
+    });
+    expect(startDiscordClient).toHaveBeenCalledWith({
+      log,
+    });
+    expect(startApp).toHaveBeenCalledWith({
+      appInstance: app,
+      log,
+    });
+    expect(registerSignals).toHaveBeenCalledWith({
+      log,
+      shutdownHook: expect.any(Function),
+    });
     await registerSignals.mock.calls.at(-1)?.[0].shutdownHook?.();
     expect(server.close).toHaveBeenCalled();
     expect(stopDiscordClient).toHaveBeenCalledWith(null);
     expect(errorHandlers.removeHandlers).toHaveBeenCalled();
   });
-
   test("starts automatically outside test mode", async () => {
     process.env.NODE_ENV = "production";
     createApp.mockResolvedValue({});
-    startApp.mockReturnValue({ close: jest.fn() });
-
+    startApp.mockReturnValue({
+      close: jest.fn(),
+    });
     await import("../src/main.mjs?startup");
-
     expect(log.info).toHaveBeenCalledWith("Knit is starting...");
     process.env.NODE_ENV = "test";
   });
-
   test("main propagates startup errors", async () => {
     const error = new Error("boom");
     createApp.mockRejectedValue(error);
-    await expect((await import("../src/main.mjs")).main()).rejects.toBe(error);
+    await expect((await import("../src/main.mjs")).default.main()).rejects.toBe(error);
   });
-
   test("main rejects invalid configuration before external startup", async () => {
     validateAll.mockResolvedValueOnce(false);
     startDiscordClient.mockClear();
-    await expect((await import("../src/main.mjs")).main()).rejects.toThrow(
+    await expect((await import("../src/main.mjs")).default.main()).rejects.toThrow(
       "Knit target configuration validation failed",
     );
     expect(startDiscordClient).not.toHaveBeenCalled();
   });
-
   test("start logs failures and exits", async () => {
     const error = new Error("boom");
     createApp.mockRejectedValue(error);
     const exit = jest.spyOn(process, "exit").mockImplementation(() => undefined);
-
-    await (await import("../src/main.mjs")).start();
-
+    await (await import("../src/main.mjs")).default.start();
     expect(log.error).toHaveBeenCalledWith("Knit could not start:", error);
     expect(exit).toHaveBeenCalledWith(1);
     exit.mockRestore();

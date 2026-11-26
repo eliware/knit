@@ -1,7 +1,7 @@
 import { redactText } from "@eliware/common";
-import { resolveConsumerTarget } from "./consumerRouting.mjs";
-
-export async function processRepositoryPush({ post, deliveryId, log, RepoMod, RouterMod }) {
+import __knitModule0 from "./consumerRouting.mjs";
+const { resolveConsumerTarget } = __knitModule0;
+async function processRepositoryPush({ post, deliveryId, log, RepoMod, RouterMod }) {
   const context = {
     repository: post?.repository?.full_name || null,
     ref: post?.ref || null,
@@ -9,13 +9,20 @@ export async function processRepositoryPush({ post, deliveryId, log, RepoMod, Ro
   };
   const startedAt = Date.now();
   let stage = "target_lookup";
-
   if (context.repository) {
-    log.info("[Consumer] Repository update started", { ...context, stage });
+    log.info("[Consumer] Repository update started", {
+      ...context,
+      stage,
+    });
   }
-
   try {
-    const target = await resolveConsumerTarget({ RouterMod, RepoMod, post, event: "push", log });
+    const target = await resolveConsumerTarget({
+      RouterMod,
+      RepoMod,
+      post,
+      event: "push",
+      log,
+    });
     if (target.ignored) {
       if (target.kind === "repository") {
         log.error("[Consumer] Repository update failed", {
@@ -26,11 +33,17 @@ export async function processRepositoryPush({ post, deliveryId, log, RepoMod, Ro
       } else {
         log.info("[Consumer] Event ignored: no configured target", target.name);
       }
-      return { type: "ignored-target" };
+      return {
+        type: "ignored-target",
+      };
     }
-
     stage = post?.ref?.startsWith("refs/tags/") ? "tag_notice" : "deployment";
-    const result = await target.repo.update({ body: post, event: "push", deliveryId, log });
+    const result = await target.repo.update({
+      body: post,
+      event: "push",
+      deliveryId,
+      log,
+    });
     const message = result
       ? "[Consumer] Repository update completed"
       : "[Consumer] Repository update failed";
@@ -39,7 +52,10 @@ export async function processRepositoryPush({ post, deliveryId, log, RepoMod, Ro
       stage,
       durationMs: Date.now() - startedAt,
     });
-    return { type: "push", result };
+    return {
+      type: "push",
+      result,
+    };
   } catch (error) {
     log.error("[Consumer] Repository update failed", {
       ...context,
@@ -47,8 +63,16 @@ export async function processRepositoryPush({ post, deliveryId, log, RepoMod, Ro
       durationMs: Date.now() - startedAt,
       errorName: error.name,
       errorCode: error?.code ?? null,
-      error: redactText(error.message, { maxOutputLength: 300 }),
+      error: redactText(error.message, {
+        maxOutputLength: 300,
+      }),
     });
-    return { type: "processing-error" };
+    return {
+      type: "processing-error",
+    };
   }
 }
+export default processRepositoryPush;
+Object.assign(processRepositoryPush, {
+  processRepositoryPush,
+});

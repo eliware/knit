@@ -1,9 +1,13 @@
 import { log as logger } from "@eliware/common";
-import { channelName } from "./discordChannelName.mjs";
-import { syncChannelPermissions } from "./discordChannelPermissions.mjs";
-import { provisionAnnouncementChannel } from "./discordChannelProvisioning.mjs";
-import { syncChannelTopic } from "./discordChannelTopic.mjs";
-export function createChannelResolver({ client, guildId, log = logger } = {}) {
+import __knitModule0 from "./discordChannelName.mjs";
+import __knitModule1 from "./discordChannelPermissions.mjs";
+import __knitModule2 from "./discordChannelProvisioning.mjs";
+import __knitModule3 from "./discordChannelTopic.mjs";
+const { channelName } = __knitModule0;
+const { syncChannelPermissions } = __knitModule1;
+const { provisionAnnouncementChannel } = __knitModule2;
+const { syncChannelTopic } = __knitModule3;
+function createChannelResolver({ client, guildId, log = logger } = {}) {
   if (!client || !guildId) throw new Error("Discord client and guild ID are required");
   return async function resolveChannel({
     repository,
@@ -24,3 +28,7 @@ export function createChannelResolver({ client, guildId, log = logger } = {}) {
     return channel.id;
   };
 }
+export default createChannelResolver;
+Object.assign(createChannelResolver, {
+  createChannelResolver,
+});

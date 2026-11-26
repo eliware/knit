@@ -1,28 +1,39 @@
 import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
-import { consume } from "../src/consumer.mjs";
-import { setPresenceManager } from "../src/presenceManager.mjs";
 import { createConsumerHarness } from "../test-fixtures/consumerHarness.mjs";
-
+import __knitModule0 from "../src/consumer.mjs";
+import __knitModule1 from "../src/presenceManager.mjs";
+const { consume } = __knitModule0;
+const { setPresenceManager } = __knitModule1;
 let log;
 let Repo;
 let GitHub;
 let Router;
 let Handlers;
 let message;
-
 beforeEach(() => {
   jest.clearAllMocks();
   ({ log, Repo, GitHub, Router, Handlers, message } = createConsumerHarness());
   message.parsed.ref = "refs/heads/main";
   setPresenceManager(null);
 });
-
 test("logs a repository target lookup failure", async () => {
-  const target = { ignored: true, kind: "repository", name: "foo" };
+  const target = {
+    ignored: true,
+    kind: "repository",
+    name: "foo",
+  };
   Router.resolveEventTarget.mockResolvedValue(target);
-
-  await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
+  await expect(
+    consume({
+      message,
+      log,
+      Repo,
+      GitHub,
+      Router,
+      Handlers,
+    }),
+  ).resolves.toBe(false);
   expect(Router.resolveEventTarget).toHaveBeenCalledWith({
     post: message.parsed,
     event: "push",
@@ -40,27 +51,52 @@ test("logs a repository target lookup failure", async () => {
     }),
   );
 });
-
 test("marks an unmatched tag as neutral", async () => {
-  const presence = { begin: jest.fn(), neutral: jest.fn(), terminal: jest.fn(), end: jest.fn() };
+  const presence = {
+    begin: jest.fn(),
+    neutral: jest.fn(),
+    terminal: jest.fn(),
+    end: jest.fn(),
+  };
   setPresenceManager(presence);
   message.parsed.ref = "refs/tags/v15.0.1";
-  Router.resolveEventTarget.mockResolvedValue({ ignored: true, kind: "repository", name: "foo" });
-
-  await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(true);
+  Router.resolveEventTarget.mockResolvedValue({
+    ignored: true,
+    kind: "repository",
+    name: "foo",
+  });
+  await expect(
+    consume({
+      message,
+      log,
+      Repo,
+      GitHub,
+      Router,
+      Handlers,
+    }),
+  ).resolves.toBe(true);
   expect(presence.neutral).toHaveBeenCalledWith("foo ignored", "delivery-1");
   expect(presence.terminal).not.toHaveBeenCalled();
 });
-
 test("marks successful tag notices without reporting a deployment stage", async () => {
   message.parsed.ref = "refs/tags/v15.0.1";
   Router.resolveEventTarget.mockResolvedValue({
     ignored: false,
-    repo: { update: jest.fn().mockResolvedValue(true) },
+    repo: {
+      update: jest.fn().mockResolvedValue(true),
+    },
     name: "foo",
   });
-
-  await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(true);
+  await expect(
+    consume({
+      message,
+      log,
+      Repo,
+      GitHub,
+      Router,
+      Handlers,
+    }),
+  ).resolves.toBe(true);
   expect(log.info).toHaveBeenCalledWith(
     "[Consumer] Repository update completed",
     expect.objectContaining({
@@ -70,7 +106,6 @@ test("marks successful tag notices without reporting a deployment stage", async 
     }),
   );
 });
-
 test.each([
   [false, "push"],
   [true, "push"],
@@ -81,11 +116,21 @@ test.each([
   const update = jest.fn().mockResolvedValue(updated);
   Router.resolveEventTarget.mockResolvedValue({
     ignored: false,
-    repo: { update },
+    repo: {
+      update,
+    },
     name: "foo",
   });
-
-  await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(updated);
+  await expect(
+    consume({
+      message,
+      log,
+      Repo,
+      GitHub,
+      Router,
+      Handlers,
+    }),
+  ).resolves.toBe(updated);
   expect(update).toHaveBeenCalledWith({
     body: message.parsed,
     event: "push",
@@ -109,13 +154,24 @@ test.each([
     }),
   );
 });
-
 test("reports route exceptions as terminal failures", async () => {
-  const presence = { begin: jest.fn(), terminal: jest.fn(), end: jest.fn() };
+  const presence = {
+    begin: jest.fn(),
+    terminal: jest.fn(),
+    end: jest.fn(),
+  };
   setPresenceManager(presence);
   Router.resolveEventTarget.mockRejectedValue(new Error("Authorization: Bearer sample-token"));
-
-  await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
+  await expect(
+    consume({
+      message,
+      log,
+      Repo,
+      GitHub,
+      Router,
+      Handlers,
+    }),
+  ).resolves.toBe(false);
   expect(log.error).toHaveBeenCalledWith(
     "[Consumer] Repository update failed",
     expect.objectContaining({
@@ -128,22 +184,35 @@ test("reports route exceptions as terminal failures", async () => {
   expect(presence.terminal).toHaveBeenCalledWith("foo failure", true, "delivery-1");
   expect(presence.end).toHaveBeenCalled();
 });
-
 test("logs an SSH error code when repository updates reject", async () => {
-  const error = Object.assign(new Error("connection reset"), { code: "ECONNRESET" });
+  const error = Object.assign(new Error("connection reset"), {
+    code: "ECONNRESET",
+  });
   Router.resolveEventTarget.mockResolvedValue({
     ignored: false,
-    repo: { update: jest.fn().mockRejectedValue(error) },
+    repo: {
+      update: jest.fn().mockRejectedValue(error),
+    },
     name: "foo",
   });
-
-  await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
+  await expect(
+    consume({
+      message,
+      log,
+      Repo,
+      GitHub,
+      Router,
+      Handlers,
+    }),
+  ).resolves.toBe(false);
   expect(log.error).toHaveBeenCalledWith(
     "[Consumer] Repository update failed",
-    expect.objectContaining({ errorCode: "ECONNRESET", stage: "deployment" }),
+    expect.objectContaining({
+      errorCode: "ECONNRESET",
+      stage: "deployment",
+    }),
   );
 });
-
 test("does not route an organization push to a fallback repository", async () => {
   message.parsed = {};
   Router.resolveEventTarget.mockResolvedValue({
@@ -151,21 +220,46 @@ test("does not route an organization push to a fallback repository", async () =>
     kind: "organization",
     name: null,
   });
-
-  await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
+  await expect(
+    consume({
+      message,
+      log,
+      Repo,
+      GitHub,
+      Router,
+      Handlers,
+    }),
+  ).resolves.toBe(false);
   expect(Handlers.dispatch).not.toHaveBeenCalled();
 });
-
 test("supports requests without a delivery ID", async () => {
   delete message.deliveryId;
-  const presence = { begin: jest.fn(), terminal: jest.fn(), end: jest.fn() };
+  const presence = {
+    begin: jest.fn(),
+    terminal: jest.fn(),
+    end: jest.fn(),
+  };
   setPresenceManager(presence);
-  Router.resolveEventTarget.mockResolvedValue({ ignored: true, kind: "repository", name: "foo" });
-
-  await expect(consume({ message, log, Repo, GitHub, Router, Handlers })).resolves.toBe(false);
+  Router.resolveEventTarget.mockResolvedValue({
+    ignored: true,
+    kind: "repository",
+    name: "foo",
+  });
+  await expect(
+    consume({
+      message,
+      log,
+      Repo,
+      GitHub,
+      Router,
+      Handlers,
+    }),
+  ).resolves.toBe(false);
   expect(presence.begin).toHaveBeenCalledWith("foo", null);
   expect(log.info).toHaveBeenCalledWith(
     "[Consumer] Repository update started",
-    expect.objectContaining({ deliveryId: null }),
+    expect.objectContaining({
+      deliveryId: null,
+    }),
   );
 });

@@ -1,12 +1,19 @@
 import { jest } from "@jest/globals";
-import { readLandingPageTemplate } from "../../src/landing-page/template-reader.mjs";
-
+import __knitModule0 from "../../src/landing-page/template-reader.mjs";
+const { readLandingPageTemplate } = __knitModule0;
 test("reads the landing page template as UTF-8", () => {
   const readFileSync = jest.fn().mockReturnValue("<main>{{VERSION}}</main>");
-
-  expect(readLandingPageTemplate({ fsModule: { readFileSync } })).toBe("<main>{{VERSION}}</main>");
+  expect(
+    readLandingPageTemplate({
+      fsModule: {
+        readFileSync,
+      },
+    }),
+  ).toBe("<main>{{VERSION}}</main>");
   expect(readFileSync).toHaveBeenCalledWith(
-    expect.objectContaining({ pathname: expect.stringMatching(/\/assets\/landing-page\.html$/u) }),
+    expect.objectContaining({
+      pathname: expect.stringMatching(/\/assets\/landing-page\.html$/u),
+    }),
     "utf8",
   );
 });

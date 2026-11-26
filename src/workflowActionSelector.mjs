@@ -1,4 +1,4 @@
-export function selectWorkflowAction({ config, post = {} } = {}) {
+function selectWorkflowAction({ config, post = {} } = {}) {
   if (post.ref?.startsWith("refs/tags/")) {
     const tag = post.ref.slice("refs/tags/".length);
     const versionTag = /^v\d+\.\d+\.\d+$/.test(tag);
@@ -9,3 +9,7 @@ export function selectWorkflowAction({ config, post = {} } = {}) {
   }
   return config.on.push;
 }
+export default selectWorkflowAction;
+Object.assign(selectWorkflowAction, {
+  selectWorkflowAction,
+});

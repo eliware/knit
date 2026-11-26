@@ -7,7 +7,7 @@ import { log as logger } from "@eliware/common";
  * @param {Object} [params.log] - Logger instance to use.
  * @returns {boolean} True if valid, false if invalid.
  */
-export function validate({ post, event = "push", log = logger }) {
+function validate({ post, event = "push", log = logger }) {
   if (!post || typeof post !== "object") {
     log.error("GitHub::validate post not set", post);
     return false;
@@ -18,3 +18,7 @@ export function validate({ post, event = "push", log = logger }) {
   }
   return true;
 }
+export default validate;
+Object.assign(validate, {
+  validate,
+});

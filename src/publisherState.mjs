@@ -1,28 +1,42 @@
-import { clearPublisherQueue, getPendingPublisherTasks } from "./publisherQueue.mjs";
-
+import __knitModule0 from "./publisherQueue.mjs";
+const { clearPublisherQueue, getPendingPublisherTasks } = __knitModule0;
 let processing = false;
-const metrics = { queued: 0, processed: 0, succeeded: 0, failed: 0, retried: 0, duplicates: 0 };
-
-export function recordPublisherMetric(name) {
+const metrics = {
+  queued: 0,
+  processed: 0,
+  succeeded: 0,
+  failed: 0,
+  retried: 0,
+  duplicates: 0,
+};
+function recordPublisherMetric(name) {
   metrics[name] += 1;
 }
-
-export function isPublisherProcessing() {
+function isPublisherProcessing() {
   return processing;
 }
-
-export function setPublisherProcessing(value) {
+function setPublisherProcessing(value) {
   processing = value;
 }
-
-export function getPublisherMetrics() {
-  return { ...metrics, pending: getPendingPublisherTasks(), processing };
+function getPublisherMetrics() {
+  return {
+    ...metrics,
+    pending: getPendingPublisherTasks(),
+    processing,
+  };
 }
-
-export function _resetPublisherState() {
+function _resetPublisherState() {
   clearPublisherQueue();
   processing = false;
   Object.keys(metrics).forEach((key) => {
     metrics[key] = 0;
   });
 }
+export default recordPublisherMetric;
+Object.assign(recordPublisherMetric, {
+  recordPublisherMetric,
+  isPublisherProcessing,
+  setPublisherProcessing,
+  getPublisherMetrics,
+  _resetPublisherState,
+});

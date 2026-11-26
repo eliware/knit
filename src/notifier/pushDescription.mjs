@@ -1,9 +1,9 @@
-import { escapeDiscordLinkTarget, escapeDiscordMarkdown } from "./discordMarkdown.mjs";
-import { appendErrorLog } from "./errorLog.mjs";
-
+import __knitModule0 from "./discordMarkdown.mjs";
+import __knitModule1 from "./errorLog.mjs";
+const { escapeDiscordLinkTarget, escapeDiscordMarkdown } = __knitModule0;
+const { appendErrorLog } = __knitModule1;
 const COMMIT_DESCRIPTION_LIMIT = 1800;
-
-export function createPushDescription({ post, logOutput, hasError }) {
+function createPushDescription({ post, logOutput, hasError }) {
   const branch = escapeDiscordMarkdown(post.ref?.replace(/^refs\/heads\//, "") || "unknown");
   let description = `Branch: **${branch}** - Commits: **${post.commits.length}**\n`;
   for (const commit of post.commits) {
@@ -17,3 +17,7 @@ export function createPushDescription({ post, logOutput, hasError }) {
   if (hasError && logOutput) description = appendErrorLog(description, logOutput);
   return description.trim();
 }
+export default createPushDescription;
+Object.assign(createPushDescription, {
+  createPushDescription,
+});

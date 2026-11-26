@@ -1,4 +1,4 @@
-export function channelName(repository) {
+function channelName(repository) {
   if (!/^[^/]+\/[^/]+$/.test(repository || ""))
     throw new Error("Repository is required to resolve a Discord channel");
   const name = repository
@@ -10,3 +10,7 @@ export function channelName(repository) {
   if (name.length > 100) throw new Error("Repository name exceeds the Discord channel name limit");
   return name;
 }
+export default channelName;
+Object.assign(channelName, {
+  channelName,
+});

@@ -1,11 +1,19 @@
-import { applyMessageStatus } from "../../src/notifier/messageStatus.mjs";
-
+import __knitModule0 from "../../src/notifier/messageStatus.mjs";
+const { applyMessageStatus } = __knitModule0;
 test("adds success status to a message title", () => {
-  const message = { title: "Deploy" };
-  expect(applyMessageStatus(message, false)).toEqual({ title: "✅ Deploy" });
+  const message = {
+    title: "Deploy",
+  };
+  expect(applyMessageStatus(message, false)).toEqual({
+    title: "✅ Deploy",
+  });
 });
-
 test("adds error status and color to a message", () => {
-  const message = { title: "Deploy" };
-  expect(applyMessageStatus(message, true)).toEqual({ title: "❌ Error: Deploy", color: 0xff0000 });
+  const message = {
+    title: "Deploy",
+  };
+  expect(applyMessageStatus(message, true)).toEqual({
+    title: "❌ Error: Deploy",
+    color: 0xff0000,
+  });
 });

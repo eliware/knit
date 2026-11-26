@@ -1,12 +1,27 @@
 import { jest } from "@jest/globals";
-import { resolveConsumerTarget } from "../src/consumerRouting.mjs";
-
+import __knitModule0 from "../src/consumerRouting.mjs";
+const { resolveConsumerTarget } = __knitModule0;
 test("forwards the repository target loader when it exists", async () => {
-  const targetLoader = { load: jest.fn() };
-  const RouterMod = { resolveEventTarget: jest.fn().mockResolvedValue({ name: "repo" }) };
-  const RepoMod = { targetLoader };
+  const targetLoader = {
+    load: jest.fn(),
+  };
+  const RouterMod = {
+    resolveEventTarget: jest.fn().mockResolvedValue({
+      name: "repo",
+    }),
+  };
+  const RepoMod = {
+    targetLoader,
+  };
   const log = {};
-  await expect(resolveConsumerTarget({ RouterMod, RepoMod, post: {}, log })).resolves.toEqual({
+  await expect(
+    resolveConsumerTarget({
+      RouterMod,
+      RepoMod,
+      post: {},
+      log,
+    }),
+  ).resolves.toEqual({
     name: "repo",
   });
   expect(RouterMod.resolveEventTarget).toHaveBeenCalledWith({
@@ -17,10 +32,16 @@ test("forwards the repository target loader when it exists", async () => {
     targetLoader,
   });
 });
-
 test("does not add a missing target loader", async () => {
-  const RouterMod = { resolveEventTarget: jest.fn().mockResolvedValue(null) };
-  await resolveConsumerTarget({ RouterMod, RepoMod: {}, post: {}, log: {} });
+  const RouterMod = {
+    resolveEventTarget: jest.fn().mockResolvedValue(null),
+  };
+  await resolveConsumerTarget({
+    RouterMod,
+    RepoMod: {},
+    post: {},
+    log: {},
+  });
   expect(RouterMod.resolveEventTarget).toHaveBeenCalledWith({
     post: {},
     event: "push",
@@ -28,10 +49,17 @@ test("does not add a missing target loader", async () => {
     log: {},
   });
 });
-
 test("forwards non-push events to target resolution", async () => {
-  const RouterMod = { resolveEventTarget: jest.fn().mockResolvedValue(null) };
-  await resolveConsumerTarget({ RouterMod, RepoMod: {}, post: {}, event: "issues", log: {} });
+  const RouterMod = {
+    resolveEventTarget: jest.fn().mockResolvedValue(null),
+  };
+  await resolveConsumerTarget({
+    RouterMod,
+    RepoMod: {},
+    post: {},
+    event: "issues",
+    log: {},
+  });
   expect(RouterMod.resolveEventTarget).toHaveBeenCalledWith({
     post: {},
     event: "issues",

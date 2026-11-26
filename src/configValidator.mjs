@@ -1,10 +1,9 @@
 import { log as logger } from "@eliware/common";
-
 const string = (value) => typeof value === "string" && value.length > 0;
 const commands = (value) => Array.isArray(value) && value.length > 0 && value.every(string);
 const timeout = (value) =>
   value === undefined || (Number.isInteger(value) && value > 0 && value <= 300000);
-export function validateWorkflow({ config, log = logger }) {
+function validateWorkflow({ config, log = logger }) {
   const validDeployment = (deployment) =>
     typeof deployment === "object" &&
     string(deployment.target) &&
@@ -28,3 +27,7 @@ export function validateWorkflow({ config, log = logger }) {
   if (!valid) log.error("ConfigValidator::validateWorkflow failed: invalid .knit/deploy.yaml");
   return valid;
 }
+export default validateWorkflow;
+Object.assign(validateWorkflow, {
+  validateWorkflow,
+});

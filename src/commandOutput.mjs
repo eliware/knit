@@ -1,4 +1,4 @@
-export function formatCommandOutput({ cmd, stdout, stderr, exitCode }) {
+function formatCommandOutput({ cmd, stdout, stderr, exitCode }) {
   const statusSymbol = exitCode === 0 ? "✅ " : "❌ ";
   let output = statusSymbol + cmd + "\n";
   if (stdout) output += stdout.trim() + "\n";
@@ -6,3 +6,7 @@ export function formatCommandOutput({ cmd, stdout, stderr, exitCode }) {
   if (exitCode !== 0) output += `Exit Code: ${exitCode}\n\n`;
   return output;
 }
+export default formatCommandOutput;
+Object.assign(formatCommandOutput, {
+  formatCommandOutput,
+});

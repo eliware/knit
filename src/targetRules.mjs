@@ -1,6 +1,5 @@
 const string = (value) => typeof value === "string" && value.length > 0;
-
-export function isValidTarget(target) {
+function isValidTarget(target) {
   return Boolean(
     target &&
     string(target.host) &&
@@ -10,3 +9,7 @@ export function isValidTarget(target) {
     string(target.hostCa),
   );
 }
+export default isValidTarget;
+Object.assign(isValidTarget, {
+  isValidTarget,
+});

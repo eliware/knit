@@ -8,7 +8,7 @@ import { log as logger } from "@eliware/common";
  * @param {Object} [params.log] - Logger instance to use.
  * @returns {Promise<string>} The stdout from git add.
  */
-export function add({ filePath, log = logger, execFile = realExecFile }) {
+function add({ filePath, log = logger, execFile = realExecFile }) {
   return new Promise((resolve, reject) => {
     execFile("git", ["add", "--", filePath], (error, stdout, stderr) => {
       if (error) {
@@ -21,15 +21,7 @@ export function add({ filePath, log = logger, execFile = realExecFile }) {
     });
   });
 }
-
-/**
- * Commits staged changes with a message.
- * @param {Object} params
- * @param {string} params.message - The commit message.
- * @param {Object} [params.log] - Logger instance to use.
- * @returns {Promise<string>} The stdout from git commit.
- */
-export function commit({ message, log = logger, execFile = realExecFile }) {
+function commit({ message, log = logger, execFile = realExecFile }) {
   return new Promise((resolve, reject) => {
     execFile("git", ["commit", "--quiet", "-m", message], (error, stdout, stderr) => {
       if (error) {
@@ -42,12 +34,7 @@ export function commit({ message, log = logger, execFile = realExecFile }) {
     });
   });
 }
-
-/**
- * Pushes committed changes to the remote repository.
- * @returns {Promise<string>} The stdout from git push.
- */
-export function push({ execFile = realExecFile } = {}) {
+function push({ execFile = realExecFile } = {}) {
   return new Promise((resolve, reject) => {
     execFile("git", ["push", "--quiet"], (error, stdout, stderr) => {
       if (error) {
@@ -58,3 +45,9 @@ export function push({ execFile = realExecFile } = {}) {
     });
   });
 }
+export default add;
+Object.assign(add, {
+  add,
+  commit,
+  push,
+});

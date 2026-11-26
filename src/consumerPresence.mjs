@@ -1,4 +1,4 @@
-export async function finishConsumerPresence({
+async function finishConsumerPresence({
   presence,
   text,
   deliveryId,
@@ -17,3 +17,7 @@ export async function finishConsumerPresence({
     } catch {}
   }
 }
+export default finishConsumerPresence;
+Object.assign(finishConsumerPresence, {
+  finishConsumerPresence,
+});

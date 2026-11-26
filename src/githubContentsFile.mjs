@@ -1,14 +1,11 @@
 import { createHash } from "node:crypto";
-
 const API_ROOT = "https://api.github.com/repos";
 const RETRIES = 3;
-
 function blobSha(content) {
   const body = Buffer.from(content);
   return createHash("sha1").update(`blob ${body.length}\0`).update(body).digest("hex");
 }
-
-export async function fetchGitHubContentsFile({
+async function fetchGitHubContentsFile({
   repository,
   path,
   commit,
@@ -24,7 +21,11 @@ export async function fetchGitHubContentsFile({
     const response = await fetchFn(url.toString(), {
       headers: {
         Accept: "application/vnd.github+json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : {}),
       },
     });
     if (response.ok) {
@@ -42,3 +43,7 @@ export async function fetchGitHubContentsFile({
     await new Promise((resolve) => setTimeout(resolve, 100 * 2 ** (attempt - 1)));
   }
 }
+export default fetchGitHubContentsFile;
+Object.assign(fetchGitHubContentsFile, {
+  fetchGitHubContentsFile,
+});

@@ -1,6 +1,5 @@
 const commitSha = /^[0-9a-f]{40}$/i;
-
-export function createWebhookEnvironment({ body = {}, event, deliveryId } = {}) {
+function createWebhookEnvironment({ body = {}, event, deliveryId } = {}) {
   return {
     KNIT_COMMIT_SHA: commitSha.test(body.after || "") ? body.after : "",
     KNIT_REPOSITORY: String(body.repository?.full_name || ""),
@@ -9,3 +8,7 @@ export function createWebhookEnvironment({ body = {}, event, deliveryId } = {}) 
     KNIT_DELIVERY_ID: String(deliveryId || ""),
   };
 }
+export default createWebhookEnvironment;
+Object.assign(createWebhookEnvironment, {
+  createWebhookEnvironment,
+});

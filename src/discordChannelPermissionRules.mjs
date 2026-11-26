@@ -1,4 +1,4 @@
-export function createChannelPermissionOverwrites(everyoneId, privateRepository) {
+function createChannelPermissionOverwrites(everyoneId, privateRepository) {
   return [
     {
       id: everyoneId,
@@ -13,3 +13,7 @@ export function createChannelPermissionOverwrites(everyoneId, privateRepository)
     },
   ];
 }
+export default createChannelPermissionOverwrites;
+Object.assign(createChannelPermissionOverwrites, {
+  createChannelPermissionOverwrites,
+});

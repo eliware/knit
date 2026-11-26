@@ -1,4 +1,4 @@
-export function applyMessageStatus(embed, hasError) {
+function applyMessageStatus(embed, hasError) {
   if (hasError) {
     embed.color = 0xff0000;
     embed.title = `\u274c Error: ${embed.title}`;
@@ -7,3 +7,7 @@ export function applyMessageStatus(embed, hasError) {
   }
   return embed;
 }
+export default applyMessageStatus;
+Object.assign(applyMessageStatus, {
+  applyMessageStatus,
+});

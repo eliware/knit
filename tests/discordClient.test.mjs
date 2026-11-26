@@ -1,11 +1,16 @@
 import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
-import { startDiscordClient, stopDiscordClient } from "../src/discordClient.mjs";
-
+import __knitModule0 from "../src/discordClient.mjs";
+const { startDiscordClient, stopDiscordClient } = __knitModule0;
 test("starts and registers the Discord client with minimal intents", async () => {
-  const client = { shutdown: jest.fn().mockResolvedValue(undefined) };
+  const client = {
+    shutdown: jest.fn().mockResolvedValue(undefined),
+  };
   const createDiscordFn = jest.fn().mockResolvedValue(client);
-  const log = { info: jest.fn(), warn: jest.fn() };
+  const log = {
+    info: jest.fn(),
+    warn: jest.fn(),
+  };
   await expect(
     startDiscordClient({
       createDiscordFn,
@@ -16,21 +21,38 @@ test("starts and registers the Discord client with minimal intents", async () =>
     }),
   ).resolves.toBe(client);
   expect(createDiscordFn).toHaveBeenCalledWith(
-    expect.objectContaining({ token: "token", clientId: "client", intents: { Guilds: true }, log }),
+    expect.objectContaining({
+      token: "token",
+      clientId: "client",
+      intents: {
+        Guilds: true,
+      },
+      log,
+    }),
   );
-  expect(createDiscordFn.mock.calls[0][0].intents).toEqual({ Guilds: true });
+  expect(createDiscordFn.mock.calls[0][0].intents).toEqual({
+    Guilds: true,
+  });
   await stopDiscordClient(client);
   expect(client.shutdown).toHaveBeenCalled();
 });
-
 test("leaves Discord disabled when credentials are empty or absent", async () => {
   const previousToken = process.env.DISCORD_TOKEN;
   const previousClientId = process.env.DISCORD_CLIENT_ID;
   delete process.env.DISCORD_TOKEN;
   delete process.env.DISCORD_CLIENT_ID;
-  const log = { info: jest.fn(), warn: jest.fn() };
+  const log = {
+    info: jest.fn(),
+    warn: jest.fn(),
+  };
   try {
-    await expect(startDiscordClient({ token: "", clientId: "", log })).resolves.toBeNull();
+    await expect(
+      startDiscordClient({
+        token: "",
+        clientId: "",
+        log,
+      }),
+    ).resolves.toBeNull();
     await expect(startDiscordClient()).resolves.toBeNull();
     expect(log.warn).toHaveBeenCalledTimes(1);
   } finally {
@@ -40,20 +62,22 @@ test("leaves Discord disabled when credentials are empty or absent", async () =>
     else process.env.DISCORD_CLIENT_ID = previousClientId;
   }
 });
-
 test("uses environment credentials and handles the default shutdown path", async () => {
   const previousToken = process.env.DISCORD_TOKEN;
   const previousClientId = process.env.DISCORD_CLIENT_ID;
-  const createDiscordFn = jest
-    .fn()
-    .mockResolvedValue({ destroy: jest.fn().mockResolvedValue(undefined) });
+  const createDiscordFn = jest.fn().mockResolvedValue({
+    destroy: jest.fn().mockResolvedValue(undefined),
+  });
   process.env.DISCORD_TOKEN = "environment-token";
   process.env.DISCORD_CLIENT_ID = "environment-client";
   try {
     const client = await startDiscordClient({
       createDiscordFn,
       guildId: "guild",
-      log: { info: jest.fn(), warn: jest.fn() },
+      log: {
+        info: jest.fn(),
+        warn: jest.fn(),
+      },
     });
     expect(client).toBeDefined();
     await stopDiscordClient(client);
@@ -65,28 +89,37 @@ test("uses environment credentials and handles the default shutdown path", async
     else process.env.DISCORD_CLIENT_ID = previousClientId;
   }
 });
-
 test("loads guild ID from the injected target loader", async () => {
-  const client = { shutdown: jest.fn() };
+  const client = {
+    shutdown: jest.fn(),
+  };
   const createDiscordFn = jest.fn().mockResolvedValue(client);
   await expect(
     startDiscordClient({
       createDiscordFn,
       token: "token",
       clientId: "client",
-      targetLoader: { load: () => ({ guildId: "guild" }) },
-      log: { info: jest.fn(), warn: jest.fn() },
+      targetLoader: {
+        load: () => ({
+          guildId: "guild",
+        }),
+      },
+      log: {
+        info: jest.fn(),
+        warn: jest.fn(),
+      },
     }),
   ).resolves.toBe(client);
   await stopDiscordClient(client);
 });
-
 test("requires both Discord credentials", async () => {
-  await expect(startDiscordClient({ token: "token", clientId: "" })).rejects.toThrow(
-    "Both DISCORD_TOKEN and DISCORD_CLIENT_ID are required",
-  );
+  await expect(
+    startDiscordClient({
+      token: "token",
+      clientId: "",
+    }),
+  ).rejects.toThrow("Both DISCORD_TOKEN and DISCORD_CLIENT_ID are required");
 });
-
 test("stops cleanly without a client", async () => {
   await expect(stopDiscordClient()).resolves.toBeUndefined();
 });

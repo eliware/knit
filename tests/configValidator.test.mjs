@@ -1,33 +1,62 @@
 import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
-import { validateWorkflow } from "../src/configValidator.mjs";
-
+import __knitModule0 from "../src/configValidator.mjs";
+const { validateWorkflow } = __knitModule0;
 test("accepts separate push and tag actions", () =>
   expect(
     validateWorkflow({
       config: {
         version: 1,
         on: {
-          push: { deployments: [{ target: "dev", cwd: "/opt/app", commands: ["npm test"] }] },
+          push: {
+            deployments: [
+              {
+                target: "dev",
+                cwd: "/opt/app",
+                commands: ["npm test"],
+              },
+            ],
+          },
           tags: {
-            "v*": { deployments: [{ target: "dev", cwd: "/opt/app", commands: ["npm test"] }] },
+            "v*": {
+              deployments: [
+                {
+                  target: "dev",
+                  cwd: "/opt/app",
+                  commands: ["npm test"],
+                },
+              ],
+            },
           },
         },
       },
     }),
   ).toBe(true));
-
 test("rejects a tag action without deployments", () =>
   expect(
     validateWorkflow({
       config: {
         version: 1,
         on: {
-          push: { deployments: [{ target: "dev", cwd: "/opt/app", commands: ["npm test"] }] },
-          tags: { "v*": { deployments: [] } },
+          push: {
+            deployments: [
+              {
+                target: "dev",
+                cwd: "/opt/app",
+                commands: ["npm test"],
+              },
+            ],
+          },
+          tags: {
+            "v*": {
+              deployments: [],
+            },
+          },
         },
       },
-      log: { error: jest.fn() },
+      log: {
+        error: jest.fn(),
+      },
     }),
   ).toBe(false));
 test("accepts bounded deployment timeouts and rejects unsafe values", () => {
@@ -36,25 +65,53 @@ test("accepts bounded deployment timeouts and rejects unsafe values", () => {
     on: {
       push: {
         deployments: [
-          { target: "dev", cwd: "/opt/app", commands: ["npm test"], timeoutMs: 300000 },
+          {
+            target: "dev",
+            cwd: "/opt/app",
+            commands: ["npm test"],
+            timeoutMs: 300000,
+          },
         ],
       },
     },
   };
-  expect(validateWorkflow({ config: base })).toBe(true);
+  expect(
+    validateWorkflow({
+      config: base,
+    }),
+  ).toBe(true);
   expect(
     validateWorkflow({
       config: {
         ...base,
-        on: { push: { deployments: [{ ...base.on.push.deployments[0], timeoutMs: 300001 }] } },
+        on: {
+          push: {
+            deployments: [
+              {
+                ...base.on.push.deployments[0],
+                timeoutMs: 300001,
+              },
+            ],
+          },
+        },
       },
-      log: { error: jest.fn() },
+      log: {
+        error: jest.fn(),
+      },
     }),
   ).toBe(false);
 });
 test("rejects legacy workflow shapes", () =>
   expect(
-    validateWorkflow({ config: { repository: "o/r", targets: [] }, log: { error: jest.fn() } }),
+    validateWorkflow({
+      config: {
+        repository: "o/r",
+        targets: [],
+      },
+      log: {
+        error: jest.fn(),
+      },
+    }),
   ).toBe(false));
 test("uses default inputs for workflow validation", () => {
   expect(validateWorkflow({})).toBe(false);

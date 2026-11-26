@@ -1,7 +1,7 @@
 import { log as logger } from "@eliware/common";
-import { createAnnouncementChannel, GUILD_ANNOUNCEMENT } from "./discordChannelCreation.mjs";
-
-export async function provisionAnnouncementChannel({
+import __knitModule0 from "./discordChannelCreation.mjs";
+const { createAnnouncementChannel, GUILD_ANNOUNCEMENT } = __knitModule0;
+async function provisionAnnouncementChannel({
   guild,
   name,
   privateRepository,
@@ -13,6 +13,15 @@ export async function provisionAnnouncementChannel({
     (channel) => channel?.name === name && channel?.type === GUILD_ANNOUNCEMENT,
   );
   if (existing) return existing;
-
-  return createAnnouncementChannel({ guild, name, privateRepository, repository, log });
+  return createAnnouncementChannel({
+    guild,
+    name,
+    privateRepository,
+    repository,
+    log,
+  });
 }
+export default provisionAnnouncementChannel;
+Object.assign(provisionAnnouncementChannel, {
+  provisionAnnouncementChannel,
+});

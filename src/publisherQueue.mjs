@@ -1,20 +1,18 @@
-export const MAX_PENDING_PUBLISHER_TASKS = 1000;
+const MAX_PENDING_PUBLISHER_TASKS = 1000;
 const MAX_DELIVERIES = 1000;
 const tasks = [];
 const deliveryStates = new Map();
 const processedDeliveries = [];
 let head = 0;
 let processedHead = 0;
-
-export function enqueuePublisherTask(task) {
+function enqueuePublisherTask(task) {
   if (task.deliveryId && deliveryStates.has(task.deliveryId)) return false;
   if (getPendingPublisherTasks() >= MAX_PENDING_PUBLISHER_TASKS) return null;
   if (task.deliveryId) deliveryStates.set(task.deliveryId, "pending");
   tasks.push(task);
   return true;
 }
-
-export function dequeuePublisherTask() {
+function dequeuePublisherTask() {
   if (head >= tasks.length) return undefined;
   const task = tasks[head];
   tasks[head] = undefined;
@@ -25,12 +23,10 @@ export function dequeuePublisherTask() {
   }
   return task;
 }
-
-export function forgetPublisherDelivery(deliveryId) {
+function forgetPublisherDelivery(deliveryId) {
   if (deliveryId) deliveryStates.delete(deliveryId);
 }
-
-export function completePublisherDelivery(deliveryId) {
+function completePublisherDelivery(deliveryId) {
   if (!deliveryId || !deliveryStates.has(deliveryId)) return;
   deliveryStates.set(deliveryId, "processed");
   processedDeliveries.push(deliveryId);
@@ -44,15 +40,23 @@ export function completePublisherDelivery(deliveryId) {
     processedHead = 0;
   }
 }
-
-export function getPendingPublisherTasks() {
+function getPendingPublisherTasks() {
   return tasks.length - head;
 }
-
-export function clearPublisherQueue() {
+function clearPublisherQueue() {
   tasks.length = 0;
   head = 0;
   deliveryStates.clear();
   processedDeliveries.length = 0;
   processedHead = 0;
 }
+export default enqueuePublisherTask;
+Object.assign(enqueuePublisherTask, {
+  MAX_PENDING_PUBLISHER_TASKS,
+  enqueuePublisherTask,
+  dequeuePublisherTask,
+  forgetPublisherDelivery,
+  completePublisherDelivery,
+  getPendingPublisherTasks,
+  clearPublisherQueue,
+});

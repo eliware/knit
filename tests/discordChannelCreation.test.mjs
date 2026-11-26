@@ -1,13 +1,25 @@
 import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
-import { createAnnouncementChannel } from "../src/discordChannelCreation.mjs";
-
+import __knitModule0 from "../src/discordChannelCreation.mjs";
+const { createAnnouncementChannel } = __knitModule0;
 test("creates a private announcement channel and records its repository", async () => {
-  const channel = { id: "new" };
+  const channel = {
+    id: "new",
+  };
   const create = jest.fn().mockResolvedValue(channel);
-  const guild = { roles: { everyone: { id: "everyone" } }, channels: { create } };
-  const log = { info: jest.fn() };
-
+  const guild = {
+    roles: {
+      everyone: {
+        id: "everyone",
+      },
+    },
+    channels: {
+      create,
+    },
+  };
+  const log = {
+    info: jest.fn(),
+  };
   await expect(
     createAnnouncementChannel({
       guild,
@@ -39,11 +51,18 @@ test("creates a private announcement channel and records its repository", async 
     private: true,
   });
 });
-
 test("uses the common logger when no logger is supplied", async () => {
   const guild = {
-    roles: { everyone: { id: "everyone" } },
-    channels: { create: jest.fn().mockResolvedValue({ id: "new" }) },
+    roles: {
+      everyone: {
+        id: "everyone",
+      },
+    },
+    channels: {
+      create: jest.fn().mockResolvedValue({
+        id: "new",
+      }),
+    },
   };
   await expect(
     createAnnouncementChannel({
@@ -52,5 +71,7 @@ test("uses the common logger when no logger is supplied", async () => {
       privateRepository: false,
       repository: "eliware/app",
     }),
-  ).resolves.toEqual({ id: "new" });
+  ).resolves.toEqual({
+    id: "new",
+  });
 });

@@ -1,9 +1,8 @@
 import { log as logger } from "@eliware/common";
-import { createChannelPermissionOverwrites } from "./discordChannelPermissionRules.mjs";
-
-export const GUILD_ANNOUNCEMENT = 5;
-
-export async function createAnnouncementChannel({
+import __knitModule0 from "./discordChannelPermissionRules.mjs";
+const { createChannelPermissionOverwrites } = __knitModule0;
+const GUILD_ANNOUNCEMENT = 5;
+async function createAnnouncementChannel({
   guild,
   name,
   privateRepository,
@@ -18,6 +17,14 @@ export async function createAnnouncementChannel({
       privateRepository,
     ),
   });
-  log.info?.("[Discord] Created repository channel", { repository, private: privateRepository });
+  log.info?.("[Discord] Created repository channel", {
+    repository,
+    private: privateRepository,
+  });
   return channel;
 }
+export default createAnnouncementChannel;
+Object.assign(createAnnouncementChannel, {
+  GUILD_ANNOUNCEMENT,
+  createAnnouncementChannel,
+});

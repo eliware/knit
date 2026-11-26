@@ -1,9 +1,8 @@
 import { log as logger } from "@eliware/common";
-import { isValidTarget } from "./targetRules.mjs";
-
+import __knitModule0 from "./targetRules.mjs";
+const { isValidTarget } = __knitModule0;
 const string = (value) => typeof value === "string" && value.length > 0;
-
-export function validateTargets({ config, log = logger }) {
+function validateTargets({ config, log = logger }) {
   const targets = config?.targets;
   const valid =
     string(config?.guildId) &&
@@ -15,3 +14,7 @@ export function validateTargets({ config, log = logger }) {
   if (!valid) log.error("ConfigValidator::validateTargets failed: invalid target inventory");
   return valid;
 }
+export default validateTargets;
+Object.assign(validateTargets, {
+  validateTargets,
+});

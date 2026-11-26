@@ -1,12 +1,23 @@
 import { jest } from "@jest/globals";
-import { processSpecializedEvent } from "../src/consumerSpecializedEvent.mjs";
-
+import __knitModule0 from "../src/consumerSpecializedEvent.mjs";
+const { processSpecializedEvent } = __knitModule0;
 test("routes a specialized event with concise correlation fields", async () => {
-  const log = { info: jest.fn() };
-  const target = { name: "eliware/knit" };
-  const post = { ref: "refs/heads/main" };
-  const presence = { terminal: jest.fn(), end: jest.fn() };
-  const HandlersMod = { dispatch: jest.fn().mockResolvedValue(true) };
+  const log = {
+    info: jest.fn(),
+  };
+  const target = {
+    name: "eliware/knit",
+  };
+  const post = {
+    ref: "refs/heads/main",
+  };
+  const presence = {
+    terminal: jest.fn(),
+    end: jest.fn(),
+  };
+  const HandlersMod = {
+    dispatch: jest.fn().mockResolvedValue(true),
+  };
   const options = {
     event: "issues",
     post,
@@ -17,7 +28,6 @@ test("routes a specialized event with concise correlation fields", async () => {
     HandlersMod,
     presence,
   };
-
   await expect(processSpecializedEvent(options)).resolves.toBe(true);
   expect(log.info).toHaveBeenCalledWith(
     "[Consumer] Non-push event routed for specialized handling",

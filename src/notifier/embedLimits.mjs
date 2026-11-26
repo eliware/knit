@@ -1,24 +1,21 @@
-export const DISCORD_EMBED_DESCRIPTION_LIMIT = 4096;
-export const DISCORD_EMBED_TOTAL_LIMIT = 6000;
-export const DISCORD_EMBED_FIELD_VALUE_LIMIT = 1024;
+const DISCORD_EMBED_DESCRIPTION_LIMIT = 4096;
+const DISCORD_EMBED_TOTAL_LIMIT = 6000;
+const DISCORD_EMBED_FIELD_VALUE_LIMIT = 1024;
 const DISCORD_EMBED_TITLE_LIMIT = 256;
 const DISCORD_EMBED_FIELD_NAME_LIMIT = 256;
 const DISCORD_EMBED_AUTHOR_LIMIT = 256;
 const DISCORD_EMBED_FOOTER_LIMIT = 2048;
-
-export function tail(value, limit, marker = "\n... [truncated, showing log tail] ...\n") {
+function tail(value, limit, marker = "\n... [truncated, showing log tail] ...\n") {
   const text = String(value ?? "");
   if (limit <= 0) return "";
   if (text.length <= limit) return text;
   if (limit <= marker.length) return text.slice(-limit);
   return marker + text.slice(-(limit - marker.length));
 }
-
 function textLength(value) {
   return typeof value === "string" ? value.length : 0;
 }
-
-export function limitEmbed(embed) {
+function limitEmbed(embed) {
   if (typeof embed.title === "string") embed.title = tail(embed.title, DISCORD_EMBED_TITLE_LIMIT);
   if (typeof embed.description === "string")
     embed.description = tail(embed.description, DISCORD_EMBED_DESCRIPTION_LIMIT);
@@ -72,3 +69,11 @@ export function limitEmbed(embed) {
   }
   return embed;
 }
+export default tail;
+Object.assign(tail, {
+  DISCORD_EMBED_DESCRIPTION_LIMIT,
+  DISCORD_EMBED_TOTAL_LIMIT,
+  DISCORD_EMBED_FIELD_VALUE_LIMIT,
+  tail,
+  limitEmbed,
+});

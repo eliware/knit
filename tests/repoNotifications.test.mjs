@@ -1,23 +1,30 @@
 import { jest } from "@jest/globals";
-import { isTagUpdate, notifyPush, notifyTag, notifyUpdate } from "../src/repoNotifications.mjs";
-
+import __knitModule0 from "../src/repoNotifications.mjs";
+const { isTagUpdate, notifyPush, notifyTag, notifyUpdate } = __knitModule0;
 const values = {
   repo: {},
-  body: { ref: "refs/tags/v15.0.1" },
+  body: {
+    ref: "refs/tags/v15.0.1",
+  },
   event: "push",
   packageJson: {},
   log: {},
 };
-
 test("classifies tag updates", () => {
   expect(isTagUpdate(values.body)).toBe(true);
-  expect(isTagUpdate({ ref: "refs/heads/main" })).toBe(false);
+  expect(
+    isTagUpdate({
+      ref: "refs/heads/main",
+    }),
+  ).toBe(false);
   expect(isTagUpdate({})).toBe(false);
 });
-
 test("routes tag and push updates with the expected notification fields", async () => {
   const notifyFn = jest.fn();
-  await notifyUpdate({ ...values, notifyFn });
+  await notifyUpdate({
+    ...values,
+    notifyFn,
+  });
   expect(notifyFn).toHaveBeenCalledTimes(1);
   expect(notifyFn).toHaveBeenLastCalledWith({
     repo: values.repo,
@@ -27,28 +34,33 @@ test("routes tag and push updates with the expected notification fields", async 
     hasError: false,
     log: values.log,
   });
-
   await notifyUpdate({
     ...values,
-    body: { ref: "refs/heads/main" },
+    body: {
+      ref: "refs/heads/main",
+    },
     notifyFn,
     output: "out",
     failed: true,
   });
   expect(notifyFn).toHaveBeenLastCalledWith({
     repo: values.repo,
-    body: { ref: "refs/heads/main" },
+    body: {
+      ref: "refs/heads/main",
+    },
     logOutput: "out",
     hasError: true,
     log: values.log,
   });
 });
-
 test("uses the notifier module when no handler is injected", async () => {
-  const NotifierMod = { send: jest.fn() };
-
-  await notifyTag({ ...values, NotifierMod });
-
+  const NotifierMod = {
+    send: jest.fn(),
+  };
+  await notifyTag({
+    ...values,
+    NotifierMod,
+  });
   expect(NotifierMod.send).toHaveBeenCalledWith({
     post: values.body,
     packageJson: values.packageJson,
@@ -58,7 +70,6 @@ test("uses the notifier module when no handler is injected", async () => {
     log: values.log,
   });
 });
-
 test("uses the injected handler for push notifications", async () => {
   const notifyFn = jest.fn();
   await notifyPush({
@@ -75,9 +86,10 @@ test("uses the injected handler for push notifications", async () => {
     log: values.log,
   });
 });
-
 test("uses the notifier module for push notifications without a handler", async () => {
-  const NotifierMod = { send: jest.fn() };
+  const NotifierMod = {
+    send: jest.fn(),
+  };
   await notifyPush({
     ...values,
     NotifierMod,

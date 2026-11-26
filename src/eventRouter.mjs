@@ -1,12 +1,11 @@
 import { log as logger } from "@eliware/common";
-import * as Repo from "./repositoryLoader.mjs";
-import { defaultTargetLoader } from "./targetLoader.mjs";
-
-export function repositoryName(post) {
+import Repo from "./repositoryLoader.mjs";
+import __knitModule0 from "./targetLoader.mjs";
+const { defaultTargetLoader } = __knitModule0;
+function repositoryName(post) {
   return post?.repository?.full_name || null;
 }
-
-export async function resolveEventTarget({
+async function resolveEventTarget({
   post,
   event = "push",
   RepoMod = Repo,
@@ -15,10 +14,36 @@ export async function resolveEventTarget({
 } = {}) {
   const name = repositoryName(post);
   if (name) {
-    const repo = await RepoMod.get({ name, body: post, event, targetLoader, log });
+    const repo = await RepoMod.get({
+      name,
+      body: post,
+      event,
+      targetLoader,
+      log,
+    });
     return repo
-      ? { kind: "repository", name, repo, ignored: false }
-      : { kind: "repository", name, repo: null, ignored: true };
+      ? {
+          kind: "repository",
+          name,
+          repo,
+          ignored: false,
+        }
+      : {
+          kind: "repository",
+          name,
+          repo: null,
+          ignored: true,
+        };
   }
-  return { kind: "organization", name: null, repo: null, ignored: true };
+  return {
+    kind: "organization",
+    name: null,
+    repo: null,
+    ignored: true,
+  };
 }
+export default repositoryName;
+Object.assign(repositoryName, {
+  repositoryName,
+  resolveEventTarget,
+});

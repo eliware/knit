@@ -1,16 +1,21 @@
 import { log as logger, redactText } from "@eliware/common";
-import * as Repo from "./repositoryLoader.mjs";
-import * as GitHub from "./gitHub.mjs";
-import * as EventRouter from "./eventRouter.mjs";
-import * as EventHandlers from "./eventHandlers.mjs";
-import { getPresenceManager } from "./presenceManager.mjs";
-import { validateConsumerMessage } from "./consumerValidation.mjs";
-import { resolveConsumerTarget } from "./consumerRouting.mjs";
-import { finishConsumerOutcome } from "./consumerOutcomePresence.mjs";
-import { processRepositoryPush } from "./consumerPush.mjs";
-import { processSpecializedEvent } from "./consumerSpecializedEvent.mjs";
-
-export async function consume({
+import Repo from "./repositoryLoader.mjs";
+import GitHub from "./gitHub.mjs";
+import EventRouter from "./eventRouter.mjs";
+import EventHandlers from "./eventHandlers.mjs";
+import __knitModule0 from "./presenceManager.mjs";
+import __knitModule1 from "./consumerValidation.mjs";
+import __knitModule2 from "./consumerRouting.mjs";
+import __knitModule3 from "./consumerOutcomePresence.mjs";
+import __knitModule4 from "./consumerPush.mjs";
+import __knitModule5 from "./consumerSpecializedEvent.mjs";
+const { getPresenceManager } = __knitModule0;
+const { validateConsumerMessage } = __knitModule1;
+const { resolveConsumerTarget } = __knitModule2;
+const { finishConsumerOutcome } = __knitModule3;
+const { processRepositoryPush } = __knitModule4;
+const { processSpecializedEvent } = __knitModule5;
+async function consume({
   message,
   log = logger,
   Repo: RepoMod = Repo,
@@ -26,10 +31,19 @@ export async function consume({
   let stage = "validation";
   try {
     await presence?.begin(repository, deliveryId);
-    if (!validateConsumerMessage({ GitHubMod, post, event, log })) {
+    if (
+      !validateConsumerMessage({
+        GitHubMod,
+        post,
+        event,
+        log,
+      })
+    ) {
       await finishConsumerOutcome({
         presence,
-        outcome: { type: "validation-failed" },
+        outcome: {
+          type: "validation-failed",
+        },
         repository,
         deliveryId,
       });
@@ -52,7 +66,13 @@ export async function consume({
       });
     }
     stage = "target_lookup";
-    const target = await resolveConsumerTarget({ RouterMod, RepoMod, post, event, log });
+    const target = await resolveConsumerTarget({
+      RouterMod,
+      RepoMod,
+      post,
+      event,
+      log,
+    });
     if (target.ignored) {
       if (target.kind === "repository")
         log.error("[Consumer] Repository target not found", {
@@ -64,7 +84,9 @@ export async function consume({
       else log.info("[Consumer] Event ignored: no configured target", target.name);
       const isTag = await finishConsumerOutcome({
         presence,
-        outcome: { type: "ignored-target" },
+        outcome: {
+          type: "ignored-target",
+        },
         repository,
         deliveryId,
         post,
@@ -88,14 +110,22 @@ export async function consume({
       ref: post?.ref || null,
       deliveryId,
       stage,
-      error: redactText(error?.message || error, { maxOutputLength: 300 }),
+      error: redactText(error?.message || error, {
+        maxOutputLength: 300,
+      }),
     });
     await finishConsumerOutcome({
       presence,
-      outcome: { type: "processing-error" },
+      outcome: {
+        type: "processing-error",
+      },
       repository,
       deliveryId,
     });
     return false;
   }
 }
+export default consume;
+Object.assign(consume, {
+  consume,
+});

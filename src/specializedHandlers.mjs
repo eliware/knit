@@ -1,15 +1,17 @@
 import { log as logger } from "@eliware/common";
-import * as Notifier from "./notifier/send.mjs";
-import { COLORS, createEmbed } from "./specializedEventEmbed.mjs";
-export { createEmbed } from "./specializedEventEmbed.mjs";
-
-export function createHandler({ event, Notifier: NotifierMod = Notifier } = {}) {
+import Notifier from "./notifier/send.mjs";
+import __knitModule0 from "./specializedEventEmbed.mjs";
+const { COLORS, createEmbed } = __knitModule0;
+function createHandler({ event, Notifier: NotifierMod = Notifier } = {}) {
   return async ({ post, _target, log = logger }) => {
     if (!post?.repository?.full_name) return true;
     await NotifierMod.send({
       post,
       event,
-      embed: createEmbed({ event, post }),
+      embed: createEmbed({
+        event,
+        post,
+      }),
       logOutput: "",
       hasError: false,
       log,
@@ -17,11 +19,22 @@ export function createHandler({ event, Notifier: NotifierMod = Notifier } = {}) 
     return true;
   };
 }
-
-export function registerSpecializedHandlers(registry, { Notifier: NotifierMod = Notifier } = {}) {
+function registerSpecializedHandlers(registry, { Notifier: NotifierMod = Notifier } = {}) {
   for (const event of Object.keys(COLORS))
-    registry.register(event, createHandler({ event, Notifier: NotifierMod }));
+    registry.register(
+      event,
+      createHandler({
+        event,
+        Notifier: NotifierMod,
+      }),
+    );
   return registry;
 }
-
-export const specializedEvents = Object.keys(COLORS);
+const specializedEvents = Object.keys(COLORS);
+export default createHandler;
+Object.assign(createHandler, {
+  createEmbed,
+  createHandler,
+  registerSpecializedHandlers,
+  specializedEvents,
+});

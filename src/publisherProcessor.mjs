@@ -1,12 +1,18 @@
 import { log as logger } from "@eliware/common";
-
-export async function processPublisherTask({ task, ConsumerMod, recordMetric }) {
+async function processPublisherTask({ task, ConsumerMod, recordMetric }) {
   const { raw, parsed, event, deliveryId, log = logger } = task;
   recordMetric("processed");
   try {
-    log.info("[Publisher] Sending payload to Consumer", { deliveryId });
+    log.info("[Publisher] Sending payload to Consumer", {
+      deliveryId,
+    });
     const succeeded = await ConsumerMod.consume({
-      message: { raw, parsed, event, deliveryId },
+      message: {
+        raw,
+        parsed,
+        event,
+        deliveryId,
+      },
       log,
     });
     if (!succeeded) throw new Error("Consumer returned false");
@@ -18,3 +24,7 @@ export async function processPublisherTask({ task, ConsumerMod, recordMetric }) 
     return false;
   }
 }
+export default processPublisherTask;
+Object.assign(processPublisherTask, {
+  processPublisherTask,
+});

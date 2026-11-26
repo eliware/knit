@@ -8,10 +8,14 @@ import crypto from "crypto";
  * @param {string} params.signature - The signature from the header.
  * @returns {boolean} True if valid, false if invalid.
  */
-export function validate({ data, secret, signature }) {
+function validate({ data, secret, signature }) {
   if (!secret || typeof signature !== "string" || !/^sha256=[\da-f]{64}$/iu.test(signature))
     return false;
   const expected = crypto.createHmac("sha256", secret).update(data).digest();
   const supplied = Buffer.from(signature.slice("sha256=".length), "hex");
   return supplied.length === expected.length && crypto.timingSafeEqual(expected, supplied);
 }
+export default validate;
+Object.assign(validate, {
+  validate,
+});

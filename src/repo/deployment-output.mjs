@@ -1,7 +1,7 @@
 import { redactText } from "@eliware/common";
-import { formatCommandOutput } from "../commandOutput.mjs";
-
-export function createDeploymentOutput() {
+import __knitModule0 from "../commandOutput.mjs";
+const { formatCommandOutput } = __knitModule0;
+function createDeploymentOutput() {
   let output = "";
   return {
     appendResult(result) {
@@ -23,3 +23,7 @@ export function createDeploymentOutput() {
     },
   };
 }
+export default createDeploymentOutput;
+Object.assign(createDeploymentOutput, {
+  createDeploymentOutput,
+});

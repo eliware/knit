@@ -1,7 +1,7 @@
 import * as yaml from "js-yaml";
-import { fetchGitHubContentsFile } from "./githubContentsFile.mjs";
-
-export async function loadWorkflow({
+import __knitModule0 from "./githubContentsFile.mjs";
+const { fetchGitHubContentsFile } = __knitModule0;
+async function loadWorkflow({
   repository,
   commit,
   token = process.env.GITHUB_READ_TOKEN,
@@ -34,5 +34,13 @@ export async function loadWorkflow({
       throw new Error("Invalid package.json");
     }
   }
-  return { workflow: yaml.load(source), packageJson, commit };
+  return {
+    workflow: yaml.load(source),
+    packageJson,
+    commit,
+  };
 }
+export default loadWorkflow;
+Object.assign(loadWorkflow, {
+  loadWorkflow,
+});

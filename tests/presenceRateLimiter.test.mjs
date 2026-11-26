@@ -1,11 +1,15 @@
 import { jest } from "@jest/globals";
-import { createPresenceRateLimiter } from "../src/presenceRateLimiter.mjs";
-
+import __knitModule0 from "../src/presenceRateLimiter.mjs";
+const { createPresenceRateLimiter } = __knitModule0;
 test("skips duplicate presence and waits when the update bucket is full", async () => {
   const setPresence = jest.fn().mockResolvedValue(undefined);
   let time = 0;
   const send = createPresenceRateLimiter({
-    client: { user: { setPresence } },
+    client: {
+      user: {
+        setPresence,
+      },
+    },
     now: () => time,
     setTimeoutFn: (resolve, delay) => {
       time += delay;
@@ -13,57 +17,92 @@ test("skips duplicate presence and waits when the update bucket is full", async 
     },
     log: {},
   });
-  for (let i = 0; i < 5; i += 1) await send({ status: `online-${i}` });
-  await send({ status: "online-5" });
-  await send({ status: "online-5" });
+  for (let i = 0; i < 5; i += 1)
+    await send({
+      status: `online-${i}`,
+    });
+  await send({
+    status: "online-5",
+  });
+  await send({
+    status: "online-5",
+  });
   expect(setPresence).toHaveBeenCalledTimes(6);
 });
-
 test("returns success without a client and logs a failed update", async () => {
   const warn = jest.fn();
   const error = new Error("offline");
   const send = createPresenceRateLimiter({
-    client: { user: { setPresence: jest.fn().mockRejectedValue(error) } },
+    client: {
+      user: {
+        setPresence: jest.fn().mockRejectedValue(error),
+      },
+    },
     now: () => 0,
     setTimeoutFn: setTimeout,
-    log: { warn },
+    log: {
+      warn,
+    },
   });
   expect(
-    await createPresenceRateLimiter({ now: () => 0, setTimeoutFn: setTimeout, log: {} })({}),
+    await createPresenceRateLimiter({
+      now: () => 0,
+      setTimeoutFn: setTimeout,
+      log: {},
+    })({}),
   ).toBe(true);
-  expect(await send({ status: "offline" })).toBe(false);
+  expect(
+    await send({
+      status: "offline",
+    }),
+  ).toBe(false);
   expect(warn).toHaveBeenCalledWith("[Discord] Failed to update status", error);
 });
-
 test("serializes concurrent updates while the rate limit is full", async () => {
   const waits = [];
   const updates = [];
   let time = 0;
   const send = createPresenceRateLimiter({
-    client: { user: { setPresence: jest.fn(async (presence) => updates.push(presence)) } },
+    client: {
+      user: {
+        setPresence: jest.fn(async (presence) => updates.push(presence)),
+      },
+    },
     now: () => time,
-    setTimeoutFn: (resolve, delay) => waits.push({ resolve, delay }),
+    setTimeoutFn: (resolve, delay) =>
+      waits.push({
+        resolve,
+        delay,
+      }),
     log: {},
   });
-  for (let index = 0; index < 5; index += 1) await send({ status: `online-${index}` });
-
-  const sixth = send({ status: "online-5" });
-  const seventh = send({ status: "online-6" });
+  for (let index = 0; index < 5; index += 1)
+    await send({
+      status: `online-${index}`,
+    });
+  const sixth = send({
+    status: "online-5",
+  });
+  const seventh = send({
+    status: "online-6",
+  });
   await Promise.resolve();
   await Promise.resolve();
   expect(waits).toHaveLength(1);
   expect(waits[0].delay).toBe(20_000);
-
   time = 20_000;
   waits[0].resolve();
   await Promise.all([sixth, seventh]);
   expect(updates).toHaveLength(7);
 });
-
 test("allows later updates after an internal queue error", async () => {
   let shouldFail = true;
   const send = createPresenceRateLimiter({
-    client: { user: { setPresence: jest.fn().mockResolvedValue(undefined) } },
+    client: {
+      user: {
+        setPresence: jest.fn().mockResolvedValue(undefined),
+      },
+    },
     now: () => {
       if (shouldFail) {
         shouldFail = false;
@@ -74,6 +113,14 @@ test("allows later updates after an internal queue error", async () => {
     setTimeoutFn: setTimeout,
     log: {},
   });
-  await expect(send({ status: "first" })).rejects.toThrow("clock failed");
-  await expect(send({ status: "next" })).resolves.toBe(true);
+  await expect(
+    send({
+      status: "first",
+    }),
+  ).rejects.toThrow("clock failed");
+  await expect(
+    send({
+      status: "next",
+    }),
+  ).resolves.toBe(true);
 });

@@ -1,18 +1,24 @@
 import { jest } from "@jest/globals";
-import { createPresenceLifecycle } from "../src/presenceLifecycle.mjs";
-
+import __knitModule0 from "../src/presenceLifecycle.mjs";
+const { createPresenceLifecycle } = __knitModule0;
 const makeLifecycle = (options = {}) => {
   const send = jest.fn().mockResolvedValue(true);
   const lifecycle = createPresenceLifecycle({
     send,
-    versionPresence: () => ({ status: "idle" }),
-    busyPresence: (name) => ({ name }),
+    versionPresence: () => ({
+      status: "idle",
+    }),
+    busyPresence: (name) => ({
+      name,
+    }),
     setTimeoutFn: options.setTimeoutFn || (() => ({})),
     clearTimeoutFn: options.clearTimeoutFn || jest.fn(),
   });
-  return { lifecycle, send };
+  return {
+    lifecycle,
+    send,
+  };
 };
-
 test("routes lifecycle states", async () => {
   const { lifecycle, send } = makeLifecycle();
   await lifecycle.start();
@@ -21,17 +27,22 @@ test("routes lifecycle states", async () => {
   await lifecycle.neutral("info");
   lifecycle.end();
   expect(send).toHaveBeenCalledTimes(4);
-  expect(send).toHaveBeenNthCalledWith(3, { name: "✅ done" });
-  expect(send).toHaveBeenLastCalledWith({ name: "ℹ️ info" });
+  expect(send).toHaveBeenNthCalledWith(3, {
+    name: "✅ done",
+  });
+  expect(send).toHaveBeenLastCalledWith({
+    name: "ℹ️ info",
+  });
 });
-
 test("schedules idle state and refuses updates while idle", async () => {
   let timer;
   const clearTimeoutFn = jest.fn();
   const { lifecycle, send } = makeLifecycle({
     setTimeoutFn: jest.fn((callback) => {
       timer = callback;
-      return { unref: jest.fn() };
+      return {
+        unref: jest.fn(),
+      };
     }),
     clearTimeoutFn,
   });
@@ -42,21 +53,28 @@ test("schedules idle state and refuses updates while idle", async () => {
   lifecycle.end();
   timer();
   await lifecycle.stop();
-  expect(send).toHaveBeenLastCalledWith({ status: "idle" });
+  expect(send).toHaveBeenLastCalledWith({
+    status: "idle",
+  });
   expect(clearTimeoutFn).toHaveBeenCalled();
 });
-
 test("handles a rejected idle status update", async () => {
   let timer;
   const send = jest
     .fn()
     .mockResolvedValueOnce(true)
     .mockRejectedValueOnce(new Error("clock failed"));
-  const log = { warn: jest.fn() };
+  const log = {
+    warn: jest.fn(),
+  };
   const lifecycle = createPresenceLifecycle({
     send,
-    versionPresence: () => ({ status: "idle" }),
-    busyPresence: (name) => ({ name }),
+    versionPresence: () => ({
+      status: "idle",
+    }),
+    busyPresence: (name) => ({
+      name,
+    }),
     setTimeoutFn: (callback) => {
       timer = callback;
       return {};
@@ -67,13 +85,14 @@ test("handles a rejected idle status update", async () => {
   await lifecycle.begin("work");
   lifecycle.end();
   await timer();
-  expect(send).toHaveBeenLastCalledWith({ status: "idle" });
+  expect(send).toHaveBeenLastCalledWith({
+    status: "idle",
+  });
   expect(log.warn).toHaveBeenCalledWith(
     "[Discord] Failed to restore idle status",
     expect.any(Error),
   );
 });
-
 test("does not restore idle state after work starts again", async () => {
   let idleTimer;
   const { lifecycle, send } = makeLifecycle({
@@ -86,33 +105,33 @@ test("does not restore idle state after work starts again", async () => {
   lifecycle.end();
   await lifecycle.begin("second");
   idleTimer();
-  expect(send).not.toHaveBeenCalledWith({ status: "idle" });
+  expect(send).not.toHaveBeenCalledWith({
+    status: "idle",
+  });
 });
-
 test("tracks terminal updates for overlapping deliveries", async () => {
   const { lifecycle, send } = makeLifecycle();
   await lifecycle.begin("first", "one");
   await lifecycle.begin("second", "two");
-
   await expect(lifecycle.terminal("first done", false, "one")).resolves.toBe(true);
   lifecycle.end("one");
   await expect(lifecycle.terminal("second done", false, "two")).resolves.toBe(true);
   lifecycle.end("two");
   await expect(lifecycle.terminal("stale", false, "one")).resolves.toBe(false);
-
-  expect(send).toHaveBeenLastCalledWith({ name: "✅ second done" });
+  expect(send).toHaveBeenLastCalledWith({
+    name: "✅ second done",
+  });
 });
-
 test("does not end active work when a delivery ID does not match", async () => {
   const { lifecycle, send } = makeLifecycle();
   await lifecycle.begin("anonymous");
   await lifecycle.begin("identified", "one");
-
   lifecycle.end("unknown");
   await expect(lifecycle.terminal("anonymous done", false, null)).resolves.toBe(true);
   lifecycle.end("one");
   await expect(lifecycle.terminal("anonymous still active", false, null)).resolves.toBe(true);
   lifecycle.end();
-
-  expect(send).toHaveBeenLastCalledWith({ name: "✅ anonymous still active" });
+  expect(send).toHaveBeenLastCalledWith({
+    name: "✅ anonymous still active",
+  });
 });

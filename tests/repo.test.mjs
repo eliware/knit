@@ -1,19 +1,35 @@
 import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
-import { createSshRepo } from "../src/repo.mjs";
-import { setPresenceManager } from "../src/presenceManager.mjs";
 import { body, deployment, target } from "../test-fixtures/repo.mjs";
+import __knitModule0 from "../src/repo.mjs";
+import __knitModule1 from "../src/presenceManager.mjs";
+const { createSshRepo } = __knitModule0;
+const { setPresenceManager } = __knitModule1;
 test("executes each deployment with its trusted target commands and directory", async () => {
-  setPresenceManager({ update: jest.fn(), terminal: jest.fn(), end: jest.fn() });
+  setPresenceManager({
+    update: jest.fn(),
+    terminal: jest.fn(),
+    end: jest.fn(),
+  });
   const sshExec = jest.fn().mockResolvedValue([]);
   const repo = createSshRepo({
     config: {
       deployments: [
         deployment(),
-        deployment({ target: "nas", cwd: "/opt/nas", commands: ["deploy"] }),
+        deployment({
+          target: "nas",
+          cwd: "/opt/nas",
+          commands: ["deploy"],
+        }),
       ],
     },
-    targets: { dev: target, nas: { ...target, host: "nas" } },
+    targets: {
+      dev: target,
+      nas: {
+        ...target,
+        host: "nas",
+      },
+    },
     sshExec,
   });
   const commitSha = "a".repeat(40);
@@ -21,9 +37,16 @@ test("executes each deployment with its trusted target commands and directory", 
     ...body,
     after: commitSha,
     ref: "refs/heads/main",
-    repository: { full_name: "eliware/app" },
+    repository: {
+      full_name: "eliware/app",
+    },
   };
-  await expect(repo.update({ body: pushBody, deliveryId: "delivery-1" })).resolves.toBe(true);
+  await expect(
+    repo.update({
+      body: pushBody,
+      deliveryId: "delivery-1",
+    }),
+  ).resolves.toBe(true);
   expect(sshExec).toHaveBeenCalledWith(
     expect.objectContaining({
       host: "host",
@@ -51,92 +74,211 @@ test("executes each deployment with its trusted target commands and directory", 
     }),
   );
 });
-
 test("reports command failures and stops by default", async () => {
-  const sshExec = jest.fn().mockResolvedValue([{ command: "one", result: "failed", code: 2 }]);
+  const sshExec = jest.fn().mockResolvedValue([
+    {
+      command: "one",
+      result: "failed",
+      code: 2,
+    },
+  ]);
   const notify = jest.fn();
   const repo = createSshRepo({
-    config: { deployments: [deployment(), deployment({ target: "nas" })] },
-    targets: { dev: target, nas: target },
+    config: {
+      deployments: [
+        deployment(),
+        deployment({
+          target: "nas",
+        }),
+      ],
+    },
+    targets: {
+      dev: target,
+      nas: target,
+    },
     sshExec,
     sendNotification: notify,
   });
-  await expect(repo.update({ body })).resolves.toBe(false);
+  await expect(
+    repo.update({
+      body,
+    }),
+  ).resolves.toBe(false);
   expect(sshExec).toHaveBeenCalledTimes(1);
-  expect(notify).toHaveBeenCalledWith(expect.objectContaining({ hasError: true }));
+  expect(notify).toHaveBeenCalledWith(
+    expect.objectContaining({
+      hasError: true,
+    }),
+  );
 });
-
 test("rejects unknown targets before execution", async () => {
   const sshExec = jest.fn();
   const repo = createSshRepo({
-    config: { deployments: [deployment({ target: "unknown" })] },
-    targets: { dev: target },
+    config: {
+      deployments: [
+        deployment({
+          target: "unknown",
+        }),
+      ],
+    },
+    targets: {
+      dev: target,
+    },
     sshExec,
   });
-  await expect(repo.update({ body })).rejects.toThrow("Unknown deployment target");
+  await expect(
+    repo.update({
+      body,
+    }),
+  ).rejects.toThrow("Unknown deployment target");
   expect(sshExec).not.toHaveBeenCalled();
 });
-
 test("rejects cwd outside the trusted target root", async () => {
   const sshExec = jest.fn();
   const repo = createSshRepo({
-    config: { deployments: [deployment({ cwd: "/outside/app" })] },
-    targets: { dev: { ...target, allowedCwdRoot: "/opt" } },
+    config: {
+      deployments: [
+        deployment({
+          cwd: "/outside/app",
+        }),
+      ],
+    },
+    targets: {
+      dev: {
+        ...target,
+        allowedCwdRoot: "/opt",
+      },
+    },
     sshExec,
   });
-  await expect(repo.update({ body })).rejects.toThrow("outside target root");
+  await expect(
+    repo.update({
+      body,
+    }),
+  ).rejects.toThrow("outside target root");
   expect(sshExec).not.toHaveBeenCalled();
 });
-
 test("allows any absolute cwd when the trusted target root is filesystem root", async () => {
   const sshExec = jest.fn().mockResolvedValue([]);
   const repo = createSshRepo({
-    config: { deployments: [deployment({ cwd: "/opt/knit" })] },
-    targets: { dev: { ...target, allowedCwdRoot: "/" } },
+    config: {
+      deployments: [
+        deployment({
+          cwd: "/opt/knit",
+        }),
+      ],
+    },
+    targets: {
+      dev: {
+        ...target,
+        allowedCwdRoot: "/",
+      },
+    },
     sshExec,
   });
-  await expect(repo.update({ body })).resolves.toBe(true);
+  await expect(
+    repo.update({
+      body,
+    }),
+  ).resolves.toBe(true);
   expect(sshExec).toHaveBeenCalled();
 });
-
 test("handles invalid bodies, tags, connection errors, and continue-on-error", async () => {
   const sshExec = jest
     .fn()
-    .mockRejectedValueOnce(Object.assign(new Error("offline"), { stdout: "out", stderr: "err" }))
-    .mockResolvedValueOnce([{ command: "deploy", result: "", code: 1 }])
-    .mockResolvedValueOnce([{ command: "later", result: "ok", code: 0 }]);
+    .mockRejectedValueOnce(
+      Object.assign(new Error("offline"), {
+        stdout: "out",
+        stderr: "err",
+      }),
+    )
+    .mockResolvedValueOnce([
+      {
+        command: "deploy",
+        result: "",
+        code: 1,
+      },
+    ])
+    .mockResolvedValueOnce([
+      {
+        command: "later",
+        result: "ok",
+        code: 0,
+      },
+    ]);
   const notify = jest.fn();
   const repo = createSshRepo({
     config: {
       stopOnError: false,
       deployments: [
-        deployment({ commands: ["first"] }),
-        deployment({ target: "nas", commands: ["second"] }),
-        deployment({ target: "nas", commands: ["third"] }),
+        deployment({
+          commands: ["first"],
+        }),
+        deployment({
+          target: "nas",
+          commands: ["second"],
+        }),
+        deployment({
+          target: "nas",
+          commands: ["third"],
+        }),
       ],
     },
-    targets: { dev: target, nas: target },
+    targets: {
+      dev: target,
+      nas: target,
+    },
     sshExec,
     sendNotification: notify,
   });
-  await expect(repo.update({ body: {} })).resolves.toBe(false);
-  await expect(repo.update({ body: { ref: "refs/tags/v1", commits: [] } })).resolves.toBe(true);
-  await expect(repo.update({ body })).resolves.toBe(false);
+  await expect(
+    repo.update({
+      body: {},
+    }),
+  ).resolves.toBe(false);
+  await expect(
+    repo.update({
+      body: {
+        ref: "refs/tags/v1",
+        commits: [],
+      },
+    }),
+  ).resolves.toBe(true);
+  await expect(
+    repo.update({
+      body,
+    }),
+  ).resolves.toBe(false);
   expect(sshExec).toHaveBeenCalledTimes(3);
   expect(notify).toHaveBeenCalled();
 });
 test("uses the shared notifier for tag notifications", async () => {
-  const repo = createSshRepo({ config: { deployments: [] }, targets: {} });
-  const notifier = await import("../src/notifier/state.mjs");
+  const repo = createSshRepo({
+    config: {
+      deployments: [],
+    },
+    targets: {},
+  });
+  const { default: notifier } = await import("../src/notifier/state.mjs");
   const client = {
     channels: {
-      fetch: jest.fn().mockResolvedValue({ send: jest.fn().mockResolvedValue(undefined) }),
+      fetch: jest.fn().mockResolvedValue({
+        send: jest.fn().mockResolvedValue(undefined),
+      }),
     },
   };
   notifier.setDiscordClient(client);
   notifier.setChannelResolver(jest.fn().mockResolvedValue("channel"));
   await expect(
-    repo.update({ body: { ref: "refs/tags/v1", commits: [], repository: { full_name: "o/r" } } }),
+    repo.update({
+      body: {
+        ref: "refs/tags/v1",
+        commits: [],
+        repository: {
+          full_name: "o/r",
+        },
+      },
+    }),
   ).resolves.toBe(true);
   expect(createSshRepo().targets).toEqual([]);
 });

@@ -1,5 +1,5 @@
-import { projectWebhookEventDetails } from "../src/webhookEventDetails.mjs";
-
+import __knitModule0 from "../src/webhookEventDetails.mjs";
+const { projectWebhookEventDetails } = __knitModule0;
 test("projects repository and workflow run details", () => {
   expect(
     projectWebhookEventDetails({
@@ -8,8 +8,14 @@ test("projects repository and workflow run details", () => {
       data: {
         action: "completed",
         ref: "refs/heads/main",
-        repository: { full_name: "eliware/demo" },
-        workflow_run: { name: "Node CI", status: "completed", conclusion: "success" },
+        repository: {
+          full_name: "eliware/demo",
+        },
+        workflow_run: {
+          name: "Node CI",
+          status: "completed",
+          conclusion: "success",
+        },
       },
     }),
   ).toEqual({
@@ -23,15 +29,20 @@ test("projects repository and workflow run details", () => {
     conclusion: "success",
   });
 });
-
 test("uses organization and workflow job details when primary fields are absent", () => {
   expect(
     projectWebhookEventDetails({
       event: "workflow_job",
       deliveryId: null,
       data: {
-        organization: { login: "eliware" },
-        workflow_job: { name: "Build", status: "queued", conclusion: "cancelled" },
+        organization: {
+          login: "eliware",
+        },
+        workflow_job: {
+          name: "Build",
+          status: "queued",
+          conclusion: "cancelled",
+        },
       },
     }),
   ).toEqual({
@@ -45,13 +56,19 @@ test("uses organization and workflow job details when primary fields are absent"
     conclusion: "cancelled",
   });
 });
-
 test("uses workflow fallback fields and safe defaults", () => {
   expect(
     projectWebhookEventDetails({
       event: "workflow",
       deliveryId: undefined,
-      data: { workflow: { name: "Deploy" }, workflow_run: { conclusion: "success" } },
+      data: {
+        workflow: {
+          name: "Deploy",
+        },
+        workflow_run: {
+          conclusion: "success",
+        },
+      },
     }),
   ).toEqual({
     event: "workflow",
@@ -63,7 +80,11 @@ test("uses workflow fallback fields and safe defaults", () => {
     status: "success",
     conclusion: "success",
   });
-  expect(projectWebhookEventDetails({ data: null })).toEqual({
+  expect(
+    projectWebhookEventDetails({
+      data: null,
+    }),
+  ).toEqual({
     event: undefined,
     deliveryId: undefined,
     repository: "unknown",

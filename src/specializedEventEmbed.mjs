@@ -1,6 +1,6 @@
-import { escapeDiscordMarkdown } from "./notifier/discordMarkdown.mjs";
-
-export const COLORS = {
+import __knitModule0 from "./notifier/discordMarkdown.mjs";
+const { escapeDiscordMarkdown } = __knitModule0;
+const COLORS = {
   release: 0x9b59b6,
   workflow_run: 0x3498db,
   pull_request: 0x2ecc71,
@@ -8,20 +8,16 @@ export const COLORS = {
   deployment: 0x1abc9c,
   deployment_status: 0x1abc9c,
 };
-
 function repository(post) {
   return post.repository?.full_name || "Unknown Repository";
 }
-
 function actor(post) {
   return post.sender?.login || post.sender?.name || post.pusher?.name || "unknown";
 }
-
 function action(post) {
   return post.action || "updated";
 }
-
-export function createEmbed({ event, post }) {
+function createEmbed({ event, post }) {
   const repo = escapeDiscordMarkdown(repository(post));
   const data =
     post.release ||
@@ -41,7 +37,9 @@ export function createEmbed({ event, post }) {
       ? `**${name}**\nActor: **${escapeDiscordMarkdown(actor(post))}**`
       : `Actor: **${escapeDiscordMarkdown(actor(post))}**`,
     color: COLORS[event] || 0x3498db,
-    footer: { text: `GitHub ${escapeDiscordMarkdown(event)} event` },
+    footer: {
+      text: `GitHub ${escapeDiscordMarkdown(event)} event`,
+    },
     timestamp: new Date().toISOString(),
   };
   if (url) embed.url = url;
@@ -51,3 +49,8 @@ export function createEmbed({ event, post }) {
   if (data.status) embed.description += `\nStatus: **${escapeDiscordMarkdown(data.status)}**`;
   return embed;
 }
+export default createEmbed;
+Object.assign(createEmbed, {
+  COLORS,
+  createEmbed,
+});

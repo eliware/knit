@@ -1,11 +1,9 @@
 const MAX_UPDATES = 5;
 const WINDOW_MS = 20_000;
-
-export function createPresenceRateLimiter({ client, now, setTimeoutFn, log }) {
+function createPresenceRateLimiter({ client, now, setTimeoutFn, log }) {
   const updates = [];
   let lastStatus;
   let sendQueue = Promise.resolve();
-
   async function sendPresence(presence) {
     while (true) {
       const current = now();
@@ -26,10 +24,13 @@ export function createPresenceRateLimiter({ client, now, setTimeoutFn, log }) {
       }
     }
   }
-
   return function send(presence) {
     const pending = sendQueue.then(() => sendPresence(presence));
     sendQueue = pending.catch(() => false);
     return pending;
   };
 }
+export default createPresenceRateLimiter;
+Object.assign(createPresenceRateLimiter, {
+  createPresenceRateLimiter,
+});

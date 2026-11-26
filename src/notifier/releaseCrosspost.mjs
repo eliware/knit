@@ -1,4 +1,4 @@
-export async function crosspostReleaseAnnouncement({ message, post, channelId, log }) {
+async function crosspostReleaseAnnouncement({ message, post, channelId, log }) {
   if (!post.ref?.startsWith("refs/tags/v") || typeof message?.crosspost !== "function") return;
   await message.crosspost();
   log.info("[Notifier] Cross-posted release announcement", {
@@ -6,3 +6,7 @@ export async function crosspostReleaseAnnouncement({ message, post, channelId, l
     tag: post.ref.slice("refs/tags/".length),
   });
 }
+export default crosspostReleaseAnnouncement;
+Object.assign(crosspostReleaseAnnouncement, {
+  crosspostReleaseAnnouncement,
+});

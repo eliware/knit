@@ -1,5 +1,5 @@
-import { createPresenceDeliveryCorrelation } from "../../src/presence/delivery-correlation.mjs";
-
+import __knitModule0 from "../../src/presence/delivery-correlation.mjs";
+const { createPresenceDeliveryCorrelation } = __knitModule0;
 test("matches active deliveries before and after an uncorrelated update", () => {
   const correlation = createPresenceDeliveryCorrelation();
   expect(correlation.matches("one")).toBe(false);
@@ -12,7 +12,6 @@ test("matches active deliveries before and after an uncorrelated update", () => 
   expect(correlation.matches("two")).toBe(false);
   expect(correlation.matches(null)).toBe(true);
 });
-
 test("clears the current delivery after reset", () => {
   const correlation = createPresenceDeliveryCorrelation();
   correlation.end("unknown");
@@ -20,7 +19,6 @@ test("clears the current delivery after reset", () => {
   correlation.reset();
   expect(correlation.matches("two")).toBe(false);
 });
-
 test("keeps a delivery active until each matching task ends", () => {
   const correlation = createPresenceDeliveryCorrelation();
   correlation.begin("one");
@@ -30,7 +28,6 @@ test("keeps a delivery active until each matching task ends", () => {
   correlation.end("one");
   expect(correlation.matches("two")).toBe(false);
 });
-
 test("does not change active deliveries for an unmatched end", () => {
   const correlation = createPresenceDeliveryCorrelation();
   correlation.begin(null);

@@ -1,8 +1,11 @@
 import { jest } from "@jest/globals";
-import { finishConsumerPresence } from "../src/consumerPresence.mjs";
-
+import __knitModule0 from "../src/consumerPresence.mjs";
+const { finishConsumerPresence } = __knitModule0;
 test("ends terminal outcomes with delivery context", async () => {
-  const presence = { terminal: jest.fn(), end: jest.fn() };
+  const presence = {
+    terminal: jest.fn(),
+    end: jest.fn(),
+  };
   await finishConsumerPresence({
     presence,
     text: "repo failure",
@@ -12,9 +15,12 @@ test("ends terminal outcomes with delivery context", async () => {
   expect(presence.terminal).toHaveBeenCalledWith("repo failure", true, "delivery-1");
   expect(presence.end).toHaveBeenCalledTimes(1);
 });
-
 test("sends ignored tags to neutral presence", async () => {
-  const presence = { neutral: jest.fn(), terminal: jest.fn(), end: jest.fn() };
+  const presence = {
+    neutral: jest.fn(),
+    terminal: jest.fn(),
+    end: jest.fn(),
+  };
   await finishConsumerPresence({
     presence,
     text: "repo ignored",
@@ -25,20 +31,25 @@ test("sends ignored tags to neutral presence", async () => {
   expect(presence.terminal).not.toHaveBeenCalled();
   expect(presence.end).toHaveBeenCalledTimes(1);
 });
-
 test("swallows a rejected async presence end", async () => {
   const presence = {
     terminal: jest.fn(),
     end: jest.fn().mockRejectedValue(new Error("end failed")),
   };
   await expect(
-    finishConsumerPresence({ presence, text: "done", deliveryId: "delivery-1" }),
+    finishConsumerPresence({
+      presence,
+      text: "done",
+      deliveryId: "delivery-1",
+    }),
   ).resolves.toBeUndefined();
   expect(presence.end).toHaveBeenCalledWith("delivery-1");
 });
-
 test("accepts an absent presence manager", async () => {
   await expect(
-    finishConsumerPresence({ text: "done", deliveryId: "delivery-1" }),
+    finishConsumerPresence({
+      text: "done",
+      deliveryId: "delivery-1",
+    }),
   ).resolves.toBeUndefined();
 });

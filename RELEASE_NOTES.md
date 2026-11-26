@@ -1,5 +1,11 @@
 # Release Notes
 
+## 15.2.0 — 2026-11-26
+
+### Changed
+
+- Knit updates its development and command-line dependencies.
+
 ## 15.1.0 — 2026-11-11
 
 ### Changed

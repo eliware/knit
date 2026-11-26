@@ -2,17 +2,12 @@ import fs from "node:fs";
 import path from "node:path";
 import * as yaml from "js-yaml";
 import { log as logger } from "@eliware/common";
-import { validateTargets } from "./targetValidator.mjs";
-
+import __knitModule0 from "./targetValidator.mjs";
+const { validateTargets } = __knitModule0;
 const defaultPath =
   process.env.KNIT_TARGETS_PATH ||
   path.join(process.env.KNIT_CONFIG_PATH || path.resolve("repos"), "targets.yaml");
-
-export function createTargetLoader({
-  targetsPath = defaultPath,
-  fsModule = fs,
-  log = logger,
-} = {}) {
+function createTargetLoader({ targetsPath = defaultPath, fsModule = fs, log = logger } = {}) {
   let cache;
   const load = () => {
     if (cache) return cache;
@@ -22,7 +17,13 @@ export function createTargetLoader({
   };
   function validateAll() {
     const config = load();
-    if (!validateTargets({ config, log })) return false;
+    if (
+      !validateTargets({
+        config,
+        log,
+      })
+    )
+      return false;
     const files = Object.values(config.targets).flatMap((target) => [
       target.identity,
       target.knownHosts,
@@ -39,8 +40,14 @@ export function createTargetLoader({
     if (!validFiles) log.error("ConfigValidator::validateTargets failed: invalid SSH file path");
     return validFiles;
   }
-
-  return { load, validateAll };
+  return {
+    load,
+    validateAll,
+  };
 }
-
-export const defaultTargetLoader = createTargetLoader();
+const defaultTargetLoader = createTargetLoader();
+export default createTargetLoader;
+Object.assign(createTargetLoader, {
+  createTargetLoader,
+  defaultTargetLoader,
+});

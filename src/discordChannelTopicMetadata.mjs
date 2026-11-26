@@ -1,4 +1,4 @@
-export function channelTopic(packageJson = {}) {
+function channelTopic(packageJson = {}) {
   const description =
     typeof packageJson.description === "string" ? packageJson.description.trim() : "";
   const keywords = Array.isArray(packageJson.keywords)
@@ -12,3 +12,7 @@ export function channelTopic(packageJson = {}) {
   const boundedDescription = description.slice(0, descriptionLimit);
   return boundedDescription ? `${boundedDescription}\n${keywordText}` : keywordText;
 }
+export default channelTopic;
+Object.assign(channelTopic, {
+  channelTopic,
+});

@@ -1,11 +1,13 @@
 import { log as logger } from "@eliware/common";
-import * as Notifier from "./notifier/state.mjs";
-import { createChannelResolver } from "./discordChannels.mjs";
-import { defaultTargetLoader } from "./targetLoader.mjs";
-import { createPresenceManager, setPresenceManager } from "./presenceManager.mjs";
 import packageJson from "../package.json" with { type: "json" };
-
-export function registerDiscordServices({
+import Notifier from "./notifier/state.mjs";
+import __knitModule0 from "./discordChannels.mjs";
+import __knitModule1 from "./targetLoader.mjs";
+import __knitModule2 from "./presenceManager.mjs";
+const { createChannelResolver } = __knitModule0;
+const { defaultTargetLoader } = __knitModule1;
+const { createPresenceManager, setPresenceManager } = __knitModule2;
+function registerDiscordServices({
   client,
   guildId,
   targetLoader = defaultTargetLoader,
@@ -15,18 +17,25 @@ export function registerDiscordServices({
   createPresenceManagerFn = createPresenceManager,
   setPresenceManagerFn = setPresenceManager,
 }) {
-  const presenceManager = createPresenceManagerFn({ client, version: packageJson.version, log });
+  const presenceManager = createPresenceManagerFn({
+    client,
+    version: packageJson.version,
+    log,
+  });
   setPresenceManagerFn(presenceManager);
   presenceManager.start();
   NotifierMod.setDiscordClient(client);
   const configuredGuildId = guildId || targetLoader.load().guildId;
   NotifierMod.setChannelResolver(
-    createChannelResolverFn({ client, guildId: configuredGuildId, log }),
+    createChannelResolverFn({
+      client,
+      guildId: configuredGuildId,
+      log,
+    }),
   );
   return presenceManager;
 }
-
-export function unregisterDiscordServices({
+function unregisterDiscordServices({
   client,
   NotifierMod = Notifier,
   setPresenceManagerFn = setPresenceManager,
@@ -34,3 +43,8 @@ export function unregisterDiscordServices({
   setPresenceManagerFn(null);
   NotifierMod.clearDiscordClient(client);
 }
+export default registerDiscordServices;
+Object.assign(registerDiscordServices, {
+  registerDiscordServices,
+  unregisterDiscordServices,
+});

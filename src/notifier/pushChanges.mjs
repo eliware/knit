@@ -1,7 +1,11 @@
-import { escapeDiscordMarkdown } from "./discordMarkdown.mjs";
-
-export function collectPushChanges(post) {
-  const files = { added: new Set(), removed: new Set(), modified: new Set() };
+import __knitModule0 from "./discordMarkdown.mjs";
+const { escapeDiscordMarkdown } = __knitModule0;
+function collectPushChanges(post) {
+  const files = {
+    added: new Set(),
+    removed: new Set(),
+    modified: new Set(),
+  };
   for (const commit of post.commits) {
     for (const key of Object.keys(files)) {
       if (Array.isArray(commit?.[key])) commit[key].forEach((file) => files[key].add(file));
@@ -18,8 +22,7 @@ export function collectPushChanges(post) {
   });
   return files;
 }
-
-export function pushChangeFields(post) {
+function pushChangeFields(post) {
   const files = collectPushChanges(post);
   return [
     ["added", "New"],
@@ -33,3 +36,8 @@ export function pushChangeFields(post) {
       inline: false,
     }));
 }
+export default collectPushChanges;
+Object.assign(collectPushChanges, {
+  collectPushChanges,
+  pushChangeFields,
+});

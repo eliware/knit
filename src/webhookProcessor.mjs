@@ -1,17 +1,9 @@
 import { log as logger } from "@eliware/common";
-import * as SignatureValidator from "./signatureValidator.mjs";
-import * as Publisher from "./publisher.mjs";
-import { projectWebhookEventDetails } from "./webhookEventDetails.mjs";
-
-/**
- * Creates a webhook processor for handling GitHub webhook events.
- * @param {Object} params
- * @param {Object} [params.publisher=Publisher] - The publisher module to use.
- * @param {Object} [params.log] - Logger instance to use.
- * @param {Object} [params.SignatureValidatorMod=SignatureValidator] - The signature validator module to use.
- * @returns {Object} Webhook processor with a process method.
- */
-export function createWebhookProcessor({
+import SignatureValidator from "./signatureValidator.mjs";
+import Publisher from "./publisher.mjs";
+import __knitModule0 from "./webhookEventDetails.mjs";
+const { projectWebhookEventDetails } = __knitModule0;
+function createWebhookProcessor({
   publisher = Publisher,
   log = logger,
   SignatureValidatorMod = SignatureValidator,
@@ -31,7 +23,13 @@ export function createWebhookProcessor({
       log.error("Request not permitted: Missing secret or signature.");
       throw new Error("Request not permitted: Missing secret or signature.");
     }
-    if (!SignatureValidatorMod.validate({ data: body, secret, signature })) {
+    if (
+      !SignatureValidatorMod.validate({
+        data: body,
+        secret,
+        signature,
+      })
+    ) {
       log.error("Request not permitted: Invalid signature.");
       throw new Error("Request not permitted: Invalid signature.");
     }
@@ -55,7 +53,11 @@ export function createWebhookProcessor({
         log.info("[WebhookProcessor] Signature validated");
         const event = req.headers["x-github-event"] || "push";
         const deliveryId = req.headers["x-github-delivery"] || null;
-        const details = projectWebhookEventDetails({ data, event, deliveryId });
+        const details = projectWebhookEventDetails({
+          data,
+          event,
+          deliveryId,
+        });
         log.info("[WebhookProcessor] GitHub event received", details);
         publisher.publish({
           raw: rawData,
@@ -74,3 +76,7 @@ export function createWebhookProcessor({
     },
   };
 }
+export default createWebhookProcessor;
+Object.assign(createWebhookProcessor, {
+  createWebhookProcessor,
+});

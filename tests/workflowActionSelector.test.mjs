@@ -1,44 +1,120 @@
-import { selectWorkflowAction } from "../src/workflowActionSelector.mjs";
-
+import __knitModule0 from "../src/workflowActionSelector.mjs";
+const { selectWorkflowAction } = __knitModule0;
 test("selects push and matching tag actions without tag fallback", () => {
-  const push = { deployments: [] };
-  const release = { deployments: [{ target: "dev", cwd: "/opt/release", commands: ["release"] }] };
-  const config = { on: { push, tags: { "v*": release } } };
-  expect(selectWorkflowAction({ config, post: { ref: "refs/heads/main" } })).toBe(push);
-  expect(selectWorkflowAction({ config, post: { ref: "refs/tags/v1.0.0" } })).toBe(release);
-  expect(selectWorkflowAction({ config, post: { ref: "refs/tags/test" } })).toBeNull();
+  const push = {
+    deployments: [],
+  };
+  const release = {
+    deployments: [
+      {
+        target: "dev",
+        cwd: "/opt/release",
+        commands: ["release"],
+      },
+    ],
+  };
+  const config = {
+    on: {
+      push,
+      tags: {
+        "v*": release,
+      },
+    },
+  };
+  expect(
+    selectWorkflowAction({
+      config,
+      post: {
+        ref: "refs/heads/main",
+      },
+    }),
+  ).toBe(push);
+  expect(
+    selectWorkflowAction({
+      config,
+      post: {
+        ref: "refs/tags/v1.0.0",
+      },
+    }),
+  ).toBe(release);
+  expect(
+    selectWorkflowAction({
+      config,
+      post: {
+        ref: "refs/tags/test",
+      },
+    }),
+  ).toBeNull();
 });
-
 test("ignores tags when release actions are not configured", () => {
   expect(
     selectWorkflowAction({
-      config: { on: { push: { deployments: [] } } },
-      post: { ref: "refs/tags/v1.0.0" },
+      config: {
+        on: {
+          push: {
+            deployments: [],
+          },
+        },
+      },
+      post: {
+        ref: "refs/tags/v1.0.0",
+      },
     }),
   ).toBeNull();
 });
-
 test("matches version tags with the v shorthand", () => {
-  const release = { deployments: [{ target: "dev", cwd: "/opt/release", commands: ["release"] }] };
+  const release = {
+    deployments: [
+      {
+        target: "dev",
+        cwd: "/opt/release",
+        commands: ["release"],
+      },
+    ],
+  };
   expect(
     selectWorkflowAction({
-      config: { on: { tags: { v: release } } },
-      post: { ref: "refs/tags/v1.2.3" },
+      config: {
+        on: {
+          tags: {
+            v: release,
+          },
+        },
+      },
+      post: {
+        ref: "refs/tags/v1.2.3",
+      },
     }),
   ).toBe(release);
 });
-
 test.each(["v-beta", "x1.2.3"])("ignores unsupported tags %s", (tag) => {
-  const release = { deployments: [] };
+  const release = {
+    deployments: [],
+  };
   expect(
     selectWorkflowAction({
-      config: { on: { tags: { "v*": release } } },
-      post: { ref: `refs/tags/${tag}` },
+      config: {
+        on: {
+          tags: {
+            "v*": release,
+          },
+        },
+      },
+      post: {
+        ref: `refs/tags/${tag}`,
+      },
     }),
   ).toBeNull();
 });
-
 test("uses the push action and requires workflow configuration", () => {
-  expect(selectWorkflowAction({ config: { on: { push: [] } } })).toEqual([]);
+  expect(
+    selectWorkflowAction({
+      config: {
+        on: {
+          push: [],
+        },
+      },
+    }),
+  ).toEqual([]);
   expect(() => selectWorkflowAction()).toThrow();
 });

@@ -1,8 +1,10 @@
-import { createWebhookEnvironment } from "../webhookEnvironment.mjs";
-import { logDeploymentCommand, logDeploymentFailure } from "./deploymentLog.mjs";
-import { createDeploymentOutput } from "./deployment-output.mjs";
-
-export async function runDeployments({
+import __knitModule0 from "../webhookEnvironment.mjs";
+import __knitModule1 from "./deploymentLog.mjs";
+import __knitModule2 from "./deployment-output.mjs";
+const { createWebhookEnvironment } = __knitModule0;
+const { logDeploymentCommand, logDeploymentFailure } = __knitModule1;
+const { createDeploymentOutput } = __knitModule2;
+async function runDeployments({
   deployments,
   targets,
   body,
@@ -54,7 +56,11 @@ export async function runDeployments({
     }
     const startedAt = Date.now();
     try {
-      const environment = createWebhookEnvironment({ body, event, deliveryId });
+      const environment = createWebhookEnvironment({
+        body,
+        event,
+        deliveryId,
+      });
       const results = await sshExec({
         host: target.host,
         username: target.user,
@@ -67,7 +73,12 @@ export async function runDeployments({
         commandTimeout: deployment.timeoutMs,
       });
       for (const result of results) {
-        logDeploymentCommand({ log, context, deployment, result });
+        logDeploymentCommand({
+          log,
+          context,
+          deployment,
+          result,
+        });
         output.appendResult(result);
         if (result.code !== 0) {
           failed = true;
@@ -88,5 +99,12 @@ export async function runDeployments({
     }
     if (failed && stopOnError) break;
   }
-  return { output: output.toString(), failed };
+  return {
+    output: output.toString(),
+    failed,
+  };
 }
+export default runDeployments;
+Object.assign(runDeployments, {
+  runDeployments,
+});

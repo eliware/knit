@@ -1,8 +1,8 @@
 const IDLE_MS = 10 * 60 * 1_000;
 import { log as logger } from "@eliware/common";
-import { createPresenceDeliveryCorrelation } from "./presence/delivery-correlation.mjs";
-
-export function createPresenceLifecycle({
+import __knitModule0 from "./presence/delivery-correlation.mjs";
+const { createPresenceDeliveryCorrelation } = __knitModule0;
+function createPresenceLifecycle({
   send,
   versionPresence,
   busyPresence,
@@ -13,7 +13,6 @@ export function createPresenceLifecycle({
   let idleTimer;
   let busy = 0;
   const deliveryCorrelation = createPresenceDeliveryCorrelation();
-
   function scheduleIdle() {
     clearTimeoutFn(idleTimer);
     idleTimer = setTimeoutFn(() => {
@@ -27,7 +26,6 @@ export function createPresenceLifecycle({
     }, IDLE_MS);
     idleTimer?.unref?.();
   }
-
   return {
     start() {
       return send(versionPresence());
@@ -63,3 +61,7 @@ export function createPresenceLifecycle({
     },
   };
 }
+export default createPresenceLifecycle;
+Object.assign(createPresenceLifecycle, {
+  createPresenceLifecycle,
+});

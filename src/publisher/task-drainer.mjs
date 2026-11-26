@@ -1,19 +1,17 @@
 import { log as logger } from "@eliware/common";
-import * as Consumer from "../consumer.mjs";
-import {
+import Consumer from "../consumer.mjs";
+import __knitModule0 from "../publisherQueue.mjs";
+import __knitModule1 from "../publisherProcessor.mjs";
+import __knitModule2 from "../publisherState.mjs";
+const {
   completePublisherDelivery,
   dequeuePublisherTask,
   forgetPublisherDelivery,
   getPendingPublisherTasks,
-} from "../publisherQueue.mjs";
-import { processPublisherTask } from "../publisherProcessor.mjs";
-import {
-  isPublisherProcessing,
-  recordPublisherMetric,
-  setPublisherProcessing,
-} from "../publisherState.mjs";
-
-export async function processTasks(ConsumerMod = Consumer) {
+} = __knitModule0;
+const { processPublisherTask } = __knitModule1;
+const { isPublisherProcessing, recordPublisherMetric, setPublisherProcessing } = __knitModule2;
+async function processTasks(ConsumerMod = Consumer) {
   if (isPublisherProcessing() || getPendingPublisherTasks() === 0) return;
   setPublisherProcessing(true);
   try {
@@ -37,3 +35,7 @@ export async function processTasks(ConsumerMod = Consumer) {
     setPublisherProcessing(false);
   }
 }
+export default processTasks;
+Object.assign(processTasks, {
+  processTasks,
+});

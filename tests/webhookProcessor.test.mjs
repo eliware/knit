@@ -1,26 +1,36 @@
 import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
-import { createWebhookProcessor } from "../src/webhookProcessor.mjs";
-
+import __knitModule0 from "../src/webhookProcessor.mjs";
+const { createWebhookProcessor } = __knitModule0;
 describe("webhookProcessor.mjs", () => {
-  const log = { info: jest.fn(), error: jest.fn() };
+  const log = {
+    info: jest.fn(),
+    error: jest.fn(),
+  };
   let SignatureValidator;
   let res;
-
   beforeEach(() => {
     jest.clearAllMocks();
     process.env.GITHUB_WEBHOOK_SECRET = "shhh";
-    SignatureValidator = { validate: jest.fn() };
-    res = { sendStatus: jest.fn(), status: jest.fn().mockReturnThis(), send: jest.fn() };
+    SignatureValidator = {
+      validate: jest.fn(),
+    };
+    res = {
+      sendStatus: jest.fn(),
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    };
   });
-
   afterEach(() => delete process.env.GITHUB_WEBHOOK_SECRET);
-
   it("processes a valid webhook and publishes all data", async () => {
-    const publisher = { publish: jest.fn() };
+    const publisher = {
+      publish: jest.fn(),
+    };
     const req = {
       rawBody: "payload",
-      body: { foo: "bar" },
+      body: {
+        foo: "bar",
+      },
       headers: {
         "x-hub-signature-256": "sig",
         "x-github-event": "release",
@@ -28,13 +38,11 @@ describe("webhookProcessor.mjs", () => {
       },
     };
     SignatureValidator.validate.mockReturnValue(true);
-
     await createWebhookProcessor({
       log,
       publisher,
       SignatureValidatorMod: SignatureValidator,
     }).process(req, res);
-
     expect(SignatureValidator.validate).toHaveBeenCalledWith({
       data: "payload",
       secret: "shhh",
@@ -49,9 +57,10 @@ describe("webhookProcessor.mjs", () => {
     });
     expect(res.sendStatus).toHaveBeenCalledWith(200);
   });
-
   it("acknowledges a valid webhook without waiting for publish completion", async () => {
-    const publisher = { publish: jest.fn(() => new Promise(() => {})) };
+    const publisher = {
+      publish: jest.fn(() => new Promise(() => {})),
+    };
     SignatureValidator.validate.mockReturnValue(true);
     await createWebhookProcessor({
       log,
@@ -61,36 +70,63 @@ describe("webhookProcessor.mjs", () => {
       {
         rawBody: "payload",
         body: {},
-        headers: { "x-hub-signature-256": "sig" },
+        headers: {
+          "x-hub-signature-256": "sig",
+        },
       },
       res,
     );
     expect(publisher.publish).toHaveBeenCalledTimes(1);
     expect(res.sendStatus).toHaveBeenCalledWith(200);
   });
-
   it("defaults missing event and delivery headers", async () => {
-    const publisher = { publish: jest.fn() };
+    const publisher = {
+      publish: jest.fn(),
+    };
     SignatureValidator.validate.mockReturnValue(true);
     await createWebhookProcessor({
       log,
       publisher,
       SignatureValidatorMod: SignatureValidator,
-    }).process({ rawBody: "payload", body: {}, headers: { "x-hub-signature-256": "sig" } }, res);
+    }).process(
+      {
+        rawBody: "payload",
+        body: {},
+        headers: {
+          "x-hub-signature-256": "sig",
+        },
+      },
+      res,
+    );
     expect(publisher.publish).toHaveBeenCalledWith(
-      expect.objectContaining({ event: "push", deliveryId: null }),
+      expect.objectContaining({
+        event: "push",
+        deliveryId: null,
+      }),
     );
   });
-
   it("supports default processor dependencies", async () => {
     delete process.env.GITHUB_WEBHOOK_SECRET;
-    await createWebhookProcessor().process({ rawBody: "payload", body: {}, headers: {} }, res);
+    await createWebhookProcessor().process(
+      {
+        rawBody: "payload",
+        body: {},
+        headers: {},
+      },
+      res,
+    );
     expect(res.status).toHaveBeenCalledWith(400);
   });
-
   it("rejects a missing signature", async () => {
-    await createWebhookProcessor({ log, SignatureValidatorMod: SignatureValidator }).process(
-      { rawBody: "payload", body: {}, headers: {} },
+    await createWebhookProcessor({
+      log,
+      SignatureValidatorMod: SignatureValidator,
+    }).process(
+      {
+        rawBody: "payload",
+        body: {},
+        headers: {},
+      },
       res,
     );
     expect(SignatureValidator.validate).not.toHaveBeenCalled();
@@ -98,25 +134,40 @@ describe("webhookProcessor.mjs", () => {
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.send).toHaveBeenCalledWith("Webhook processing failed.");
   });
-
   it("rejects a missing secret", async () => {
     delete process.env.GITHUB_WEBHOOK_SECRET;
-    await createWebhookProcessor({ log, SignatureValidatorMod: SignatureValidator }).process(
-      { rawBody: "payload", body: {}, headers: { "x-hub-signature-256": "sig" } },
+    await createWebhookProcessor({
+      log,
+      SignatureValidatorMod: SignatureValidator,
+    }).process(
+      {
+        rawBody: "payload",
+        body: {},
+        headers: {
+          "x-hub-signature-256": "sig",
+        },
+      },
       res,
     );
     expect(SignatureValidator.validate).not.toHaveBeenCalled();
   });
-
   it("rejects an invalid signature", async () => {
     SignatureValidator.validate.mockReturnValue(false);
-    await createWebhookProcessor({ log, SignatureValidatorMod: SignatureValidator }).process(
-      { rawBody: "payload", body: {}, headers: { "x-hub-signature-256": "sig" } },
+    await createWebhookProcessor({
+      log,
+      SignatureValidatorMod: SignatureValidator,
+    }).process(
+      {
+        rawBody: "payload",
+        body: {},
+        headers: {
+          "x-hub-signature-256": "sig",
+        },
+      },
       res,
     );
     expect(log.error).toHaveBeenCalledWith("Request not permitted: Invalid signature.");
   });
-
   it("handles publisher errors with an error message", async () => {
     const publisher = {
       publish: jest.fn(() => {
@@ -128,10 +179,18 @@ describe("webhookProcessor.mjs", () => {
       log,
       publisher,
       SignatureValidatorMod: SignatureValidator,
-    }).process({ rawBody: "payload", body: {}, headers: { "x-hub-signature-256": "sig" } }, res);
+    }).process(
+      {
+        rawBody: "payload",
+        body: {},
+        headers: {
+          "x-hub-signature-256": "sig",
+        },
+      },
+      res,
+    );
     expect(log.error).toHaveBeenCalledWith("[WebhookProcessor] Error:", "publish failed");
   });
-
   it("returns HTTP 503 immediately when the publisher queue is full", async () => {
     const publisher = {
       publish: jest.fn(() => {
@@ -145,12 +204,20 @@ describe("webhookProcessor.mjs", () => {
       log,
       publisher,
       SignatureValidatorMod: SignatureValidator,
-    }).process({ rawBody: "payload", body: {}, headers: { "x-hub-signature-256": "sig" } }, res);
+    }).process(
+      {
+        rawBody: "payload",
+        body: {},
+        headers: {
+          "x-hub-signature-256": "sig",
+        },
+      },
+      res,
+    );
     expect(res.status).toHaveBeenCalledWith(503);
     expect(res.send).toHaveBeenCalledWith("Webhook processing failed.");
     expect(res.sendStatus).not.toHaveBeenCalled();
   });
-
   it("handles thrown values without a message", async () => {
     const publisher = {
       publish: jest.fn(() => {
@@ -162,22 +229,47 @@ describe("webhookProcessor.mjs", () => {
       log,
       publisher,
       SignatureValidatorMod: SignatureValidator,
-    }).process({ rawBody: "payload", body: {}, headers: { "x-hub-signature-256": "sig" } }, res);
+    }).process(
+      {
+        rawBody: "payload",
+        body: {},
+        headers: {
+          "x-hub-signature-256": "sig",
+        },
+      },
+      res,
+    );
     expect(log.error).toHaveBeenCalledWith("[WebhookProcessor] Error:", "failed");
   });
   delete process.env.GITHUB_WEBHOOK_SECRET;
 });
-
 test("logs basic GitHub Actions event details without payload contents", async () => {
   process.env.GITHUB_WEBHOOK_SECRET = "shhh";
-  const publisher = { publish: jest.fn() };
-  const SignatureValidator = { validate: jest.fn().mockReturnValue(true) };
-  const log = { info: jest.fn(), error: jest.fn() };
-  const res = { sendStatus: jest.fn(), status: jest.fn().mockReturnThis(), send: jest.fn() };
+  const publisher = {
+    publish: jest.fn(),
+  };
+  const SignatureValidator = {
+    validate: jest.fn().mockReturnValue(true),
+  };
+  const log = {
+    info: jest.fn(),
+    error: jest.fn(),
+  };
+  const res = {
+    sendStatus: jest.fn(),
+    status: jest.fn().mockReturnThis(),
+    send: jest.fn(),
+  };
   const body = {
     action: "completed",
-    repository: { full_name: "eliware/demo" },
-    workflow_run: { name: "Node CI", status: "completed", conclusion: "success" },
+    repository: {
+      full_name: "eliware/demo",
+    },
+    workflow_run: {
+      name: "Node CI",
+      status: "completed",
+      conclusion: "success",
+    },
   };
   await createWebhookProcessor({
     log,

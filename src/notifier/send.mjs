@@ -1,12 +1,11 @@
 import { log as logger } from "@eliware/common";
-import { prepareNotificationMessage } from "./message.mjs";
-import { getNotifierState } from "./state.mjs";
-import { deliverDiscordMessage } from "./delivery.mjs";
-
-/**
- * Send a notification to a Discord channel.
- */
-export async function send({
+import __knitModule0 from "./message.mjs";
+import __knitModule1 from "./state.mjs";
+import __knitModule2 from "./delivery.mjs";
+const { prepareNotificationMessage } = __knitModule0;
+const { getNotifierState } = __knitModule1;
+const { deliverDiscordMessage } = __knitModule2;
+async function send({
   channelId,
   post = {},
   event = "push",
@@ -35,5 +34,16 @@ export async function send({
     logOutput,
     hasError,
   });
-  await deliverDiscordMessage({ discordClient, channelId, embed, post, event, log });
+  await deliverDiscordMessage({
+    discordClient,
+    channelId,
+    embed,
+    post,
+    event,
+    log,
+  });
 }
+export default send;
+Object.assign(send, {
+  send,
+});

@@ -1,8 +1,9 @@
 import { log as logger } from "@eliware/common";
-import { createPresenceRateLimiter } from "./presenceRateLimiter.mjs";
-import { createPresenceLifecycle } from "./presenceLifecycle.mjs";
-
-export function createPresenceManager({
+import __knitModule0 from "./presenceRateLimiter.mjs";
+import __knitModule1 from "./presenceLifecycle.mjs";
+const { createPresenceRateLimiter } = __knitModule0;
+const { createPresenceLifecycle } = __knitModule1;
+function createPresenceManager({
   client,
   version,
   now = () => Date.now(),
@@ -11,16 +12,29 @@ export function createPresenceManager({
   log = logger,
 } = {}) {
   const versionPresence = () => ({
-    activities: [{ name: `🧶 knit v${version}`, type: 4 }],
+    activities: [
+      {
+        name: `🧶 knit v${version}`,
+        type: 4,
+      },
+    ],
     status: "online",
   });
   const busyPresence = (text) => ({
-    activities: [{ name: String(text).slice(0, 128), type: 4 }],
+    activities: [
+      {
+        name: String(text).slice(0, 128),
+        type: 4,
+      },
+    ],
     status: "online",
   });
-
-  const send = createPresenceRateLimiter({ client, now, setTimeoutFn, log });
-
+  const send = createPresenceRateLimiter({
+    client,
+    now,
+    setTimeoutFn,
+    log,
+  });
   return createPresenceLifecycle({
     send,
     versionPresence,
@@ -30,11 +44,16 @@ export function createPresenceManager({
     log,
   });
 }
-
 let activeManager;
-export function setPresenceManager(manager) {
+function setPresenceManager(manager) {
   activeManager = manager;
 }
-export function getPresenceManager() {
+function getPresenceManager() {
   return activeManager;
 }
+export default createPresenceManager;
+Object.assign(createPresenceManager, {
+  createPresenceManager,
+  setPresenceManager,
+  getPresenceManager,
+});

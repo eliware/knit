@@ -1,4 +1,4 @@
 #!/usr/bin/env node
-import { start } from "../src/main.mjs";
-
+import __knitModule0 from "../src/main.mjs";
+const { start } = __knitModule0;
 start();

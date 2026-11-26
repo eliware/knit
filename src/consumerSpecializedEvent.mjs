@@ -1,6 +1,6 @@
-import { finishConsumerOutcome } from "./consumerOutcomePresence.mjs";
-
-export async function processSpecializedEvent({
+import __knitModule0 from "./consumerOutcomePresence.mjs";
+const { finishConsumerOutcome } = __knitModule0;
+async function processSpecializedEvent({
   event,
   post,
   target,
@@ -16,12 +16,25 @@ export async function processSpecializedEvent({
     ref: post?.ref || null,
     deliveryId,
   });
-  const result = await HandlersMod.dispatch({ event, post, target, deliveryId, log });
+  const result = await HandlersMod.dispatch({
+    event,
+    post,
+    target,
+    deliveryId,
+    log,
+  });
   await finishConsumerOutcome({
     presence,
-    outcome: { type: "specialized", result },
+    outcome: {
+      type: "specialized",
+      result,
+    },
     repository,
     deliveryId,
   });
   return result;
 }
+export default processSpecializedEvent;
+Object.assign(processSpecializedEvent, {
+  processSpecializedEvent,
+});

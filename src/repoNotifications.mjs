@@ -1,14 +1,11 @@
-import * as Notifier from "./notifier/send.mjs";
-
-export function isTagUpdate(body) {
+import Notifier from "./notifier/send.mjs";
+function isTagUpdate(body) {
   return body?.ref?.startsWith("refs/tags/") || false;
 }
-
-export async function notifyUpdate(options) {
+async function notifyUpdate(options) {
   return isTagUpdate(options.body) ? notifyTag(options) : notifyPush(options);
 }
-
-export async function notifyTag({
+async function notifyTag({
   notifyFn,
   repo,
   body,
@@ -18,7 +15,14 @@ export async function notifyTag({
   NotifierMod = Notifier,
 }) {
   if (notifyFn) {
-    return notifyFn({ repo, body, event, logOutput: "", hasError: false, log });
+    return notifyFn({
+      repo,
+      body,
+      event,
+      logOutput: "",
+      hasError: false,
+      log,
+    });
   }
   return NotifierMod.send({
     post: body,
@@ -29,8 +33,7 @@ export async function notifyTag({
     log,
   });
 }
-
-export async function notifyPush({
+async function notifyPush({
   notifyFn,
   repo,
   body,
@@ -58,3 +61,10 @@ export async function notifyPush({
     log,
   });
 }
+export default isTagUpdate;
+Object.assign(isTagUpdate, {
+  isTagUpdate,
+  notifyUpdate,
+  notifyTag,
+  notifyPush,
+});

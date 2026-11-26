@@ -1,4 +1,4 @@
-export function createPresenceDeliveryCorrelation() {
+function createPresenceDeliveryCorrelation() {
   const activeDeliveries = new Map();
   let anonymousDeliveries = 0;
   return {
@@ -27,3 +27,7 @@ export function createPresenceDeliveryCorrelation() {
     },
   };
 }
+export default createPresenceDeliveryCorrelation;
+Object.assign(createPresenceDeliveryCorrelation, {
+  createPresenceDeliveryCorrelation,
+});

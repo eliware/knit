@@ -1,21 +1,27 @@
 let sharedDiscordClient;
 let resolveRepositoryChannel;
-
-export function setDiscordClient(client) {
+function setDiscordClient(client) {
   sharedDiscordClient = client;
 }
-
-export function setChannelResolver(resolver) {
+function setChannelResolver(resolver) {
   resolveRepositoryChannel = resolver;
 }
-
-export function clearDiscordClient(client) {
+function clearDiscordClient(client) {
   if (!client || sharedDiscordClient === client) {
     sharedDiscordClient = undefined;
     resolveRepositoryChannel = undefined;
   }
 }
-
-export function getNotifierState() {
-  return { discordClient: sharedDiscordClient, resolveRepositoryChannel };
+function getNotifierState() {
+  return {
+    discordClient: sharedDiscordClient,
+    resolveRepositoryChannel,
+  };
 }
+export default setDiscordClient;
+Object.assign(setDiscordClient, {
+  setDiscordClient,
+  setChannelResolver,
+  clearDiscordClient,
+  getNotifierState,
+});
