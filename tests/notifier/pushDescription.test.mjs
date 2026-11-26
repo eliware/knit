@@ -16,6 +16,23 @@ test("formats branch and commit details", () => {
     }),
   ).toBe("Branch: **main** - Commits: **1**\n**1234567**: [change](https://example.test/commit)");
 });
+test("formats release commit titles without unnecessary escapes or entities", () => {
+  expect(
+    createPushDescription({
+      post: {
+        commits: [
+          {
+            id: "2ec4b8a",
+            message: "chore(release): finalize 15.2.0 preparation&#x20;",
+            url: "https://github.com/eliware/piano/commit/2ec4b8a",
+          },
+        ],
+      },
+    }),
+  ).toContain(
+    "**2ec4b8a**: [chore(release): finalize 15.2.0 preparation](https://github.com/eliware/piano/commit/2ec4b8a)",
+  );
+});
 test("escapes untrusted commit text and link targets", () => {
   expect(
     createPushDescription({
@@ -30,7 +47,7 @@ test("escapes untrusted commit text and link targets", () => {
         ],
       },
     }),
-  ).toContain("\\]\\(https://evil.test\\) @\u200bhere");
+  ).toContain("\\]\\(https://evil.test) @\u200bhere");
 });
 test("truncates long commit descriptions", () => {
   const description = createPushDescription({

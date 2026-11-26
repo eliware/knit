@@ -8,7 +8,7 @@ function createPushDescription({ post, logOutput, hasError }) {
   let description = `Branch: **${branch}** - Commits: **${post.commits.length}**\n`;
   for (const commit of post.commits) {
     const id = escapeDiscordMarkdown(commit.id?.substring(0, 7) || "");
-    const message = escapeDiscordMarkdown(commit.message || "");
+    const message = escapeDiscordMarkdown(commit.message || "").trim();
     const url = escapeDiscordLinkTarget(commit.url || "");
     description += `**${id}**: [${message}](${url})\n`;
   }

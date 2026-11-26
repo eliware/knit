@@ -1,27 +1,14 @@
-const markdownCharacters = new Set([
-  "\\",
-  "`",
-  "*",
-  "_",
-  "{",
-  "}",
-  "[",
-  "]",
-  "(",
-  ")",
-  "#",
-  "+",
-  "!",
-  "|",
-  "~",
-  ">",
-]);
+const markdownCharacters = new Set(["\\", "`", "*", "_", "[", "]", "|", "~"]);
 function escapeDiscordMarkdown(value) {
   const normalized = String(value).replace(/&#(?:x0*20|0*32);/giu, " ");
   const escaped = [...normalized]
-    .map((character) => (markdownCharacters.has(character) ? `\\${character}` : character))
+    .map((character, index) => {
+      const isLinkSyntax = character === "(" && normalized[index - 1] === "]";
+      return markdownCharacters.has(character) || isLinkSyntax ? `\\${character}` : character;
+    })
     .join("");
-  return escaped.replace(/@(everyone|here)\b/giu, "@\u200b$1");
+  const safeLines = escaped.replace(/(^|\n)([ \t]*)([#>+-])(?=[ \t])/gu, "$1$2\\$3");
+  return safeLines.replace(/@(everyone|here)\b/giu, "@\u200b$1");
 }
 function escapeDiscordCode(value) {
   return String(value).replaceAll("```", "ˋˋˋ");

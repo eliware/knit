@@ -6,6 +6,10 @@
 
 - Knit updates its package version and lockfile to 15.2.1.
 
+### Fixed
+
+- Knit preserves ordinary punctuation in Discord embeds and removes encoded spaces.
+
 ## 15.2.0 — 2026-11-26
 
 ### Added
