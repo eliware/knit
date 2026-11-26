@@ -1,5 +1,6 @@
 import __knitModule0 from "./discordMarkdown.mjs";
-const { escapeDiscordCode, escapeDiscordMarkdown } = __knitModule0;
+import escapeDiscordCode from "./code-escaping.mjs";
+const { escapeDiscordMarkdown } = __knitModule0;
 function createGenericEmbed({ post, event, logOutput, hasError }) {
   const repository = escapeDiscordMarkdown(post.repository?.full_name || "Unknown Repository");
   const action = escapeDiscordMarkdown(post.action || "Event");

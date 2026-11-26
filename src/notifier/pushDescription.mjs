@@ -1,6 +1,7 @@
 import __knitModule0 from "./discordMarkdown.mjs";
 import __knitModule1 from "./errorLog.mjs";
-const { escapeDiscordLinkTarget, escapeDiscordMarkdown } = __knitModule0;
+import escapeDiscordLinkTarget from "./link-target-encoding.mjs";
+const { escapeDiscordMarkdown } = __knitModule0;
 const { appendErrorLog } = __knitModule1;
 const COMMIT_DESCRIPTION_LIMIT = 1800;
 function createPushDescription({ post, logOutput, hasError }) {

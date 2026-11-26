@@ -1,7 +1,7 @@
 import { createDiscord } from "@eliware/discord";
 import { log as logger, path } from "@eliware/common";
-import __knitModule0 from "./discordServices.mjs";
-const { registerDiscordServices, unregisterDiscordServices } = __knitModule0;
+import createDiscordClientServices from "./discord/client-services.mjs";
+const discordClientServices = createDiscordClientServices();
 async function startDiscordClient({
   createDiscordFn = createDiscord,
   token = process.env.DISCORD_TOKEN,
@@ -29,7 +29,7 @@ async function startDiscordClient({
     intents,
     log,
   });
-  registerDiscordServices({
+  discordClientServices.register({
     client,
     guildId,
     targetLoader,
@@ -40,7 +40,7 @@ async function startDiscordClient({
 }
 async function stopDiscordClient(client) {
   if (!client) return;
-  unregisterDiscordServices({
+  discordClientServices.unregister({
     client,
   });
   await client.shutdown?.();

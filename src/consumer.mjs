@@ -7,13 +7,13 @@ import __knitModule0 from "./presenceManager.mjs";
 import __knitModule1 from "./consumerValidation.mjs";
 import __knitModule2 from "./consumerRouting.mjs";
 import __knitModule3 from "./consumerOutcomePresence.mjs";
-import __knitModule4 from "./consumerPush.mjs";
+import __knitModule4 from "./consumer/push.mjs";
 import __knitModule5 from "./consumerSpecializedEvent.mjs";
 const { getPresenceManager } = __knitModule0;
 const { validateConsumerMessage } = __knitModule1;
 const { resolveConsumerTarget } = __knitModule2;
 const { finishConsumerOutcome } = __knitModule3;
-const { processRepositoryPush } = __knitModule4;
+const { routePushEvent } = __knitModule4;
 const { processSpecializedEvent } = __knitModule5;
 async function consume({
   message,
@@ -50,14 +50,12 @@ async function consume({
       return false;
     }
     if (event === "push") {
-      return await processRepositoryPush({
-        post,
-        deliveryId,
+      return await routePushEvent({
+        message,
         log,
         RepoMod,
         RouterMod,
         presence,
-        repository,
       });
     }
     stage = "target_lookup";

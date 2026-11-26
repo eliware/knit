@@ -14,7 +14,7 @@ const log = {
   error: jest.fn(),
 };
 beforeEach(() => jest.clearAllMocks());
-it("should not send if channelId is missing", async () => {
+it("returns without sending when the channel is missing or cannot be resolved", async () => {
   const sendMessageFn = jest.fn();
   await notifier.send({
     channelId: "",
@@ -25,6 +25,8 @@ it("should not send if channelId is missing", async () => {
     discordClient: makeClient(sendMessageFn),
   });
   expect(sendMessageFn).not.toHaveBeenCalled();
+  notifierState.clearDiscordClient();
+  await expect(notifier.send({})).resolves.toBeUndefined();
 });
 it("should reject when the shared Discord client is not connected", async () => {
   notifierState.clearDiscordClient();
@@ -148,7 +150,4 @@ it("covers send parameter defaults on an early return", async () => {
     channelId: "",
     post: {},
   });
-});
-it("returns when no channel is configured", async () => {
-  await expect(notifier.send({})).resolves.toBeUndefined();
 });

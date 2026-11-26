@@ -1,21 +1,14 @@
 import express from "express";
-import bodyParser from "body-parser";
 import { log as logger, path } from "@eliware/common";
 import packageJson from "../package.json" with { type: "json" };
 import __knitModule0 from "./webhookProcessor.mjs";
 import __knitModule1 from "./landingPage.mjs";
+import __knitModule2 from "./app/middleware.mjs";
+import __knitModule3 from "./app/error-handler.mjs";
 const { createWebhookProcessor } = __knitModule0;
 const { renderLandingPage } = __knitModule1;
-function configureMiddleware(app, assetsPath) {
-  app.use("/assets", express.static(assetsPath));
-  app.use(
-    bodyParser.json({
-      verify: (req, res, buf) => {
-        req.rawBody = buf.toString("utf8");
-      },
-    }),
-  );
-}
+const { configureMiddleware } = __knitModule2;
+const { configureErrorHandler } = __knitModule3;
 function configureRoutes(app, processor, log, version) {
   app.get("/", (req, res) => {
     res.status(200).type("html").send(renderLandingPage(version));
@@ -29,15 +22,6 @@ function configureRoutes(app, processor, log, version) {
   app.post("/", (req, res) => {
     log.info("[App] Incoming POST / request");
     processor.process(req, res);
-  });
-}
-function configureErrors(app, log) {
-  app.use((error, request, response, next) => {
-    if (error?.type === "entity.parse.failed") {
-      log.warn?.("[App] Invalid JSON request body");
-      return response.status(400).send("Webhook processing failed.");
-    }
-    return next(error);
   });
 }
 async function createApp({
@@ -54,7 +38,7 @@ async function createApp({
     log,
   });
   configureRoutes(app, processor, log, version);
-  configureErrors(app, log);
+  configureErrorHandler(app, log);
   return app;
 }
 export default createApp;
