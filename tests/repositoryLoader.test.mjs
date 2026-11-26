@@ -1,7 +1,7 @@
 import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
 import __knitModule0 from "../src/repositoryLoader.mjs";
-import __knitModule1 from "../src/repo.mjs";
+import __knitModule1 from "../src/repo/factory.mjs";
 const { get } = __knitModule0;
 const { createSshRepo } = __knitModule1;
 const deployment = (overrides) => ({

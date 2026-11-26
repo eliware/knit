@@ -1,7 +1,7 @@
 import "../test-fixtures/silenceConsole.mjs";
 import { jest } from "@jest/globals";
 import { body, deployment, target } from "../test-fixtures/repo.mjs";
-import __knitModule0 from "../src/repo.mjs";
+import __knitModule0 from "../src/repo/factory.mjs";
 import __knitModule1 from "../src/presenceManager.mjs";
 const { createSshRepo } = __knitModule0;
 const { setPresenceManager } = __knitModule1;

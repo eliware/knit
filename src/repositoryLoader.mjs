@@ -3,7 +3,7 @@ import ConfigValidator from "./configValidator.mjs";
 import __knitModule0 from "./workflowActionSelector.mjs";
 import __knitModule1 from "./workflowLoader.mjs";
 import __knitModule2 from "./targetLoader.mjs";
-import __knitModule3 from "./repo.mjs";
+import __knitModule3 from "./repo/factory.mjs";
 const { selectWorkflowAction } = __knitModule0;
 const { loadWorkflow } = __knitModule1;
 const { defaultTargetLoader } = __knitModule2;
