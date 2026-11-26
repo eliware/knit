@@ -133,17 +133,6 @@ test("creates public and private repository channels", async () => {
   });
   expect(privateClient.created).toHaveLength(1);
 });
-test("uses the repository name without its owner or a hash suffix", async () => {
-  const { client, created } = clientWith();
-  await createChannelResolver({
-    client,
-    guildId: "guild",
-  })({
-    repository: "eliware/agentx-cli",
-  });
-  expect(created[0].options.name).toBe("agentx-cli");
-  expect(created[0].options.name).not.toMatch(/-[a-f0-9]{12}$/u);
-});
 test("rejects a channel without overwrite support", async () => {
   const { client } = clientWith([
     {

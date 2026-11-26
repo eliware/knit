@@ -1,39 +1,15 @@
 import { log as logger } from "@eliware/common";
-import SignatureValidator from "./signatureValidator.mjs";
 import Publisher from "./publisher.mjs";
 import __knitModule0 from "./webhookEventDetails.mjs";
+import __knitModule1 from "./webhook/signature.mjs";
 const { projectWebhookEventDetails } = __knitModule0;
+const { validateWebhookSignature } = __knitModule1;
 function createWebhookProcessor({
   publisher = Publisher,
   log = logger,
-  SignatureValidatorMod = SignatureValidator,
+  SignatureValidatorMod,
 } = {}) {
   const secret = process.env.GITHUB_WEBHOOK_SECRET || "";
-  /**
-   * Validates the GitHub webhook signature.
-   * @param {Object} params
-   * @param {string} params.body - The raw request body.
-   * @param {string} params.signature - The signature from the header.
-   * @param {string} params.secret - The webhook secret.
-   * @param {Object} [params.log] - Logger instance to use.
-   * @throws {Error} If the signature is missing or invalid.
-   */
-  function validateSignature({ body, signature, secret, log }) {
-    if (!secret || !signature) {
-      log.error("Request not permitted: Missing secret or signature.");
-      throw new Error("Request not permitted: Missing secret or signature.");
-    }
-    if (
-      !SignatureValidatorMod.validate({
-        data: body,
-        secret,
-        signature,
-      })
-    ) {
-      log.error("Request not permitted: Invalid signature.");
-      throw new Error("Request not permitted: Invalid signature.");
-    }
-  }
   return {
     /**
      * Processes an incoming webhook request.
@@ -44,11 +20,12 @@ function createWebhookProcessor({
       try {
         const rawData = req.rawBody;
         const data = req.body;
-        validateSignature({
+        validateWebhookSignature({
           body: rawData,
           signature: req.headers["x-hub-signature-256"],
           secret,
           log,
+          SignatureValidatorMod,
         });
         log.info("[WebhookProcessor] Signature validated");
         const event = req.headers["x-github-event"] || "push";
